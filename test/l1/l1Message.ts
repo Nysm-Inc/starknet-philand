@@ -36,6 +36,30 @@ const createPhiland = parseFixed(
     
 });
 
+// describe("createObject", function () {
+//     it("sends a message to l2, emits event", async () => {
+//       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =
+//         await setupTest();
+        
+//       const grid_x = 0;
+//       const grid_y = 0;
+//       const ensname = BigInt(147948997034476692113290344);
+
+//       await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, grid_x,grid_y,ensname))
+//         .to.emit(l1Philand, "LogCreatePhiland")
+//         .withArgs(l1Alice.address, grid_x, grid_y,ensname);
+
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
+//         l2PhilandAddress,
+//         createPhiland,
+//         [grid_x,grid_y , ensname]
+//       );
+
+//     });
+    
+// });
+
 async function setupTest() {
   const [admin, l1Alice, l1Bob] = await hre.ethers.getSigners();
 

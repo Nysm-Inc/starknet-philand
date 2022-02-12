@@ -33,16 +33,13 @@ contract PhilandL1 {
         starknetCore = _starknetCore;
     }
         
-
     function createPhiland(
         uint256 l2ContractAddress,
         uint256 grid_x,
         uint256 grid_y,
         uint256 ensname
         ) external {
-
-        emit LogCreatePhiland(msg.sender, grid_x, grid_y,ensname);
-        
+        emit LogCreatePhiland(msg.sender, grid_x, grid_y,ensname);        
         uint256[] memory payload = new uint256[](3);
         payload[0] = grid_x;
         payload[1] = grid_y;
@@ -51,6 +48,7 @@ contract PhilandL1 {
         // Send the message to the StarkNet core contract.
         starknetCore.sendMessageToL2(l2ContractAddress, CREATE_GRID_SELECTOR, payload);
     }
+
 
     function asciiToInteger(bytes32 x) public pure returns (uint256) {
         uint256 y;

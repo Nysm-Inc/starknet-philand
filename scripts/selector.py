@@ -13,4 +13,5 @@ def felt_to_str(felt):
 
 print(get_selector_from_name('create_grid'))
 print(str_to_felt('zak3939.eth'))
+print(felt_to_str(147948997034476692113290344))
 
