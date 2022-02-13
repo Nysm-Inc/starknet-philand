@@ -24,7 +24,11 @@ contract PhilandL1 {
     uint256 constant CREATE_GRID_SELECTOR =
         230744737155971716570284140634551213064188756564393274009046094202533668423;
 
+    uint256 constant CLAIM_L1_OBJECT_SELECTOR =
+        1426524085905910661260502794228018787518743932072178038305015687841949115798;
+
     event LogCreatePhiland(address indexed l1Sender, uint256 grid_x, uint256 grid_y, uint256 ensname);
+    event LogClaimObject(uint256 ensname,uint256 contract_address,uint256 tokenid);
     /**
       Initializes the contract state.
     */
@@ -49,6 +53,28 @@ contract PhilandL1 {
         starknetCore.sendMessageToL2(l2ContractAddress, CREATE_GRID_SELECTOR, payload);
     }
 
+    function claimObject(
+        uint256 l2ContractAddress,
+        uint256 ensname,
+        address contract_address,
+        uint256 tokenid
+        ) external {
+
+        emit LogClaimObject(ensname,uint256(uint160(contract_address)),tokenid);        
+        uint256[] memory payload = new uint256[](3);
+        payload[0] = ensname;
+        payload[1] = uint256(uint160(contract_address));
+        payload[2] = tokenid;
+
+        // Send the message to the StarkNet core contract.
+        starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
+    }
+
+    function toSplitUint(uint256 value) internal pure returns (uint256, uint256) {
+    uint256 low = value & ((1 << 128) - 1);
+    uint256 high = value >> 128;
+    return (low, high);
+    }
 
     function asciiToInteger(bytes32 x) public pure returns (uint256) {
         uint256 y;

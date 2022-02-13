@@ -12,7 +12,7 @@ from starkware.cairo.common.hash_state import (
     hash_init, hash_finalize, hash_update, hash_update_single
 )
 
-from contracts.l2.ERC165_base import (
+from contracts.l2.token.ERC165_base import (
     ERC165_supports_interface, 
     ERC165_register_interface
 ) 

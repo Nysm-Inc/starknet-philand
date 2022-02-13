@@ -11,12 +11,28 @@ from starkware.cairo.common.math import (unsigned_div_rem, assert_nn,
     split_int)
 from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address)
+from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 ##### Description #####
 #
 
 #
 #######################
+
+@contract_interface
+namespace IObject:
+    func mint(to_address : felt, value : Uint256):
+    end
+
+    func burn(from_address : felt, value : Uint256):
+    end
+
+    func allowance(owner : felt, spender : felt) -> (res : Uint256):
+    end
+
+    func balanceOf(user : felt) -> (res : Uint256):
+    end
+end
 
 ##### Constants #####
 # Width of the simulation grid.
@@ -54,7 +70,7 @@ end
 func object_info(
         object_id : felt
     ) -> (
-        token : (felt,felt)
+        token : (felt,Uint256)
     ):
 end
 
@@ -72,7 +88,7 @@ end
 func object_tokenid(
         object_id : felt
     ) -> (
-        tokenid : felt
+        tokenid : Uint256
     ):
 end
 
@@ -298,7 +314,7 @@ func create_object{
         range_check_ptr
     }(
         contract_address : felt,
-        tokenid : felt
+        tokenid : Uint256
     ):
     let (current_index) = object_index.read()
     let idx = current_index + 1
@@ -319,6 +335,23 @@ func claim_object{
         object_id : felt
     ):
     object_owner.write(owner,object_id,1)
+    return ()
+end
+
+@l1_handler
+func claim_l1_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        from_address : felt, 
+        owner : felt,
+        contract_address : felt,
+        tokenid : Uint256
+    ):
+    create_object(contract_address,tokenid)
+    let (current_index) = object_index.read()
+    object_owner.write(owner,current_index,1)
     return ()
 end
 
@@ -497,7 +530,7 @@ func view_object{
         object_id : felt
     ) -> (
         contract_address : felt,
-        tokenid : felt
+        tokenid : Uint256
     ):
     let (contract_address) = object_contract.read(object_id)
     let (tokenid) = object_tokenid.read(object_id)

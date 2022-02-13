@@ -16,7 +16,7 @@ def event_loop():
 @pytest.fixture(scope='module')
 async def erc165_factory():
     starknet = await Starknet.empty()
-    contract = await starknet.deploy("contracts/l2/ERC165.cairo")
+    contract = await starknet.deploy("contracts/l2/token/ERC165.cairo")
     return contract
 
 

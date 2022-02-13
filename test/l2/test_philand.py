@@ -3,7 +3,7 @@ import os
 import pytest
 import asyncio
 from starkware.starknet.testing.starknet import Starknet
-from utils import str_to_felt, felt_to_str,Signer
+from utils import str_to_felt, felt_to_str,Signer,uint
 
 # constants
 NUM_SIGNING_ACCOUNTS = 2
@@ -11,6 +11,20 @@ DUMMY_PRIVATE = 12345678987654321
 L1_ADDRESS = 0x1
 signers = []
 ENS_NAME = "zak3939.eth"
+
+###########
+# HELPERS #
+###########
+
+
+def to_split_uint(a):
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
+def to_uint(a):
+    return a[0] + (a[1] << 128)
+
+
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -42,7 +56,7 @@ async def philand_factory(account_factory):
     starknet, accounts = account_factory
     # Deploy
     print(f'Deploying philand...')
-    philand = await starknet.deploy("contracts/l2/philand.cairo")
+    philand = await starknet.deploy("contracts/l2/Philand.cairo")
     print(f'philand is: {hex(philand.contract_address)}')
     return starknet, philand, accounts
 
@@ -96,13 +110,13 @@ async def test_create_object(
 ):
     _, philand, accounts = philand_factory
     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
-    tokenid = 13
+    tokenid = 13    
 
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     print('New Object is creating...')
 
-    payload = [lootContract, tokenid]
+    payload = [lootContract, *to_split_uint(tokenid)]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
