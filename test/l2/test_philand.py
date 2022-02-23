@@ -15,8 +15,6 @@ ENS_NAME = "zak3939.eth"
 ###########
 # HELPERS #
 ###########
-
-
 def to_split_uint(a):
     return (a & ((1 << 128) - 1), a >> 128)
 

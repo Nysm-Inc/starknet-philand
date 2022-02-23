@@ -21,6 +21,9 @@ from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 @contract_interface
 namespace IObject:
+    func ownerOf(tokenid : Uint256) -> (owner : felt):
+    end
+    
     func mint(to_address : felt, value : Uint256):
     end
 
@@ -31,6 +34,9 @@ namespace IObject:
     end
 
     func balanceOf(user : felt) -> (res : Uint256):
+    end
+
+    func setTokenURI(tokenid : Uint256) -> (tokenURI : felt):
     end
 end
 
@@ -319,11 +325,13 @@ func create_object{
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
+
     object_info.write(idx,(contract_address,tokenid))
     object_contract.write(idx,contract_address)
     object_tokenid.write(idx,tokenid)
     return ()
 end
+
 
 @external
 func claim_object{
@@ -331,9 +339,25 @@ func claim_object{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
+        account : felt,
         owner : felt,
         object_id : felt
     ):
+    # check valid recipient
+    with_attr error_message("Object/invalid-recipient"):
+      assert_not_zero(account)
+      let (caller_address) = get_caller_address()
+      assert_not_equal(account, caller_address)
+    end
+
+    with_attr error_message("Object/invalid-nft"):
+    #   assert_not_zero(num)
+    end
+
+    # with_attr error_message("Object/invalid-tokenid"):
+    #   let (nftOwner) = IObject.ownerOf(tokenid)
+    # end
+
     object_owner.write(owner,object_id,1)
     return ()
 end
@@ -344,7 +368,24 @@ func claim_l1_object{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        from_address : felt, 
+        from_address : felt,
+        owner : felt,
+        contract_address : felt,
+        tokenid : Uint256
+    ):
+    create_object(contract_address,tokenid)
+    let (current_index) = object_index.read()
+    object_owner.write(owner,current_index,1)
+    return ()
+end
+
+@l1_handler
+func claim_l2_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        from_address : felt,
         owner : felt,
         contract_address : felt,
         tokenid : Uint256
@@ -379,6 +420,7 @@ func write_object_to_parcel{
         y : felt,
         object_id : felt
     ):
+    
     parcel.write(owner, x, y,value=object_id)
     return ()
 end
@@ -540,4 +582,3 @@ end
 #############################
 ##### Private functions #####
 #############################
-

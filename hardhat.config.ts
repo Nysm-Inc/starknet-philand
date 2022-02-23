@@ -32,6 +32,11 @@ if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
 }
 
+const pkey: string | undefined = process.env.ADMIN_SIGNER_PRIVATE_KEY;
+if (!pkey) {
+  throw new Error("Please set your pkey in a .env file");
+}
+
 function getChainConfig(network: keyof typeof chainIds): NetworkUserConfig {
   const url: string = `https://${network}.infura.io/v3/${infuraApiKey}`;
   return {
@@ -66,6 +71,12 @@ const config: HardhatUserConfig = {
         mnemonic,
         path: "m/44'/60'/0'/0",
       },
+      // accounts: [{
+      //   privateKey: pkey,
+      //   balance: '10000000000000000000'},
+      //   {
+      //   privateKey: pkey,
+      //   balance: '10000000000000000000'}],
     },
   },
   mocha: {

@@ -1,5 +1,5 @@
 pragma solidity ^0.8.8;
-import "@ensdomains/ens-contracts/contracts/registry/ENS.sol";
+import "@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol";
 
 interface IStarknetCore {
     /**
@@ -15,9 +15,10 @@ interface IStarknetCore {
  
 contract PhilandL1 {
      // The StarkNet core contract.
-    IStarknetCore starknetCore;
+    IStarknetCore _starknetCore;
     ENS internal ens; 
 
+    address private _adminSigner;
     mapping(uint256 => uint256) public userBalances;
 
     // The selector of the "create_philand" l1_handler.
@@ -27,14 +28,19 @@ contract PhilandL1 {
     uint256 constant CLAIM_L1_OBJECT_SELECTOR =
         1426524085905910661260502794228018787518743932072178038305015687841949115798;
 
+    uint256 constant CLAIM_L2_OBJECT_SELECTOR =
+    725729645710710348624275617047258825327720453914706103365608274738200251740;
+
     event LogCreatePhiland(address indexed l1Sender, uint256 grid_x, uint256 grid_y, uint256 ensname);
     event LogClaimObject(uint256 ensname,uint256 contract_address,uint256 tokenid);
+    event LogClaimL2Object(uint256 ensname,uint256 contract_address,uint256 tokenid);
     /**
       Initializes the contract state.
     */
-    constructor(IStarknetCore _starknetCore
+    constructor(IStarknetCore starknetCore,address adminSigner
     ) public {
-        starknetCore = _starknetCore;
+        _starknetCore = starknetCore;
+        _adminSigner = adminSigner;
     }
         
     function createPhiland(
@@ -43,17 +49,17 @@ contract PhilandL1 {
         uint256 grid_y,
         uint256 ensname
         ) external {
+        
         emit LogCreatePhiland(msg.sender, grid_x, grid_y,ensname);        
         uint256[] memory payload = new uint256[](3);
         payload[0] = grid_x;
         payload[1] = grid_y;
-        // payload[2] = asciiToInteger(node);
         payload[2] = ensname;
         // Send the message to the StarkNet core contract.
-        starknetCore.sendMessageToL2(l2ContractAddress, CREATE_GRID_SELECTOR, payload);
+        _starknetCore.sendMessageToL2(l2ContractAddress, CREATE_GRID_SELECTOR, payload);
     }
 
-    function claimObject(
+    function claimL1Object(
         uint256 l2ContractAddress,
         uint256 ensname,
         address contract_address,
@@ -67,8 +73,62 @@ contract PhilandL1 {
         payload[2] = tokenid;
 
         // Send the message to the StarkNet core contract.
-        starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
+        _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
     }
+
+    struct Coupon {
+    bytes32 r;
+    bytes32 s;
+    uint8 v;
+    }
+    
+    enum CouponType {
+    Genesis,
+    Author,
+    Presale
+    }
+
+
+    function claimL2Object(
+        uint256 l2ContractAddress,
+        uint256 ensname,
+        address contract_address,
+        uint256 tokenid,
+        Coupon memory coupon
+        ) external {
+
+        bytes32 digest = keccak256(
+        abi.encode(CouponType.Presale, msg.sender)
+        ); 
+    
+        require(
+        _isVerifiedCoupon(digest, coupon), 
+        'Invalid coupon'
+        ); 
+        emit LogClaimL2Object(ensname,uint256(uint160(contract_address)),tokenid);
+
+        uint256[] memory payload = new uint256[](3);
+        payload[0] = ensname;
+        payload[1] = uint256(uint160(contract_address));
+        payload[2] = tokenid;
+
+        // Send the message to the StarkNet core contract.
+        _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
+    }
+
+    /// @dev check that the coupon sent was signed by the admin signer
+	function _isVerifiedCoupon(bytes32 digest, Coupon memory coupon)
+		internal
+		view
+		returns (bool)
+	{
+		
+		address signer = ecrecover(digest, coupon.v, coupon.r, coupon.s);
+		require(signer != address(0), 'ECDSA: invalid signature'); // Added check for zero address
+		return signer == _adminSigner;
+	}
+
+    
 
     function toSplitUint(uint256 value) internal pure returns (uint256, uint256) {
     uint256 low = value & ((1 << 128) - 1);
@@ -76,7 +136,8 @@ contract PhilandL1 {
     return (low, high);
     }
 
-    function asciiToInteger(bytes32 x) public pure returns (uint256) {
+
+    function asciiToInteger(bytes32 x) internal pure returns (uint256) {
         uint256 y;
         for (uint256 i = 0; i < 32; i++) {
             uint256 c = (uint256(x) >> (i * 8)) & 0xff;
@@ -91,4 +152,5 @@ contract PhilandL1 {
         }
         return y;
     }
+
 }

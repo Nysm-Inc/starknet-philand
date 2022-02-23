@@ -14,6 +14,8 @@ def str_to_felt(text):
     return int.from_bytes(b_text, "big")
 
 
+
+
 def felt_to_str(felt):
     b_felt = felt.to_bytes(31, "big")
     return b_felt.decode()

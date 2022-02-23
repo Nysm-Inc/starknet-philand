@@ -8,7 +8,8 @@ build
 
 node_modules
 .env
-
+scripts/.env
+test/l1/.env
 #Hardhat files
 cache
 artifacts
