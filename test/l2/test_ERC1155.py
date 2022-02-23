@@ -29,10 +29,10 @@ async def erc1155_factory():
 
 
     erc1155 = await starknet.deploy(
-        "contracts/l2/ERC1155.cairo",
+        "contracts/l2/token/ERC1155.cairo",
         constructor_calldata=[
             account.contract_address,
-            # Initialize with 1000 of token_id = 1 and 500 of token_id = 2
+            # Initialize with 1000 of token_id = 1 and 500 of token_id 2
             2, 1, 2, 2, 1000, 500,
             # Initialize URI : cairo:1/erc1155:12345678912345678912/{id}
             # As defined in CAIP-29 : {blockchain_namespace}:{blockchain_reference}/{asset_namespace}:{asset_reference}/{token_id}

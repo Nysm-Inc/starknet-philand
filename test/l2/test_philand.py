@@ -12,6 +12,10 @@ L1_ADDRESS = 0x1
 signers = []
 ENS_NAME = "zak3939.eth"
 
+L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
+ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
+OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
+PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
 ###########
 # HELPERS #
 ###########
@@ -39,7 +43,7 @@ async def account_factory():
         signer = Signer(DUMMY_PRIVATE + i)
         signers.append(signer)
         account = await starknet.deploy(
-            "contracts/l2/Account.cairo",
+            source=ACCOUNT_FILE,
             constructor_calldata=[signer.public_key]
         )
 
@@ -49,32 +53,47 @@ async def account_factory():
 
     return starknet, accounts
 
+
 @pytest.fixture(scope='module')
-async def philand_factory(account_factory):
+async def object_factory(account_factory):
     starknet, accounts = account_factory
     # Deploy
+    print(f'Deploying object...')
+    object = await starknet.deploy(source=OBJECT_FILE,
+                                   constructor_calldata=[
+                                       int.from_bytes("object".encode(
+                                           "ascii"), 'big'), 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, int.from_bytes("{id}".encode("ascii"), 'big')
+                                   ])
+    print(f'object is: {hex(object.contract_address)}')
+    return starknet, object, accounts
+
+@pytest.fixture(scope='module')
+async def philand_factory(object_factory):
+    starknet, object, accounts = object_factory
+    # Deploy
     print(f'Deploying philand...')
-    philand = await starknet.deploy("contracts/l2/Philand.cairo")
+    philand = await starknet.deploy(source=PHILAND_FILE,
+    constructor_calldata=[
+        object.contract_address,
+        L1_ADDRESS,
+    ])
     print(f'philand is: {hex(philand.contract_address)}')
-    return starknet, philand, accounts
+    return starknet, philand, object, accounts
 
 
 @pytest.mark.asyncio
-async def test_create_philand(philand_factory):
-    # Start with freshly spawned game
-    _, philand, accounts = philand_factory
-
-    # grid_x = 0 , grid_y = 0 , object = [0]*64
-    x_y_objects = [0]*67
-    x_y_objects[0] = accounts[0].contract_address
-    x_y_objects[32] =1
-    await signers[0].send_transaction(
-        account=accounts[0],
-        to=philand.contract_address,
-        selector_name='create_philand',
-        calldata = x_y_objects)
-
-    # 
+async def test_create_philand(
+    philand_factory
+):
+    starknet, philand,_, accounts = philand_factory
+    await starknet.send_message_to_l2(
+        from_address=L1_ADDRESS,
+        to_address=philand.contract_address,
+        selector="create_philand",
+        payload=[
+            str_to_felt(ENS_NAME)
+        ],
+    )
     response = await philand.view_philand(accounts[0].contract_address).call()
     (im) = response.result
     await view([im])
@@ -82,31 +101,10 @@ async def test_create_philand(philand_factory):
 
 
 @pytest.mark.asyncio
-async def test_create_gird(
+async def test_create_L1nft_object(
     philand_factory
 ):
-    starknet, philand, accounts = philand_factory
-    grid_x=0
-    grid_y=0
-    await starknet.send_message_to_l2(
-        from_address=L1_ADDRESS,
-        to_address=philand.contract_address,
-        selector="create_grid",
-        payload=[
-            grid_x,
-            grid_y,
-            str_to_felt(ENS_NAME)
-        ],
-    )
-    response = await philand.view_grid(grid_x, grid_y).call()
-    print(f'{felt_to_str(response.result.owner)} is Grid({grid_x},{grid_y}) owner')
-
-
-@pytest.mark.asyncio
-async def test_create_object(
-    philand_factory
-):
-    _, philand, accounts = philand_factory
+    _, philand, _, accounts = philand_factory
     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
     tokenid = 13    
 
@@ -118,7 +116,7 @@ async def test_create_object(
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
-        selector_name='create_object',
+        selector_name='create_l1nft_object',
         calldata=payload)
 
     response = await philand.get_object_index().call()
@@ -133,14 +131,16 @@ async def test_create_object(
 async def test_write_object_to_parcel(
     philand_factory
 ):
-    _, philand, accounts = philand_factory
-    x_y_objects = [0]*67
-    x_y_objects[0] = str_to_felt(ENS_NAME)
-    await signers[0].send_transaction(
-        account=accounts[0],
-        to=philand.contract_address,
-        selector_name='create_philand',
-        calldata=x_y_objects)
+    starknet, philand, _, accounts = philand_factory
+
+    await starknet.send_message_to_l2(
+        from_address=L1_ADDRESS,
+        to_address=philand.contract_address,
+        selector="create_philand",
+        payload=[
+            str_to_felt(ENS_NAME)
+        ],
+    )
     print('New Object is writing to parcel...')
 
     payload = [str_to_felt(ENS_NAME), 7, 7, 1]

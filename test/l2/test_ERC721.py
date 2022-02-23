@@ -46,7 +46,7 @@ async def erc721_factory():
     )
 
     erc721 = await starknet.deploy(
-        "contracts/l2/ERC721.cairo",
+        "contracts/l2/token/ERC721.cairo",
         constructor_calldata=[
             str_to_felt("Non Fungible Token"),  # name
             str_to_felt("NFT"),                 # ticker

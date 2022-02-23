@@ -32,7 +32,7 @@ contract PhilandL1 {
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
     event LogCreatePhiland(address indexed l1Sender, uint256 grid_x, uint256 grid_y, uint256 ensname);
-    event LogClaimObject(uint256 ensname,uint256 contract_address,uint256 tokenid);
+    event LogClaimL1NFT(uint256 ensname,uint256 contract_address,uint256 tokenid);
     event LogClaimL2Object(uint256 ensname,uint256 contract_address,uint256 tokenid);
     /**
       Initializes the contract state.
@@ -66,7 +66,7 @@ contract PhilandL1 {
         uint256 tokenid
         ) external {
 
-        emit LogClaimObject(ensname,uint256(uint160(contract_address)),tokenid);        
+        emit LogClaimL1NFT(ensname,uint256(uint160(contract_address)),tokenid);        
         uint256[] memory payload = new uint256[](3);
         payload[0] = ensname;
         payload[1] = uint256(uint160(contract_address));

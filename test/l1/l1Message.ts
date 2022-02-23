@@ -80,7 +80,7 @@ const claimL2Object = parseFixed(
     
 });
 
-describe("claiml1Object", function () {
+describe("claimL1NFT", function () {
     it("sends a message to l2, claim nft event", async () => {
       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =
         await setupTest();
@@ -88,7 +88,7 @@ describe("claiml1Object", function () {
       const lootContract = "0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7"
       const tokenid = 13
       await expect(l1Philand.connect(l1Alice).claimL1Object(l2PhilandAddress, ENSNAME,lootContract,tokenid))
-        .to.emit(l1Philand, "LogClaimObject")
+        .to.emit(l1Philand, "LogClaimL1NFT")
         .withArgs(ENSNAME,lootContract,tokenid);
 
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;

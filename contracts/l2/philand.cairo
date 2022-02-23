@@ -18,26 +18,42 @@ from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 #
 #######################
+struct AssetNamespace:
+    member a : felt
+end
+
+# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
+struct AssetReference:
+    member a : felt
+end
+
+# ERC1155 returns the same URI for all token types.
+# TokenId will be represented by the substring '{id}' and so stored in a felt
+# Client calling the function must replace the '{id}' substring with the actual token type ID
+struct TokenId:
+    member a : felt
+end
+
+struct TokenUri:
+    member asset_namespace : AssetNamespace
+    member asset_reference : AssetReference
+    member token_id : TokenId
+end
 
 @contract_interface
 namespace IObject:
-    func ownerOf(tokenid : Uint256) -> (owner : felt):
+    func _set_uri(uri_ : TokenUri):
     end
     
-    func mint(to_address : felt, value : Uint256):
+    func _mint(to : felt, token_id : felt, amount : felt):
     end
 
-    func burn(from_address : felt, value : Uint256):
+    func _burn(_from : felt, token_id : felt, amount : felt):
     end
 
-    func allowance(owner : felt, spender : felt) -> (res : Uint256):
+    func balanceOf(user : felt, token_id : felt) -> (res : felt):
     end
 
-    func balanceOf(user : felt) -> (res : Uint256):
-    end
-
-    func setTokenURI(tokenid : Uint256) -> (tokenURI : felt):
-    end
 end
 
 ##### Constants #####
@@ -45,14 +61,6 @@ end
 
 
 ##### Storage #####
-@storage_var
-func grid(
-        grid_x : felt,
-        grid_y : felt
-    ) -> (
-         owner : felt
-    ):
-end
 
 # For a given game at a given state.
 @storage_var
@@ -65,6 +73,21 @@ func parcel(
     ):
 end
 
+struct Metadata:
+    member overview_url : felt
+    member tile_url : felt
+    member title : felt
+    member image_object : felt
+end
+
+@storage_var
+func parcel_meta(
+        owner : felt,
+        storage_index : felt
+    ) -> (
+        res : felt
+    ):
+end
 @storage_var
 func object_index(
     ) -> (
@@ -72,31 +95,20 @@ func object_index(
     ):
 end
 
+struct Tokendata:
+    member contract_address : felt
+    member tokenid : Uint256
+end
+
+# contract_address+tokenid
 @storage_var
 func object_info(
         object_id : felt
     ) -> (
-        token : (felt,Uint256)
+        res : Tokendata
     ):
 end
 
-
-# Stores the genesis state hash for a given user.
-@storage_var
-func object_contract(
-        object_id : felt
-    ) -> (
-        contract_address : felt
-    ):
-end
-
-@storage_var
-func object_tokenid(
-        object_id : felt
-    ) -> (
-        tokenid : Uint256
-    ):
-end
 
 @storage_var
 func object_owner(
@@ -108,8 +120,13 @@ func object_owner(
 end
 
 @storage_var
-func l1_contract() -> (address : felt):
+func _object() -> (res : felt):
 end
+
+@storage_var
+func _l1_message() -> (res : felt):
+end
+
 
 ##################
 @constructor
@@ -117,204 +134,112 @@ func constructor{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }():
+    }(
+    object : felt,
+    l1_message : felt,
+    ):
     alloc_locals
 
     let (caller) = get_caller_address()
     object_index.write(0)
+    _object.write(object)
+    _l1_message.write(l1_message)
     return ()
 end
 
 ##### Public functions #####
 # Receive an L1 message. The Sequencer actions this function.
-@l1_handler
-func create_grid{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        from_address : felt, 
-        grid_x : felt, 
-        grid_y : felt,
-        owner : felt
-    ):
-    grid.write(grid_x = grid_x, grid_y = grid_y,  value = owner )
-    return ()
-end
-
 # Sets the initial state of a philand.
-@external
+@l1_handler
 func create_philand{
         syscall_ptr : felt*,
         bitwise_ptr : BitwiseBuiltin*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(  
+        from_address : felt, 
         owner : felt,
-        grid_x : felt, grid_y : felt,
-        object_0 : felt, object_1 : felt, object_2 : felt, object_3 : felt,
-        object_4 : felt, object_5 : felt, object_6 : felt, object_7 : felt,
-        object_8 : felt, object_9 : felt, object_10 : felt, object_11 : felt,
-        object_12 : felt, object_13 : felt, object_14 : felt, object_15 : felt,
-        object_16 : felt, object_17 : felt, object_18 : felt, object_19 : felt,
-        object_20 : felt, object_21 : felt, object_22 : felt, object_23 : felt,
-        object_24 : felt, object_25 : felt, object_26 : felt, object_27 : felt,
-        object_28 : felt, object_29 : felt, object_30 : felt, object_31 : felt,
-        object_32 : felt, object_33 : felt, object_34 : felt, object_35 : felt,
-        object_36 : felt, object_37 : felt, object_38 : felt, object_39 : felt,
-        object_40 : felt, object_41 : felt, object_42 : felt, object_43 : felt,
-        object_44 : felt, object_45 : felt, object_46 : felt, object_47 : felt,
-        object_48 : felt, object_49 : felt, object_50 : felt, object_51 : felt,
-        object_52 : felt, object_53 : felt, object_54 : felt, object_55 : felt,
-        object_56 : felt, object_57 : felt, object_58 : felt, object_59 : felt,
-        object_60 : felt, object_61 : felt, object_62 : felt, object_63 : felt
     ):
     # Accepts a 64 element list representing the objects.
     alloc_locals
-    let (local genesis_state : felt*) = alloc()
-    assert genesis_state[0] = object_0
-    assert genesis_state[1] = object_1
-    assert genesis_state[2] = object_2
-    assert genesis_state[3] = object_3
-    assert genesis_state[4] = object_4
-    assert genesis_state[5] = object_5
-    assert genesis_state[6] = object_6
-    assert genesis_state[7] = object_7
-    assert genesis_state[8] = object_8
-    assert genesis_state[9] = object_9
-    assert genesis_state[10] = object_10
-    assert genesis_state[11] = object_11
-    assert genesis_state[12] = object_12
-    assert genesis_state[13] = object_13
-    assert genesis_state[14] = object_14
-    assert genesis_state[15] = object_15
-    assert genesis_state[16] = object_16
-    assert genesis_state[17] = object_17
-    assert genesis_state[18] = object_18
-    assert genesis_state[19] = object_19
-    assert genesis_state[20] = object_20
-    assert genesis_state[21] = object_21
-    assert genesis_state[22] = object_22
-    assert genesis_state[23] = object_23
-    assert genesis_state[24] = object_24
-    assert genesis_state[25] = object_25
-    assert genesis_state[26] = object_26
-    assert genesis_state[27] = object_27
-    assert genesis_state[28] = object_28
-    assert genesis_state[29] = object_29
-    assert genesis_state[30] = object_30
-    assert genesis_state[31] = object_31
-    assert genesis_state[32] = object_32
-    assert genesis_state[33] = object_33
-    assert genesis_state[34] = object_34
-    assert genesis_state[35] = object_35
-    assert genesis_state[36] = object_36
-    assert genesis_state[37] = object_37
-    assert genesis_state[38] = object_38
-    assert genesis_state[39] = object_39
-    assert genesis_state[40] = object_40
-    assert genesis_state[41] = object_41
-    assert genesis_state[42] = object_42
-    assert genesis_state[43] = object_43
-    assert genesis_state[44] = object_44
-    assert genesis_state[45] = object_45
-    assert genesis_state[46] = object_46
-    assert genesis_state[47] = object_47
-    assert genesis_state[48] = object_48
-    assert genesis_state[49] = object_49
-    assert genesis_state[50] = object_50
-    assert genesis_state[51] = object_51
-    assert genesis_state[52] = object_52
-    assert genesis_state[53] = object_53
-    assert genesis_state[54] = object_54
-    assert genesis_state[55] = object_55
-    assert genesis_state[56] = object_56
-    assert genesis_state[57] = object_57
-    assert genesis_state[58] = object_58
-    assert genesis_state[59] = object_59
-    assert genesis_state[60] = object_60
-    assert genesis_state[61] = object_61
-    assert genesis_state[62] = object_62
-    assert genesis_state[63] = object_63
 
-    # let (local caller) = get_caller_address()
     assert_not_zero(owner)
-    grid.write(grid_x = grid_x, grid_y = grid_y, value=owner)
 
     # write philand parcel
-    parcel.write(owner=owner, x=0, y=0, value=object_0)
-    parcel.write(owner=owner, x=0, y=1, value=object_1)
-    parcel.write(owner=owner, x=0, y=2, value=object_2)
-    parcel.write(owner=owner, x=0, y=3, value=object_3)
-    parcel.write(owner=owner, x=0, y=4, value=object_4)
-    parcel.write(owner=owner, x=0, y=5, value=object_5)
-    parcel.write(owner=owner, x=0, y=6, value=object_6)
-    parcel.write(owner=owner, x=0, y=7, value=object_7)
-    parcel.write(owner=owner, x=1, y=0, value=object_8)
-    parcel.write(owner=owner, x=1, y=1, value=object_9)
-    parcel.write(owner=owner, x=1, y=2, value=object_10)
-    parcel.write(owner=owner, x=1, y=3, value=object_11)
-    parcel.write(owner=owner, x=1, y=4, value=object_12)
-    parcel.write(owner=owner, x=1, y=5, value=object_13)
-    parcel.write(owner=owner, x=1, y=6, value=object_14)
-    parcel.write(owner=owner, x=1, y=7, value=object_15)
-    parcel.write(owner=owner, x=2, y=0, value=object_16)
-    parcel.write(owner=owner, x=2, y=1, value=object_17)
-    parcel.write(owner=owner, x=2, y=2, value=object_18)
-    parcel.write(owner=owner, x=2, y=3, value=object_19)
-    parcel.write(owner=owner, x=2, y=4, value=object_20)
-    parcel.write(owner=owner, x=2, y=5, value=object_21)
-    parcel.write(owner=owner, x=2, y=6, value=object_22)
-    parcel.write(owner=owner, x=2, y=7, value=object_23)
-    parcel.write(owner=owner, x=3, y=0, value=object_24)
-    parcel.write(owner=owner, x=3, y=1, value=object_25)
-    parcel.write(owner=owner, x=3, y=2, value=object_26)
-    parcel.write(owner=owner, x=3, y=3, value=object_27)
-    parcel.write(owner=owner, x=3, y=4, value=object_28)
-    parcel.write(owner=owner, x=3, y=5, value=object_29)
-    parcel.write(owner=owner, x=3, y=6, value=object_30)
-    parcel.write(owner=owner, x=3, y=7, value=object_31)
-    parcel.write(owner=owner, x=4, y=0, value=object_32)
-    parcel.write(owner=owner, x=4, y=1, value=object_33)
-    parcel.write(owner=owner, x=4, y=2, value=object_34)
-    parcel.write(owner=owner, x=4, y=3, value=object_35)
-    parcel.write(owner=owner, x=4, y=4, value=object_36)
-    parcel.write(owner=owner, x=4, y=5, value=object_37)
-    parcel.write(owner=owner, x=4, y=6, value=object_38)
-    parcel.write(owner=owner, x=4, y=7, value=object_39)
-    parcel.write(owner=owner, x=5, y=0, value=object_40)
-    parcel.write(owner=owner, x=5, y=1, value=object_41)
-    parcel.write(owner=owner, x=5, y=2, value=object_42)
-    parcel.write(owner=owner, x=5, y=3, value=object_43)
-    parcel.write(owner=owner, x=5, y=4, value=object_44)
-    parcel.write(owner=owner, x=5, y=5, value=object_45)
-    parcel.write(owner=owner, x=5, y=6, value=object_46)
-    parcel.write(owner=owner, x=5, y=7, value=object_47)
-    parcel.write(owner=owner, x=6, y=0, value=object_48)
-    parcel.write(owner=owner, x=6, y=1, value=object_49)
-    parcel.write(owner=owner, x=6, y=2, value=object_50)
-    parcel.write(owner=owner, x=6, y=3, value=object_51)
-    parcel.write(owner=owner, x=6, y=4, value=object_52)
-    parcel.write(owner=owner, x=6, y=5, value=object_53)
-    parcel.write(owner=owner, x=6, y=6, value=object_54)
-    parcel.write(owner=owner, x=6, y=7, value=object_55)
-    parcel.write(owner=owner, x=7, y=0, value=object_56)
-    parcel.write(owner=owner, x=7, y=1, value=object_57)
-    parcel.write(owner=owner, x=7, y=2, value=object_58)
-    parcel.write(owner=owner, x=7, y=3, value=object_59)
-    parcel.write(owner=owner, x=7, y=4, value=object_60)
-    parcel.write(owner=owner, x=7, y=5, value=object_61)
-    parcel.write(owner=owner, x=7, y=6, value=object_62)
-    parcel.write(owner=owner, x=7, y=7, value=object_63)
+    parcel.write(owner=owner, x=0, y=0, value=0)
+    parcel.write(owner=owner, x=0, y=1, value=0)
+    parcel.write(owner=owner, x=0, y=2, value=0)
+    parcel.write(owner=owner, x=0, y=3, value=0)
+    parcel.write(owner=owner, x=0, y=4, value=0)
+    parcel.write(owner=owner, x=0, y=5, value=0)
+    parcel.write(owner=owner, x=0, y=6, value=0)
+    parcel.write(owner=owner, x=0, y=7, value=0)
+    parcel.write(owner=owner, x=1, y=0, value=0)
+    parcel.write(owner=owner, x=1, y=1, value=0)
+    parcel.write(owner=owner, x=1, y=2, value=0)
+    parcel.write(owner=owner, x=1, y=3, value=0)
+    parcel.write(owner=owner, x=1, y=4, value=0)
+    parcel.write(owner=owner, x=1, y=5, value=0)
+    parcel.write(owner=owner, x=1, y=6, value=0)
+    parcel.write(owner=owner, x=1, y=7, value=0)
+    parcel.write(owner=owner, x=2, y=0, value=0)
+    parcel.write(owner=owner, x=2, y=1, value=0)
+    parcel.write(owner=owner, x=2, y=2, value=0)
+    parcel.write(owner=owner, x=2, y=3, value=0)
+    parcel.write(owner=owner, x=2, y=4, value=0)
+    parcel.write(owner=owner, x=2, y=5, value=0)
+    parcel.write(owner=owner, x=2, y=6, value=0)
+    parcel.write(owner=owner, x=2, y=7, value=0)
+    parcel.write(owner=owner, x=3, y=0, value=0)
+    parcel.write(owner=owner, x=3, y=1, value=0)
+    parcel.write(owner=owner, x=3, y=2, value=0)
+    parcel.write(owner=owner, x=3, y=3, value=0)
+    parcel.write(owner=owner, x=3, y=4, value=0)
+    parcel.write(owner=owner, x=3, y=5, value=0)
+    parcel.write(owner=owner, x=3, y=6, value=0)
+    parcel.write(owner=owner, x=3, y=7, value=0)
+    parcel.write(owner=owner, x=4, y=0, value=0)
+    parcel.write(owner=owner, x=4, y=1, value=0)
+    parcel.write(owner=owner, x=4, y=2, value=0)
+    parcel.write(owner=owner, x=4, y=3, value=0)
+    parcel.write(owner=owner, x=4, y=4, value=0)
+    parcel.write(owner=owner, x=4, y=5, value=0)
+    parcel.write(owner=owner, x=4, y=6, value=0)
+    parcel.write(owner=owner, x=4, y=7, value=0)
+    parcel.write(owner=owner, x=5, y=0, value=0)
+    parcel.write(owner=owner, x=5, y=1, value=0)
+    parcel.write(owner=owner, x=5, y=2, value=0)
+    parcel.write(owner=owner, x=5, y=3, value=0)
+    parcel.write(owner=owner, x=5, y=4, value=0)
+    parcel.write(owner=owner, x=5, y=5, value=0)
+    parcel.write(owner=owner, x=5, y=6, value=0)
+    parcel.write(owner=owner, x=5, y=7, value=0)
+    parcel.write(owner=owner, x=6, y=0, value=0)
+    parcel.write(owner=owner, x=6, y=1, value=0)
+    parcel.write(owner=owner, x=6, y=2, value=0)
+    parcel.write(owner=owner, x=6, y=3, value=0)
+    parcel.write(owner=owner, x=6, y=4, value=0)
+    parcel.write(owner=owner, x=6, y=5, value=0)
+    parcel.write(owner=owner, x=6, y=6, value=0)
+    parcel.write(owner=owner, x=6, y=7, value=0)
+    parcel.write(owner=owner, x=7, y=0, value=0)
+    parcel.write(owner=owner, x=7, y=1, value=0)
+    parcel.write(owner=owner, x=7, y=2, value=0)
+    parcel.write(owner=owner, x=7, y=3, value=0)
+    parcel.write(owner=owner, x=7, y=4, value=0)
+    parcel.write(owner=owner, x=7, y=5, value=0)
+    parcel.write(owner=owner, x=7, y=6, value=0)
+    parcel.write(owner=owner, x=7, y=7, value=0)
 
-    
+    let new_tile= 0
+    parcel_meta.write(owner,Metadata.tile_url,new_tile)
 
     return ()
 end
 
 
 @external
-func create_object{
+func create_l1nft_object{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -325,10 +250,9 @@ func create_object{
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
+    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    object_info.write(idx,newTokendata)
 
-    object_info.write(idx,(contract_address,tokenid))
-    object_contract.write(idx,contract_address)
-    object_tokenid.write(idx,tokenid)
     return ()
 end
 
@@ -373,7 +297,7 @@ func claim_l1_object{
         contract_address : felt,
         tokenid : Uint256
     ):
-    create_object(contract_address,tokenid)
+    create_l1nft_object(contract_address,tokenid)
     let (current_index) = object_index.read()
     object_owner.write(owner,current_index,1)
     return ()
@@ -390,7 +314,8 @@ func claim_l2_object{
         contract_address : felt,
         tokenid : Uint256
     ):
-    create_object(contract_address,tokenid)
+    # todo setowner=>L2addresss
+    IObject._mint(object,owner,1,1)
     let (current_index) = object_index.read()
     object_owner.write(owner,current_index,1)
     return ()
@@ -425,21 +350,6 @@ func write_object_to_parcel{
     return ()
 end
 
-
-# Returns grid.
-@view
-func view_grid{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        grid_x : felt,
-        grid_y : felt
-    ) -> (
-        owner : felt
-    ):
-    return grid.read(grid_x=grid_x,grid_y=grid_y)
-end
 
 # Returns a list of objects for the specified generation.
 @view
@@ -574,11 +484,31 @@ func view_object{
         contract_address : felt,
         tokenid : Uint256
     ):
-    let (contract_address) = object_contract.read(object_id)
-    let (tokenid) = object_tokenid.read(object_id)
-    return (contract_address, tokenid)
+    let (token) = object_info.read(object_id)
+    
+    return (token.contract_address, token.tokenid)
 end
 
+
+@view
+func object{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }() -> (res : felt):
+    let (res) = _object.read()
+    return (res)
+end
+
+@view
+func l1_message{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }() -> (res : felt):
+    let (res) = _l1_message.read()
+    return (res)
+end
 #############################
 ##### Private functions #####
 #############################
