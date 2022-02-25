@@ -20,26 +20,26 @@ func operator_approvals(owner : felt, operator : felt) -> (res : felt):
 end
 
 
-struct AssetNamespace:
-    member a : felt
-end
+# struct AssetNamespace:
+#     member a : felt
+# end
 
 # Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-struct AssetReference:
-    member a : felt
-end
+# struct AssetReference:
+#     member a : felt
+# end
 
 # ERC1155 returns the same URI for all token types.
 # TokenId will be represented by the substring '{id}' and so stored in a felt
 # Client calling the function must replace the '{id}' substring with the actual token type ID
-struct TokenId:
-    member a : felt
-end
+# struct TokenId:
+#     member a : felt
+# end
 
 struct TokenUri:
-    member asset_namespace : AssetNamespace
-    member asset_reference : AssetReference
-    member token_id : TokenId
+    member asset_namespace : felt
+    member asset_reference : felt
+    member token_id : felt
 end
 
 @storage_var

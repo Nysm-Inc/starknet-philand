@@ -188,7 +188,7 @@ export class Signer {
       nonce.toString()
     );
 
-    const sig = this.sign(msgHash);
+    const sig:any = this.sign(msgHash);
     // const verified = this.verify(msgHash, sig);
 
     return caller.invoke(

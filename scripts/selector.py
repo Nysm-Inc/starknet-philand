@@ -22,4 +22,8 @@ print(get_selector_from_name('claim_l2_object'))
 print(str_to_felt('zak3939.eth'))
 print(str_to_bytes('zak3939.eth'))
 print(felt_to_str(147948997034476692113290344))
+# console.log(BigInt(web3.utils.asciiToHex('object')))
 
+print(str_to_felt("object"))
+print(str_to_felt("philand"))
+print(str_to_felt("{id}"))

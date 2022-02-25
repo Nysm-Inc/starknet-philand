@@ -31,8 +31,9 @@ async def object_factory():
     object = await starknet.deploy(
         "contracts/l2/Object.cairo",
         constructor_calldata=[
-            int.from_bytes("object".encode(
-                "ascii"), 'big'), 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, int.from_bytes("{id}".encode("ascii"), 'big')
+            int.from_bytes("object".encode("ascii"), 'big'), 
+            0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, 
+            int.from_bytes("{id}".encode("ascii"), 'big')
         ]
     )
     return starknet, object, account, operator
@@ -49,9 +50,12 @@ async def test_constructor(object_factory):
     token_id = int.from_bytes("{id}".encode("ascii"), 'big')
 
     execution_info = await object.uri().call()
-    assert execution_info.result.res.asset_namespace == (asset_namespace,)
-    assert execution_info.result.res.asset_reference == (asset_reference,)
-    assert execution_info.result.res.token_id == (token_id,)
+    assert execution_info.result.res.asset_namespace == asset_namespace
+    assert execution_info.result.res.asset_reference == asset_reference
+    assert execution_info.result.res.token_id == token_id
+    # assert execution_info.result.res.asset_namespace == (asset_namespace,)
+    # assert execution_info.result.res.asset_reference == (asset_reference,)
+    # assert execution_info.result.res.token_id == (token_id,)
 
 
 @pytest.mark.asyncio

@@ -17,7 +17,7 @@ def build_salt_to_address(contract, calldata, caller):
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Find salt for DAI deplyment that results with contract address with prefix = da1')
+    parser = argparse.ArgumentParser(description='Find salt for Object deplyment that results with contract address with prefix = da1')
     parser.add_argument('--ward', type=lambda x: int(x, 0))
     parser.add_argument('--start_from', type=int, default=1)
     parser.add_argument('--seed', type=int, default=random.randrange(sys.maxsize))
@@ -31,7 +31,7 @@ def main():
 
     contract_schema = marshmallow_dataclass.class_schema(ContractDefinition)()
 
-    file = './starknet-artifacts/contracts/l2/dai.cairo/dai.json'
+    file = './starknet-artifacts/contracts/l2/object.cairo/object.json'
 
     dai = contract_schema.load(json.load(open(file)))
     calldata = [ward]

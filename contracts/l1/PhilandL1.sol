@@ -38,7 +38,7 @@ contract PhilandL1 {
       Initializes the contract state.
     */
     constructor(IStarknetCore starknetCore,address adminSigner
-    ) public {
+    ){
         _starknetCore = starknetCore;
         _adminSigner = adminSigner;
     }

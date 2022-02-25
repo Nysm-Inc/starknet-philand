@@ -1,6 +1,6 @@
 
 const ethers = require('ethers');
-const ABI = require('./utils/abi.json'); 
+const ABI = require('../utils/abi.json'); 
 const axios = require('axios');
 const crypto = require("crypto");
 const {
