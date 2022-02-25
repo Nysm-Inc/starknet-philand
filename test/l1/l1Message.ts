@@ -62,19 +62,17 @@ const claimL2Object = parseFixed(
       await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address)
       const ENSLABEL = web3.utils.asciiToHex('zak3939.eth')
       const ENSNAME= BigInt(ENSLABEL).toString(10)
-      
-      const grid_x = 0;
-      const grid_y = 0;
 
-      await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, grid_x,grid_y,ENSNAME))
+
+      await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, ENSNAME))
         .to.emit(l1Philand, "LogCreatePhiland")
-        .withArgs(l1Alice.address, grid_x, grid_y,ENSNAME);
+        .withArgs(l1Alice.address, ENSNAME);
 
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         createGrid,
-        [grid_x,grid_y , ENSNAME]
+        [ENSNAME]
       );
     });
     
@@ -105,19 +103,18 @@ describe("claiml2Object", function () {
       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress,coupons } =
         await setupTest();
   
-      const lootContract = "0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7"
       const tokenid = 13
       console.log(coupons[l1Alice.address]["coupon"])
-      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, ENSNAME,lootContract,tokenid,coupons[l1Alice.address]["coupon"]))
+      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, ENSNAME,tokenid,coupons[l1Alice.address]["coupon"]))
         .to.emit(l1Philand, "LogClaimL2Object")
-        .withArgs(ENSNAME,lootContract,tokenid);
+        .withArgs(ENSNAME,tokenid);
       console.log("finish")
       
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL2Object,
-        [ENSNAME,lootContract,tokenid]
+        [ENSNAME,tokenid]
       );
     });
 });

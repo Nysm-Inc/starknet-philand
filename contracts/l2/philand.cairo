@@ -311,7 +311,6 @@ func claim_l2_object{
     }(
         from_address : felt,
         owner : felt,
-        contract_address : felt,
         tokenid : Uint256
     ):
     # todo setowner=>L2addresss
