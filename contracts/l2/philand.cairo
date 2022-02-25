@@ -120,11 +120,11 @@ func object_owner(
 end
 
 @storage_var
-func _object() -> (res : felt):
+func _object_address() -> (res : felt):
 end
 
 @storage_var
-func _l1_message() -> (res : felt):
+func _l1_philand_address() -> (res : felt):
 end
 
 
@@ -135,15 +135,15 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    object : felt,
-    l1_message : felt,
+    object_address : felt,
+    l1_philand_address : felt,
     ):
     alloc_locals
 
     let (caller) = get_caller_address()
     object_index.write(0)
-    _object.write(object)
-    _l1_message.write(l1_message)
+    _object_address.write(object_address)
+    _l1_philand_address.write(l1_philand_address)
     return ()
 end
 
@@ -238,53 +238,37 @@ func create_philand{
 end
 
 
-@external
-func create_l1nft_object{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        contract_address : felt,
-        tokenid : Uint256
-    ):
-    let (current_index) = object_index.read()
-    let idx = current_index + 1
-    object_index.write(idx)
-    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
-    object_info.write(idx,newTokendata)
-
-    return ()
-end
 
 
-@external
-func claim_object{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        account : felt,
-        owner : felt,
-        object_id : felt
-    ):
-    # check valid recipient
-    with_attr error_message("Object/invalid-recipient"):
-      assert_not_zero(account)
-      let (caller_address) = get_caller_address()
-      assert_not_equal(account, caller_address)
-    end
 
-    with_attr error_message("Object/invalid-nft"):
-    #   assert_not_zero(num)
-    end
+# @external
+# func claim_object{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(
+#         account : felt,
+#         owner : felt,
+#         object_id : felt
+#     ):
+#     # check valid recipient
+#     with_attr error_message("Object/invalid-recipient"):
+#       assert_not_zero(account)
+#       let (caller_address) = get_caller_address()
+#       assert_not_equal(account, caller_address)
+#     end
 
-    # with_attr error_message("Object/invalid-tokenid"):
-    #   let (nftOwner) = IObject.ownerOf(tokenid)
-    # end
+#     with_attr error_message("Object/invalid-nft"):
+#     #   assert_not_zero(num)
+#     end
 
-    object_owner.write(owner,object_id,1)
-    return ()
-end
+#     # with_attr error_message("Object/invalid-tokenid"):
+#     #   let (nftOwner) = IObject.ownerOf(tokenid)
+#     # end
+
+#     object_owner.write(owner,object_id,1)
+#     return ()
+# end
 
 @l1_handler
 func claim_l1_object{
@@ -311,12 +295,17 @@ func claim_l2_object{
     }(
         from_address : felt,
         owner : felt,
+        contract_address : felt,
         tokenid : Uint256
     ):
     # todo setowner=>L2addresss
-    IObject._mint(object,owner,1,1)
+    # IObject._mint(object,owner,1,1)
     let (current_index) = object_index.read()
+    let idx = current_index + 1
+    object_index.write(idx)
     object_owner.write(owner,current_index,1)
+    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    object_info.write(idx,newTokendata)
     return ()
 end
 
@@ -339,9 +328,9 @@ func write_object_to_parcel{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt,
         x : felt,
         y : felt,
+        owner : felt,
         object_id : felt
     ):
     
@@ -465,10 +454,12 @@ func view_parcel{
         x : felt,
         y : felt
     ) -> (
-       object_id : felt
+        contract_address : felt,
+        tokenid : Uint256
     ):
     let (object_id) = parcel.read(owner, x, y)
-    return (object_id)
+    let (token) = object_info.read(object_id)
+    return (token.contract_address, token.tokenid)
 end
 
 # Returns parcel object data (contract_address, tokenid).
@@ -484,30 +475,46 @@ func view_object{
         tokenid : Uint256
     ):
     let (token) = object_info.read(object_id)
-    
     return (token.contract_address, token.tokenid)
 end
 
 
 @view
-func object{
+func object_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _object.read()
+    let (res) = _object_address.read()
     return (res)
 end
 
 @view
-func l1_message{
+func l1_philand_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _l1_message.read()
+    let (res) = _l1_philand_address.read()
     return (res)
 end
 #############################
 ##### Private functions #####
 #############################
+func create_l1nft_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        contract_address : felt,
+        tokenid : Uint256
+    ):
+    let (current_index) = object_index.read()
+    let idx = current_index + 1
+    object_index.write(idx)
+    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    object_info.write(idx,newTokendata)
+
+    return ()
+end
+

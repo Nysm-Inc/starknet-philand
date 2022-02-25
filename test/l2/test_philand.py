@@ -100,31 +100,28 @@ async def test_create_philand(
     print('Above is the newly created your philand')
 
 
-@pytest.mark.asyncio
-async def test_create_L1nft_object(
-    philand_factory
-):
-    _, philand, _, accounts = philand_factory
-    lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
-    tokenid = 13    
+# @pytest.mark.asyncio
+# async def test_create_L1nft_object(
+#     philand_factory
+# ):
+#     _, philand, _, accounts = philand_factory
+#     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
+#     tokenid = 13    
 
-    response = await philand.get_object_index().call()
-    print(f'Current object_id:{response.result.current_index}')
-    print('New Object is creating...')
+#     response = await philand.get_object_index().call()
+#     print(f'Current object_id:{response.result.current_index}')
+#     print('New Object is creating...')
 
-    payload = [lootContract, *to_split_uint(tokenid)]
-    await signers[0].send_transaction(
-        account=accounts[0],
-        to=philand.contract_address,
-        selector_name='create_l1nft_object',
-        calldata=payload)
+#     payload = [lootContract, *to_split_uint(tokenid)]
+#     await signers[0].send_transaction(
+#         account=accounts[0],
+#         to=philand.contract_address,
+#         selector_name='create_l1nft_object',
+#         calldata=payload)
 
-    response = await philand.get_object_index().call()
-    print(f'object_id is created. ID:{response.result.current_index}')
-
-    response = await philand.view_object(response.result.current_index).call()
-    print(f'Contract address:{hex(response.result.contract_address)}')
-    print(f'tokenid:{response.result.tokenid}')
+#     response = await philand.view_object(response.result.current_index).call()
+#     print(f'Contract address:{hex(response.result.contract_address)}')
+#     print(f'tokenid:{response.result.tokenid}')
 
 
 @pytest.mark.asyncio
@@ -141,9 +138,25 @@ async def test_write_object_to_parcel(
             str_to_felt(ENS_NAME)
         ],
     )
-    print('New Object is writing to parcel...')
+    
+    response = await philand.get_object_index().call()
+    print(f'Current object_id:{response.result.current_index}')
+    print('New Object is Creating by L1...')
+    lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
+    tokenid = 13
+    payload = [str_to_felt(ENS_NAME),lootContract, *to_split_uint(tokenid)]
 
-    payload = [str_to_felt(ENS_NAME), 7, 7, 1]
+    await starknet.send_message_to_l2(
+        from_address=L1_ADDRESS,
+        to_address=philand.contract_address,
+        selector="claim_l1_object",
+        payload=payload,
+    )
+    response = await philand.get_object_index().call()
+    print(f'Current object_id:{response.result.current_index}')
+
+    print("New Object is writing to parcel...")
+    payload = [7, 7, str_to_felt(ENS_NAME), 1]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
@@ -156,7 +169,8 @@ async def test_write_object_to_parcel(
     print('Above is the updated your philand')
 
     response = await philand.view_parcel(str_to_felt(ENS_NAME),7,7).call()
-    print(f'Parcel(7,7):{response.result.object_id}')
+    print(
+        f'Parcel(7,7):{response.result.contract_address}:{response.result.tokenid}')
     print()
     
 async def view(images):

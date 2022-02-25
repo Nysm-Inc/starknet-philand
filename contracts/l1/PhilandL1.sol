@@ -32,8 +32,8 @@ contract PhilandL1 {
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
     event LogCreatePhiland(address indexed l1Sender, uint256 ensname);
-    event LogClaimL1NFT(uint256 ensname,uint256 contractAddress,uint256 tokenid);
-    event LogClaimL2Object(uint256 ensname,uint256 tokenid);
+    event LogClaimL1NFT(uint256 ensname,uint256 contract_address,uint256 tokenid);
+    event LogClaimL2Object(uint256 ensname,uint256 contract_address,uint256 tokenid);
     /**
       Initializes the contract state.
     */
@@ -88,6 +88,7 @@ contract PhilandL1 {
     function claimL2Object(
         uint256 l2ContractAddress,
         uint256 ensname,
+        uint256 contractAddress,
         uint256 tokenid,
         Coupon memory coupon
         ) external {
@@ -100,11 +101,12 @@ contract PhilandL1 {
         _isVerifiedCoupon(digest, coupon), 
         'Invalid coupon'
         ); 
-        emit LogClaimL2Object(ensname,tokenid);
+        emit LogClaimL2Object(ensname,contractAddress,tokenid);
 
-        uint256[] memory payload = new uint256[](2);
+        uint256[] memory payload = new uint256[](3);
         payload[0] = ensname;
-        payload[1] = tokenid;
+        payload[1] = contractAddress;
+        payload[2] = tokenid;
 
         // Send the message to the StarkNet core contract.
         _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);

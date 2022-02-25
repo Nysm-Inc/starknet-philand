@@ -103,18 +103,19 @@ describe("claiml2Object", function () {
       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress,coupons } =
         await setupTest();
   
+      const ObjectContract = "0x03a83e4e8b1a6e413d15ea5ee5bcd5bb2b2439f341010c3740fd7e51b2e14b64"
       const tokenid = 13
       console.log(coupons[l1Alice.address]["coupon"])
-      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, ENSNAME,tokenid,coupons[l1Alice.address]["coupon"]))
+      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, ENSNAME,ObjectContract,tokenid,coupons[l1Alice.address]["coupon"]))
         .to.emit(l1Philand, "LogClaimL2Object")
-        .withArgs(ENSNAME,tokenid);
+        .withArgs(ENSNAME,ObjectContract,tokenid);
       console.log("finish")
       
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL2Object,
-        [ENSNAME,tokenid]
+        [ENSNAME,ObjectContract,tokenid]
       );
     });
 });

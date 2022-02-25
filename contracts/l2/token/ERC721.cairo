@@ -32,7 +32,7 @@ from contracts.l2.token.ERC721_Enumerable_base import (
 
 from contracts.l2.token.ERC165_base import ERC165_supports_interface
 
-from contracts.l2.Ownable_base import (
+from contracts.l2.utils.Ownable_base import (
     Ownable_initializer,
     Ownable_only_owner
 )
