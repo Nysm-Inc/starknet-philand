@@ -30,8 +30,6 @@ async function genAndSaveKeyPair(): Promise<KeyPair> {
 
 export async function deployDeployer() {
   
-
-  
   const NETWORK = hre.network.name;
 
   const STARKNET_NETWORK =
@@ -63,25 +61,6 @@ export async function deployDeployer() {
   console.log(
     `Deployer private key is in deployer-key.json. It should be added to .env under DEPLOYER_ECDSA_PRIVATE_KEY`
   );
-
-  // console.log(`Next steps:`);
-  // console.log(`If You want to deploy object contract now:`);
-  // console.log(
-  //   `STARKNET_NETWORK=${STARKNET_NETWORK} starknet deploy --inputs ${asset_namespace} ${asset_reference} ${TOKENID} --contract starknet-artifacts/contracts/l2/Object.cairo/Object.json --salt <insert salt here>`
-  // );
-  // console.log(
-  //   `After manual deployment object contract address should be added to .env:`
-  // );
-  // console.log(`${STARKNET_NETWORK.toUpperCase()}_L2_OBJECT_ADDRESS=...`);
-
-  // console.log(
-  //   `To verify object: npx hardhat starknet-verify --starknet-network ${STARKNET_NETWORK} --path contracts/l2/Object.cairo --address <L2_OBJECT_ADDRESS>`
-  // );
-
-  // console.log(
-  //   "To find salt that will result in dai address staring with 'da1' prefix:"
-  // );
-  // console.log(`./scripts/vanity.py --ward ${deployer.address}`);
 }
 
 export async function deployBridge(): Promise<void> {
@@ -125,21 +104,9 @@ export async function deployBridge(): Promise<void> {
     ENS_ADDRESS,
   ]);
 
-  // const asset_namespace =  BigInt(web3.utils.asciiToHex('object')).toString(10)
-  // const asset_reference = "0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599"
-  // const TokenId =  BigInt(web3.utils.asciiToHex('{id}')).toString(10)
-  // const TokenUri =[
-  //   BigInt(web3.utils.asciiToHex('object')).toString(10),
-  //   "0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599",
-  //   BigInt(web3.utils.asciiToHex('{id}')).toString(10)]
-//   interface TokenUri {
-//   [name: string]:any;
-// } 
   const tokenUri: any= {};
   console.log(BigInt(web3.utils.asciiToHex('object')))
   tokenUri.asset_namespace= parseFixed("122468482507636")
-  console.log(BigInt(web3.utils.asciiToHex('object')))
-  // tokenUri.asset_reference= "0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599"
   console.log(BigInt(web3.utils.asciiToHex('philand')))
   tokenUri.asset_reference=parseFixed("1639999390772836")
   console.log(BigInt(web3.utils.asciiToHex("{id}")))
@@ -153,16 +120,23 @@ export async function deployBridge(): Promise<void> {
      uri_:tokenUri
     }
   );
-  
-  const l2PHILAND = await deployL2(
-    STARKNET_NETWORK,
-    "Philand",
-    BLOCK_NUMBER,
-    {
-     object :asDec(l2Object.address),
-     l1_message :asDec(l1PHILAND.address)
-    }
+  const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
+  console.log(...token_uri)
+  console.log(token_uri.length)
+  console.log(
+    `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${l1PHILAND.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
   );
+  // const l2PHILAND = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "Philand",
+  //   BLOCK_NUMBER,
+  //   {
+  //    object_address : asDec(l2Object.address),
+  //    l1_philand_address : asDec(l1PHILAND.address),
+  //    token_uri_len : 4,
+  //    token_uri : token_uri,
+  //   }
+  // );
 
   
 
@@ -212,7 +186,7 @@ async function deployL2(
 // 
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.starknet.getContractFactory(name);
-
+  console.log(calldata)
   const contract = await contractFactory.deploy(calldata);
   save(saveName || name, contract, hre.network.name, blockNumber);
 

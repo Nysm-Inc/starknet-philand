@@ -54,6 +54,9 @@ namespace IObject:
     func balanceOf(user : felt, token_id : felt) -> (res : felt):
     end
 
+    func setTokenURI(token_uri_len : felt, token_uri : felt*,token_id : Uint256):
+    end
+
 end
 
 ##### Constants #####
@@ -137,6 +140,8 @@ func constructor{
     }(
     object_address : felt,
     l1_philand_address : felt,
+    token_uri_len : felt,
+    token_uri : felt*
     ):
     alloc_locals
 
@@ -144,8 +149,8 @@ func constructor{
     object_index.write(0)
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
-    create_l2_object(contract_address=object_address,tokenid=Uint256(1,0))
-    create_l2_object(contract_address=object_address,tokenid=Uint256(2,0))
+
+    create_l2_object(contract_address=object_address,tokenid=Uint256(0,0),token_uri_len=token_uri_len, token_uri=token_uri,)
     return ()
 end
 
@@ -518,18 +523,26 @@ func create_l1nft_object{
     return ()
 end
 
+@external
 func create_l2_object{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
         contract_address : felt,
-        tokenid : Uint256
+        tokenid : Uint256,
+        token_uri_len : felt,
+        token_uri : felt*
     ):
-    let (current_index) = object_index.read()
+    alloc_locals
+    let (object) = _object_address.read()
+    IObject.setTokenURI(object,token_uri_len, token_uri, tokenid)
+
+    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+
+    let (local current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
-    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
     object_info.write(idx,newTokendata)
 
     return ()

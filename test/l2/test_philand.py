@@ -1,9 +1,10 @@
 
 import os
+from secrets import token_hex
 import pytest
 import asyncio
 from starkware.starknet.testing.starknet import Starknet
-from utils import str_to_felt, felt_to_str,Signer,uint
+from utils import str_to_felt, felt_to_str, Signer, uint, str_to_felt_array, to_split_uint
 
 # constants
 NUM_SIGNING_ACCOUNTS = 2
@@ -11,7 +12,8 @@ DUMMY_PRIVATE = 12345678987654321
 L1_ADDRESS = 0x1
 signers = []
 ENS_NAME = "zak3939.eth"
-
+TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
+TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
 L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
 OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
@@ -19,12 +21,7 @@ PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
 ###########
 # HELPERS #
 ###########
-def to_split_uint(a):
-    return (a & ((1 << 128) - 1), a >> 128)
 
-
-def to_uint(a):
-    return a[0] + (a[1] << 128)
 
 
 
@@ -70,14 +67,31 @@ async def object_factory(account_factory):
 @pytest.fixture(scope='module')
 async def philand_factory(object_factory):
     starknet, object, accounts = object_factory
+    token_uri_felt_array = str_to_felt_array(TOKENURI)
     # Deploy
     print(f'Deploying philand...')
+    print(*token_uri_felt_array)
+    calldata=[
+        object.contract_address,
+        L1_ADDRESS,
+        len(token_uri_felt_array),
+        *token_uri_felt_array
+    ]
     philand = await starknet.deploy(source=PHILAND_FILE,
     constructor_calldata=[
         object.contract_address,
         L1_ADDRESS,
+        len(token_uri_felt_array), 
+        *token_uri_felt_array
     ])
+    print(calldata)
     print(f'philand is: {hex(philand.contract_address)}')
+    tokenid=0
+    execution_info = await object.tokenURI(to_split_uint(tokenid)).call()
+    token_uri = ""
+    for tu in execution_info.result.token_uri:
+        token_uri += felt_to_str(tu)
+    print(token_uri)
     return starknet, philand, object, accounts
 
 
@@ -100,29 +114,37 @@ async def test_create_philand(
     print('Above is the newly created your philand')
 
 
-# @pytest.mark.asyncio
-# async def test_create_L1nft_object(
-#     philand_factory
-# ):
-#     _, philand, _, accounts = philand_factory
-#     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
-#     tokenid = 13    
+@pytest.mark.asyncio
+async def test_create_object(
+    philand_factory
+):
+    _, philand, object, accounts = philand_factory
+    
+    tokenid = 1    
+    response = await philand.get_object_index().call()
+    print(f'Current object_id:{response.result.current_index}')
+    print('New Object is creating...')
+    
+    token_uri_felt_array = str_to_felt_array(TOKENURI2)
+    payload = [object.contract_address, *to_split_uint(tokenid),
+                len(token_uri_felt_array),*token_uri_felt_array]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='create_l2_object',
+        calldata=payload)
 
-#     response = await philand.get_object_index().call()
-#     print(f'Current object_id:{response.result.current_index}')
-#     print('New Object is creating...')
-
-#     payload = [lootContract, *to_split_uint(tokenid)]
-#     await signers[0].send_transaction(
-#         account=accounts[0],
-#         to=philand.contract_address,
-#         selector_name='create_l1nft_object',
-#         calldata=payload)
-
-#     response = await philand.view_object(response.result.current_index).call()
-#     print(f'Contract address:{hex(response.result.contract_address)}')
-#     print(f'tokenid:{response.result.tokenid}')
-
+    response = await philand.get_object_index().call()
+    print(f'Current object_id:{response.result.current_index}')
+    response = await philand.view_object(response.result.current_index).call()
+    print(f'Contract address:{hex(response.result.contract_address)}')
+    print(f'tokenid:{response.result.tokenid}')
+    print(type(response.result.tokenid))
+    execution_info = await object.tokenURI(response.result.tokenid).call()
+    token_uri = ""
+    for tu in execution_info.result.token_uri:
+        token_uri += felt_to_str(tu)
+    print(token_uri)
 
 @pytest.mark.asyncio
 async def test_write_object_to_parcel(

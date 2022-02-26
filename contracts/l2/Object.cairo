@@ -6,7 +6,23 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import assert_nn_le, assert_not_equal, assert_not_zero, assert_le
 from starkware.cairo.common.alloc import alloc
 
+from contracts.l2.utils.Ownable_base import (
+    Ownable_initializer,
+    Ownable_only_owner,
+    Ownable_get_owner,
+    Ownable_transfer_ownership
+)
+
+from contracts.l2.token.ERC721_Metadata_base import (
+    ERC721_Metadata_initializer,
+    ERC721_Metadata_tokenURI,
+    ERC721_Metadata_setBaseTokenURI,
+    ERC721_Metadata_setTokenURI,
+    Metadata_tokenURI
+)
+
 from contracts.l2.token.ERC165_base import ERC165_supports_interface
+from starkware.cairo.common.uint256 import Uint256
 #
 # Storage
 #
@@ -19,22 +35,6 @@ end
 func operator_approvals(owner : felt, operator : felt) -> (res : felt):
 end
 
-
-# struct AssetNamespace:
-#     member a : felt
-# end
-
-# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-# struct AssetReference:
-#     member a : felt
-# end
-
-# ERC1155 returns the same URI for all token types.
-# TokenId will be represented by the substring '{id}' and so stored in a felt
-# Client calling the function must replace the '{id}' substring with the actual token type ID
-# struct TokenId:
-#     member a : felt
-# end
 
 struct TokenUri:
     member asset_namespace : felt
@@ -54,10 +54,14 @@ end
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         uri_ : TokenUri):
 
-    
     # Set uri
     _set_uri(uri_)
 
+    # ERC721_initializer(name, symbol)
+    # ERC721_Metadata_initializer()
+    # Ownable_initializer(owner)
+    # ERC721_Metadata_setBaseTokenURI(base_token_uri_len, base_token_uri)
+    
     return ()
 end
 
@@ -66,6 +70,7 @@ func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     _uri.write(uri_)
     return()
 end
+
 
 # Todo require owner
 @external
@@ -277,4 +282,26 @@ func _burn_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_p
         tokens_id=tokens_id + 1,
         amounts_len=amounts_len - 1,
         amounts=amounts + 1)
+end
+
+@external
+func setTokenURI{
+        pedersen_ptr: HashBuiltin*,
+        syscall_ptr: felt*,
+        range_check_ptr
+    }(token_uri_len : felt, token_uri : felt*, token_id : Uint256):
+    # Ownable_only_owner()
+    
+    ERC721_Metadata_setTokenURI(token_uri_len, token_uri, token_id)
+    return ()
+end
+
+@view
+func tokenURI{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(token_id : Uint256) -> (token_uri_len : felt, token_uri : felt*):
+    let (token_uri_len, token_uri) = Metadata_tokenURI(token_id)
+    return (token_uri_len=token_uri_len, token_uri=token_uri)
 end

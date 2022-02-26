@@ -7,7 +7,7 @@ from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.public.abi import get_selector_from_name
 
 MAX_UINT256 = (2**128 - 1, 2**128 - 1)
-
+MAX_LEN_FELT = 31
 
 def str_to_felt(text):
     b_text = bytes(text, 'ascii')
@@ -20,6 +20,14 @@ def felt_to_str(felt):
     b_felt = felt.to_bytes(31, "big")
     return b_felt.decode()
 
+
+def str_to_felt_array(text):
+    # Break string into array of strings that meet felt requirements
+    chunks = []
+    for i in range(0, len(text), MAX_LEN_FELT):
+        str_chunk = text[i:i+MAX_LEN_FELT]
+        chunks.append(str_to_felt(str_chunk))
+    return chunks
 
 def uint(a):
     return(a, 0)
@@ -50,6 +58,13 @@ def sub_uint(a, b):
     c = a - b
     return to_uint(c)
 
+
+def to_split_uint(a):
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
+def to_uint(a):
+    return a[0] + (a[1] << 128)
 
 async def assert_revert(fun):
     try:
