@@ -23,3 +23,4 @@ contracts/l2/dai_rescue_spell.cairo
 
 .DS_Store
 */.DS_Store
+*/*/.DS_Store
