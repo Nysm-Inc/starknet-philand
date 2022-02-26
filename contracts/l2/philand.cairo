@@ -144,6 +144,8 @@ func constructor{
     object_index.write(0)
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
+    create_l2_object(contract_address=object_address,tokenid=Uint256(1,0))
+    create_l2_object(contract_address=object_address,tokenid=Uint256(2,0))
     return ()
 end
 
@@ -239,36 +241,35 @@ end
 
 
 
+@external
+func claim_starter_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        owner : felt,
+        object_id : felt
+    ):
+    # check valid recipient
+    with_attr error_message("Object/invalid-recipient"):
+    #   assert_not_zero(account)
+      let (caller_address) = get_caller_address()
+      assert_not_zero(caller_address)
+    end
 
+    # todo already claimed
+    with_attr error_message("Object/invalid-nft"):
+    #   assert_not_zero(num)
+    end
 
-# @external
-# func claim_object{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#         account : felt,
-#         owner : felt,
-#         object_id : felt
-#     ):
-#     # check valid recipient
-#     with_attr error_message("Object/invalid-recipient"):
-#       assert_not_zero(account)
-#       let (caller_address) = get_caller_address()
-#       assert_not_equal(account, caller_address)
-#     end
+    # with_attr error_message("Object/invalid-tokenid"):
+    #   let (nftOwner) = IObject.ownerOf(tokenid)
+    # end
 
-#     with_attr error_message("Object/invalid-nft"):
-#     #   assert_not_zero(num)
-#     end
-
-#     # with_attr error_message("Object/invalid-tokenid"):
-#     #   let (nftOwner) = IObject.ownerOf(tokenid)
-#     # end
-
-#     object_owner.write(owner,object_id,1)
-#     return ()
-# end
+    object_owner.write(owner=owner,object_id=1,value=1)
+    object_owner.write(owner=owner,object_id=2,value=1)
+    return ()
+end
 
 @l1_handler
 func claim_l1_object{
@@ -299,7 +300,6 @@ func claim_l2_object{
         tokenid : Uint256
     ):
     # todo setowner=>L2addresss
-    # IObject._mint(object,owner,1,1)
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
@@ -518,3 +518,19 @@ func create_l1nft_object{
     return ()
 end
 
+func create_l2_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        contract_address : felt,
+        tokenid : Uint256
+    ):
+    let (current_index) = object_index.read()
+    let idx = current_index + 1
+    object_index.write(idx)
+    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    object_info.write(idx,newTokendata)
+
+    return ()
+end

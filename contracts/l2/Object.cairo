@@ -54,6 +54,7 @@ end
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
         uri_ : TokenUri):
 
+    
     # Set uri
     _set_uri(uri_)
 
