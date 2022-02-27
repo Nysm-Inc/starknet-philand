@@ -137,7 +137,9 @@ async function setupTest() {
   const coupons = getCoupon(l1Alice.address)
   const l1philand = await simpleDeploy("PhilandL1", [
     starkNetFake.address,
+    // ens.address,
     admin.address
+
   ]);
 
   return {

@@ -13,11 +13,14 @@ interface IStarknetCore {
     ) external returns (bytes32);
 }
  
+// // move to interface folder
+// interface IENS{
+//     function resolver(bytes32 node) external view returns (address);
+// }
+
 contract PhilandL1 {
      // The StarkNet core contract.
     IStarknetCore _starknetCore;
-    ENS internal ens; 
-
     address private _adminSigner;
     mapping(uint256 => uint256) public userBalances;
 
@@ -40,9 +43,11 @@ contract PhilandL1 {
     constructor(IStarknetCore starknetCore,address adminSigner
     ){
         _starknetCore = starknetCore;
+        // _ens = ens;
         _adminSigner = adminSigner;
     }
         
+        //todo ens check and set ens method
     function createPhiland(
         uint256 l2ContractAddress,
         uint256 ensname

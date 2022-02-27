@@ -538,7 +538,7 @@ func create_l2_object{
     let (object) = _object_address.read()
     IObject.setTokenURI(object,token_uri_len, token_uri, tokenid)
 
-    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    let newTokendata = Tokendata(contract_address=contract_address,tokenid=tokenid)
 
     let (local current_index) = object_index.read()
     let idx = current_index + 1

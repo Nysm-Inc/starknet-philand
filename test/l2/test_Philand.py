@@ -133,7 +133,6 @@ async def test_create_object(
         to=philand.contract_address,
         selector_name='create_l2_object',
         calldata=payload)
-
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     response = await philand.view_object(response.result.current_index).call()

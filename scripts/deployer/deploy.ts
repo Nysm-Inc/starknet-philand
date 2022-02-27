@@ -65,7 +65,7 @@ export async function deployDeployer() {
 
 export async function deployBridge(): Promise<void> {
   const [l1Signer] = await hre.ethers.getSigners();
-
+  console.log(asDec("0x00de086fe5b74f6cd1a340d9038f6fbea7c6c81ad98733dc9c48bf61260d16c8"))
   let NETWORK;
   if (hre.network.name === "fork") {
     NETWORK = "mainnet";
@@ -83,7 +83,7 @@ export async function deployBridge(): Promise<void> {
 
   // @ts-ignore
   const BLOCK_NUMBER = await l1Signer.provider.getBlockNumber();
-
+  console.log(l1Signer.address)
   console.log(`Deploying bridge on ${NETWORK}/${STARKNET_NETWORK}`);
 
   const DEPLOYER_KEY = getRequiredEnv(`DEPLOYER_ECDSA_PRIVATE_KEY`);
@@ -101,7 +101,8 @@ export async function deployBridge(): Promise<void> {
   const l1PHILAND = await deployL1(
     NETWORK, "PhilandL1", BLOCK_NUMBER, [
     L1_STARKNET_ADDRESS,
-    ENS_ADDRESS,
+    // ENS_ADDRESS,
+    l1Signer.address  
   ]);
 
   const tokenUri: any= {};
@@ -121,24 +122,27 @@ export async function deployBridge(): Promise<void> {
     }
   );
   const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
+  // const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
+  
   console.log(...token_uri)
   console.log(token_uri.length)
   console.log(
     `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${l1PHILAND.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
   );
-  // const l2PHILAND = await deployL2(
-  //   STARKNET_NETWORK,
-  //   "Philand",
-  //   BLOCK_NUMBER,
-  //   {
-  //    object_address : asDec(l2Object.address),
-  //    l1_philand_address : asDec(l1PHILAND.address),
-  //    token_uri_len : 4,
-  //    token_uri : token_uri,
-  //   }
-  // );
 
-  
+  const l2PHILAND = await deployL2(
+    STARKNET_NETWORK,
+    "Philand",
+    BLOCK_NUMBER,
+    {
+     object_address : asDec(l2Object.address),
+     l1_philand_address : asDec(l1PHILAND.address),
+    //  token_uri_len : 4,
+     token_uri : token_uri,
+    }
+  );
+
+  console.log(asDec(l2PHILAND.address))
 
 }
 
@@ -221,4 +225,14 @@ async function deployL1(
   );
   await contract.deployed();
   return contract;
+}
+
+/**
+ * Converts a string into an array of numerical characters in utf-8 encoding
+ * @param {string} str - The string to convert
+ * @returns {bigint[]} - The string converted as an array of numerical characters
+ */
+ export function stringToFeltArray(str: string): bigint[] {
+  const strArr = str.split(',');
+  return strArr.map(char => BigInt(Buffer.from(char)[0].toString(10)));
 }

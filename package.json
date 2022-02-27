@@ -89,7 +89,7 @@
     "@nomiclabs/ethereumjs-vm": "^4.2.2",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.5.0",
-    "@shardlabs/starknet-hardhat-plugin": "^0.3.9",
+    "@shardlabs/starknet-hardhat-plugin": "^0.4.1",
     "@types/yargs": "^17.0.7",
     "eslint-config-typestrict": "^1.0.2",
     "eslint-plugin-no-only-tests": "^2.6.0",
@@ -99,7 +99,7 @@
     "ethereumjs-utils": "^5.2.5",
     "lodash": "^4.17.21",
     "nft.storage": "^6.0.0",
-    "starknet": "^2.3.1",
+    "starknet": "^3.1.0",
     "web3": "^1.7.0",
     "yargs": "^17.3.0"
   }
