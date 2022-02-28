@@ -82,9 +82,9 @@ const config: HardhatUserConfig = {
       //   balance: '10000000000000000000'}],
     },
   },
-  mocha: {
-    starknetNetwork: `${process.env.STARKNET_NETWORK}`,
-  },
+  // mocha: {
+  //   starknetNetwork: `${process.env.STARKNET_NETWORK}`,
+  // },
   paths: {
     artifacts: "./artifacts",
     cache: "./cache",
@@ -129,8 +129,9 @@ const config: HardhatUserConfig = {
       },
     ],
   },
-  cairo: {
-    version: "0.7.0",
+  starknet: {
+    // The default in this version of the plugin
+    dockerizedVersion: "0.7.1"
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

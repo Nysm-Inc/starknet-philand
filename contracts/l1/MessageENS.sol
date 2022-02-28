@@ -1,34 +1,18 @@
 // SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.8;
+// import "@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol";
+import { IENS } from './interfaces/IENS.sol';
+import { IStarknetCore } from './interfaces/IStarknetCore.sol';
 
-interface IStarknetCore {
-    /**
-      Sends a message to an L2 contract.
-      Returns the hash of the message.
-    */
-    function sendMessageToL2(
-        uint256 to_address,
-        uint256 selector,
-        uint256[] calldata payload
-    ) external returns (bytes32);
-}
- 
- abstract contract IENS {
-    function resolver(bytes32 node) public virtual view returns (Resolver);
-    function owner(bytes32 node) external virtual view returns (address);
-}
-
-abstract contract Resolver {
-    function addr(bytes32 node) public virtual view returns (address);
-}
-
-contract PhilandL1 {
+contract MessageENS {
      // The StarkNet core contract.
     IStarknetCore _starknetCore;
     IENS _ens;
     address private _adminSigner;
     address private _ensaddress;    
-    bytes32 public baseNode;
+
+    // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
+    bytes32 public baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
     mapping(string => address) public existed;
 
     // The selector of the "create_philand" l1_handler.
@@ -50,10 +34,11 @@ contract PhilandL1 {
     /**
       Initializes the contract state.
     */
-    constructor(IStarknetCore starknetCore,address adminSigner,IENS ens){
+    constructor(IStarknetCore starknetCore,IENS ens,address adminSigner){
         _starknetCore = starknetCore;
-        _adminSigner = adminSigner;
         _ens = ens;
+        _adminSigner = adminSigner;
+        
     }
 
     //todo ens check and set ens method
@@ -61,9 +46,6 @@ contract PhilandL1 {
         uint256 l2ContractAddress,
         string memory name
         ) external {
-        
-        // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
-        baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
 
         bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
         uint256 ensname = uint256(stringToBytes32(name));

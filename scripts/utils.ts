@@ -4,6 +4,7 @@ import { StarknetContract } from "hardhat/types/runtime";
 import { ec, hash } from "starknet";
 const { getKeyPair, getStarkKey, sign, verify } = ec;
 const { hashMessage } = hash;
+import { InvokeOptions } from "@shardlabs/starknet-hardhat-plugin/dist/types";
 import type { KeyPair, Signature } from "starknet";
 
 const DEPLOYMENTS_DIR = `deployments`;
@@ -190,7 +191,9 @@ export class Signer {
 
     const sig:any = this.sign(msgHash);
     // const verified = this.verify(msgHash, sig);
-
+    const signa: InvokeOptions ={
+      signature: [sig.r, sig.s]
+    }
     return caller.invoke(
       "execute",
       {
@@ -198,7 +201,7 @@ export class Signer {
         selector,
         calldata: _calldata,
       },
-      [sig.r, sig.s]
+      signa
     );
   }
 }

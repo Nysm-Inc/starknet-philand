@@ -138,10 +138,10 @@ async function setupTest() {
       namehash.hash('eth'),]);
 
   const coupons = getCoupon(l1Alice.address)
-  const l1philand = await simpleDeploy("PhilandL1", [
+  const l1philand = await simpleDeploy("MessageENS", [
     starkNetFake.address,
-    admin.address,
-    ens.address
+    ens.address,
+    admin.address
   ]);
 
   return {

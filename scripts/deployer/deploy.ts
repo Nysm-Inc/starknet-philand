@@ -32,8 +32,8 @@ export async function deployDeployer() {
   
   const NETWORK = hre.network.name;
 
-  const STARKNET_NETWORK =
-    hre.config.mocha.starknetNetwork || DEFAULT_STARKNET_NETWORK;
+  const STARKNET_NETWORK = DEFAULT_STARKNET_NETWORK;
+    // hre.config.mocha.starknetNetwork || DEFAULT_STARKNET_NETWORK;
 
   const [l1Signer] = await hre.ethers.getSigners();
 
@@ -98,11 +98,18 @@ export async function deployBridge(): Promise<void> {
   console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
   console.log(`\tl2: ${deployer.address.toString()}`);
 
-  const l1PHILAND = await deployL1(
+const PHILANDL1 = await deployL1(
     NETWORK, "PhilandL1", BLOCK_NUMBER, [
     L1_STARKNET_ADDRESS,
+    ENS_ADDRESS,
     l1Signer.address,  
-    ENS_ADDRESS
+  ]);
+
+  const Message = await deployL1(
+    NETWORK, "MessageENS", BLOCK_NUMBER, [
+    L1_STARKNET_ADDRESS,
+    ENS_ADDRESS,
+    l1Signer.address,  
   ]);
 
   const tokenUri: any= {};
@@ -127,7 +134,7 @@ export async function deployBridge(): Promise<void> {
   console.log(...token_uri)
   console.log(token_uri.length)
   console.log(
-    `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${l1PHILAND.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
+    `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${PHILANDL1.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
   );
 
   const l2PHILAND = await deployL2(
@@ -136,7 +143,7 @@ export async function deployBridge(): Promise<void> {
     BLOCK_NUMBER,
     {
      object_address : asDec(l2Object.address),
-     l1_philand_address : asDec(l1PHILAND.address),
+     l1_philand_address : asDec(PHILANDL1.address),
     //  token_uri_len : 4,
      token_uri : token_uri,
     }
@@ -151,7 +158,7 @@ export function printAddresses() {
 
   const contracts = [
     "account-deployer",
-    "PhilandL1",
+    "MessageENS",
     "Object",
     "Philand",
   ];
