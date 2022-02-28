@@ -65,7 +65,7 @@ export async function deployDeployer() {
 
 export async function deployBridge(): Promise<void> {
   const [l1Signer] = await hre.ethers.getSigners();
-  console.log(asDec("0x00de086fe5b74f6cd1a340d9038f6fbea7c6c81ad98733dc9c48bf61260d16c8"))
+
   let NETWORK;
   if (hre.network.name === "fork") {
     NETWORK = "mainnet";
@@ -101,8 +101,8 @@ export async function deployBridge(): Promise<void> {
   const l1PHILAND = await deployL1(
     NETWORK, "PhilandL1", BLOCK_NUMBER, [
     L1_STARKNET_ADDRESS,
-    // ENS_ADDRESS,
-    l1Signer.address  
+    l1Signer.address,  
+    ENS_ADDRESS
   ]);
 
   const tokenUri: any= {};
@@ -210,7 +210,7 @@ async function deployL1(
 ) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.ethers.getContractFactory(name);
-  console.log(...calldata)
+  console.log(calldata)
   const contract = await contractFactory.deploy(...calldata);
   save(saveName || name, contract, hre.network.name, blockNumber);
 

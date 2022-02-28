@@ -27,14 +27,17 @@ def str_to_felt_array(text):
         chunks.append(str_to_felt(str_chunk))
     return chunks
 
-print(get_selector_from_name('create_grid'))
+
+print(get_selector_from_name('create_philand'))
 print(get_selector_from_name('claim_l1_object'))
 print(get_selector_from_name('claim_l2_object'))
+
 print(str_to_felt('zak3939.eth'))
 print(str_to_bytes('zak3939.eth'))
 print(felt_to_str(147948997034476692113290344))
 # console.log(BigInt(web3.utils.asciiToHex('object')))
-
+print(felt_to_str(
+    55354291560282261680205140228934436588969903936754548205611172710617586860032))
 # print(str_to_felt("object"))
 # print(str_to_felt("philand"))
 # print(str_to_felt("{id}"))

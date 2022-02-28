@@ -1,5 +1,5 @@
+// SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.8;
-import "@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol";
 
 interface IStarknetCore {
     /**
@@ -13,20 +13,27 @@ interface IStarknetCore {
     ) external returns (bytes32);
 }
  
-// // move to interface folder
-// interface IENS{
-//     function resolver(bytes32 node) external view returns (address);
-// }
+ abstract contract IENS {
+    function resolver(bytes32 node) public virtual view returns (Resolver);
+    function owner(bytes32 node) external virtual view returns (address);
+}
+
+abstract contract Resolver {
+    function addr(bytes32 node) public virtual view returns (address);
+}
 
 contract PhilandL1 {
      // The StarkNet core contract.
     IStarknetCore _starknetCore;
+    IENS _ens;
     address private _adminSigner;
-    mapping(uint256 => uint256) public userBalances;
+    address private _ensaddress;    
+    bytes32 public baseNode;
+    mapping(string => address) public existed;
 
     // The selector of the "create_philand" l1_handler.
-    uint256 constant CREATE_GRID_SELECTOR =
-        230744737155971716570284140634551213064188756564393274009046094202533668423;
+    uint256 constant CREATE_PHILAND_SELECTOR =
+        617099311689109934115201364618365113888900634692095419483864089403220532029;
 
     uint256 constant CLAIM_L1_OBJECT_SELECTOR =
         1426524085905910661260502794228018787518743932072178038305015687841949115798;
@@ -34,42 +41,62 @@ contract PhilandL1 {
     uint256 constant CLAIM_L2_OBJECT_SELECTOR =
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
-    event LogCreatePhiland(address indexed l1Sender, uint256 ensname);
-    event LogClaimL1NFT(uint256 ensname,uint256 contract_address,uint256 tokenid);
-    event LogClaimL2Object(uint256 ensname,uint256 contract_address,uint256 tokenid);
+    error InvalidENS (address sender, string name,uint256 ensname, bytes32 label,address owner, string node);
+
+    event LogCreatePhiland(address indexed l1Sender, string name);
+    event LogClaimL1NFT(string name,uint256 contract_address,uint256 tokenid);
+    event LogClaimL2Object(string name,uint256 contract_address,uint256 tokenid);
+    
     /**
       Initializes the contract state.
     */
-    constructor(IStarknetCore starknetCore,address adminSigner
-    ){
+    constructor(IStarknetCore starknetCore,address adminSigner,IENS ens){
         _starknetCore = starknetCore;
-        // _ens = ens;
         _adminSigner = adminSigner;
+        _ens = ens;
     }
-        
-        //todo ens check and set ens method
+
+    //todo ens check and set ens method
     function createPhiland(
         uint256 l2ContractAddress,
-        uint256 ensname
+        string memory name
         ) external {
         
-        emit LogCreatePhiland(msg.sender, ensname);        
+        // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
+        baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+
+        bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        uint256 ensname = uint256(stringToBytes32(name));
+        
+        if (msg.sender != _ens.owner(label)){
+            revert InvalidENS({
+                sender: msg.sender,
+                name: name,
+                ensname: ensname,
+                label: label,
+                owner: _ens.owner(label),
+                node: string(abi.encodePacked(ensname))
+            });
+        }
+       
+        emit LogCreatePhiland(msg.sender, name);
         uint256[] memory payload = new uint256[](1);
         payload[0] = ensname;
+
         // Send the message to the StarkNet core contract.
-        _starknetCore.sendMessageToL2(l2ContractAddress, CREATE_GRID_SELECTOR, payload);
+        _starknetCore.sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
     }
 
     function claimL1Object(
         uint256 l2ContractAddress,
-        uint256 ensname,
+        string memory name,
         address contractAddress,
         uint256 tokenid
         ) external {
 
-        emit LogClaimL1NFT(ensname,uint256(uint160(contractAddress)),tokenid);        
+        emit LogClaimL1NFT(name,uint256(uint160(contractAddress)),tokenid);        
         uint256[] memory payload = new uint256[](3);
-        payload[0] = ensname;
+        payload[0] = uint256(stringToBytes32(name));
         payload[1] = uint256(uint160(contractAddress));
         payload[2] = tokenid;
 
@@ -92,7 +119,7 @@ contract PhilandL1 {
 
     function claimL2Object(
         uint256 l2ContractAddress,
-        uint256 ensname,
+        string memory name,
         uint256 contractAddress,
         uint256 tokenid,
         Coupon memory coupon
@@ -106,10 +133,10 @@ contract PhilandL1 {
         _isVerifiedCoupon(digest, coupon), 
         'Invalid coupon'
         ); 
-        emit LogClaimL2Object(ensname,contractAddress,tokenid);
+        emit LogClaimL2Object(name,contractAddress,tokenid);
 
         uint256[] memory payload = new uint256[](3);
-        payload[0] = ensname;
+        payload[0] = uint256(stringToBytes32(name));
         payload[1] = contractAddress;
         payload[2] = tokenid;
 
@@ -129,7 +156,6 @@ contract PhilandL1 {
 		return signer == _adminSigner;
 	}
 
-    
 
     function toSplitUint(uint256 value) internal pure returns (uint256, uint256) {
     uint256 low = value & ((1 << 128) - 1);
@@ -137,21 +163,15 @@ contract PhilandL1 {
     return (low, high);
     }
 
-
-    function asciiToInteger(bytes32 x) internal pure returns (uint256) {
-        uint256 y;
-        for (uint256 i = 0; i < 32; i++) {
-            uint256 c = (uint256(x) >> (i * 8)) & 0xff;
-            if (48 <= c && c <= 57)
-                y += (c - 48) * 10 ** i;
-            else if (65 <= c && c <= 90)
-                y += (c - 65 + 10) * 10 ** i;
-            else if (97 <= c && c <= 122)
-                y += (c - 97 + 10) * 10 ** i;
-            else
-                break;
+    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
         }
-        return y;
+
+        assembly {
+            result := mload(add(source, 32))
+        }
     }
 
 }

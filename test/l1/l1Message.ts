@@ -20,8 +20,8 @@ const sha3 = require('web3-utils').sha3;
 require('dotenv').config()
 chai.use(smock.matchers);
 
-const createGrid = parseFixed(
-  "230744737155971716570284140634551213064188756564393274009046094202533668423"
+const createPhiland = parseFixed(
+  "617099311689109934115201364618365113888900634692095419483864089403220532029"
 );
 
 const claimL1Object = parseFixed(
@@ -32,8 +32,12 @@ const claimL2Object = parseFixed(
   "725729645710710348624275617047258825327720453914706103365608274738200251740"
 );
 
+const UENSNAME=parseFixed(
+  "55354291560282261680205140228934436588969903936754548205611172710617586860032")
+
 // str_to_felt('zak3939.eth')=147948997034476692113290344
-  const ENSLABEL =web3.utils.asciiToHex('zak3939.eth')
+  // const ENSLABEL =web3.utils.asciiToHex('zak3939.eth')
+  const ENSLABEL =web3.utils.asciiToHex('zak3939')
   const ENSNAME= BigInt(ENSLABEL).toString(10)
 
   beforeEach("checkens", function () {
@@ -56,23 +60,21 @@ const claimL2Object = parseFixed(
     it("sends a message to l2, emits event", async () => {
       const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,ens,resolver,ethregistrar } =
         await setupTest();
-      await ethregistrar.addController(admin.address);
-      await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), ethregistrar.address);
-      await ethregistrar.register(sha3('zak3939'), l1Alice.address, 86400);
-      await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address)
-      const ENSLABEL = web3.utils.asciiToHex('zak3939.eth')
-      const ENSNAME= BigInt(ENSLABEL).toString(10)
 
-
-      await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, ENSNAME))
+      await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), admin.address);
+      await ens.connect(admin).setSubnodeOwner(namehash.hash('eth'), sha3('zak3939'),l1Alice.address)
+      await ens.connect(l1Alice).setResolver(namehash.hash('zak3939.eth'),resolver.address)
+      await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address);
+      await ens.resolver(namehash.hash('zak3939.eth'))
+      await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, 'zak3939'))
         .to.emit(l1Philand, "LogCreatePhiland")
-        .withArgs(l1Alice.address, ENSNAME);
+        .withArgs(l1Alice.address,'zak3939');
 
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
-        createGrid,
-        [ENSNAME]
+        createPhiland,
+        [UENSNAME]
       );
     });
     
@@ -85,15 +87,15 @@ describe("claimL1NFT", function () {
   
       const lootContract = "0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7"
       const tokenid = 13
-      await expect(l1Philand.connect(l1Alice).claimL1Object(l2PhilandAddress, ENSNAME,lootContract,tokenid))
+      await expect(l1Philand.connect(l1Alice).claimL1Object(l2PhilandAddress, 'zak3939',lootContract,tokenid))
         .to.emit(l1Philand, "LogClaimL1NFT")
-        .withArgs(ENSNAME,lootContract,tokenid);
+        .withArgs('zak3939',lootContract,tokenid);
 
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL1Object,
-        [ENSNAME,lootContract,tokenid]
+        [UENSNAME,lootContract,tokenid]
       );
     });
 });
@@ -106,16 +108,16 @@ describe("claiml2Object", function () {
       const ObjectContract = "0x03a83e4e8b1a6e413d15ea5ee5bcd5bb2b2439f341010c3740fd7e51b2e14b64"
       const tokenid = 13
       console.log(coupons[l1Alice.address]["coupon"])
-      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, ENSNAME,ObjectContract,tokenid,coupons[l1Alice.address]["coupon"]))
+      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, 'zak3939',ObjectContract,tokenid,coupons[l1Alice.address]["coupon"]))
         .to.emit(l1Philand, "LogClaimL2Object")
-        .withArgs(ENSNAME,ObjectContract,tokenid);
+        .withArgs('zak3939',ObjectContract,tokenid);
       console.log("finish")
       
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL2Object,
-        [ENSNAME,ObjectContract,tokenid]
+        [UENSNAME,ObjectContract,tokenid]
       );
     });
 });
@@ -130,6 +132,7 @@ async function setupTest() {
   const L2_PHILAND_ADDRESS = 31415;
   
   const ens = await simpleDeploy("ENSRegistry",[]);
+  // const ens = await simpleDeploy("ENS",[]);
   const resolver = await simpleDeploy("TestResolver",[]);
   const ethregistrar= await simpleDeploy("TestRegistrar",[ens.address,
       namehash.hash('eth'),]);
@@ -137,9 +140,8 @@ async function setupTest() {
   const coupons = getCoupon(l1Alice.address)
   const l1philand = await simpleDeploy("PhilandL1", [
     starkNetFake.address,
-    // ens.address,
-    admin.address
-
+    admin.address,
+    ens.address
   ]);
 
   return {
