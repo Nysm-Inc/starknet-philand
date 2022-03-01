@@ -10,7 +10,7 @@ from starkware.cairo.common.math import (unsigned_div_rem, assert_nn,
     assert_not_zero, assert_nn_le, assert_le, assert_not_equal,
     split_int)
 from starkware.starknet.common.syscalls import (call_contract,
-    get_caller_address)
+    get_caller_address,get_block_timestamp,get_contract_address)
 from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 ##### Description #####
@@ -76,11 +76,28 @@ func parcel(
     ):
 end
 
-struct Metadata:
-    member overview_url : felt
-    member tile_url : felt
-    member title : felt
-    member image_object : felt
+struct Maplinks:
+    member x : felt
+    member y : felt
+    member contract_address : felt
+    member owner : felt
+end
+
+
+struct SettingEnum:
+    member created_at : felt
+    member updated_at : felt
+    member land_type : felt
+    member links : Maplinks
+    member text_records : felt
+end
+
+@storage_var
+func _settings(owner: felt, setting_index : felt) -> (res : felt):
+end
+
+@storage_var
+func _settings_link(owner: felt, setting_index : felt) -> (res : Maplinks):
 end
 
 @storage_var
@@ -238,8 +255,18 @@ func create_philand{
     parcel.write(owner=owner, x=7, y=6, value=0)
     parcel.write(owner=owner, x=7, y=7, value=0)
 
-    # let new_tile= 0
-    # parcel_meta.write(owner,Metadata.tile_url,new_tile)
+    let (block_timestamp) = get_block_timestamp()
+    _settings.write(owner, SettingEnum.created_at,block_timestamp)
+    _settings.write(owner, SettingEnum.updated_at,block_timestamp)
+    _settings.write(owner, SettingEnum.land_type,0)
+    _settings.write(owner, SettingEnum.text_records,0)
+    let new_links = Maplinks(
+        x = 0,
+        y = 0,
+        contract_address = 0,
+        owner = 0
+    )
+    _settings_link.write(owner, SettingEnum.links,new_links)
 
     return ()
 end
@@ -369,8 +396,8 @@ func batch_write_object_to_parcel{
         y_len = y_len - 1,
         y = y + 1,
         owner = owner,
-        object_id_len=object_id_len - 1,
-        object_id=object_id + 1)
+        object_id_len = object_id_len - 1,
+        object_id = object_id + 1)
 end
 
 # Returns a list of objects for the specified generation.
