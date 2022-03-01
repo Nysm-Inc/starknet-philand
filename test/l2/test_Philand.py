@@ -14,6 +14,7 @@ signers = []
 ENS_NAME = "zak3939.eth"
 TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
 TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
+TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
 L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
 OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
@@ -86,7 +87,7 @@ async def philand_factory(object_factory):
     ])
     print(calldata)
     print(f'philand is: {hex(philand.contract_address)}')
-    tokenid=0
+    tokenid=1
     execution_info = await object.tokenURI(to_split_uint(tokenid)).call()
     token_uri = ""
     for tu in execution_info.result.token_uri:
@@ -120,7 +121,7 @@ async def test_create_object(
 ):
     _, philand, object, accounts = philand_factory
     
-    tokenid = 1    
+    tokenid = 2    
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     print('New Object is creating...')
@@ -133,6 +134,7 @@ async def test_create_object(
         to=philand.contract_address,
         selector_name='create_l2_object',
         calldata=payload)
+        
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     response = await philand.view_object(response.result.current_index).call()
@@ -194,6 +196,59 @@ async def test_write_object_to_parcel(
         f'Parcel(7,7):{response.result.contract_address}:{response.result.tokenid}')
     print()
     
+
+        
+
+@pytest.mark.asyncio
+async def test_batch_write_object_to_parcel(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+
+    await starknet.send_message_to_l2(
+        from_address=L1_ADDRESS,
+        to_address=philand.contract_address,
+        selector="create_philand",
+        payload=[
+            str_to_felt(ENS_NAME)
+        ],
+    )
+
+    tokenid = 1
+    response = await philand.get_object_index().call()
+    print(f'Current object_id:{response.result.current_index}')
+    print('New Object is creating...')
+
+    token_uri_felt_array = str_to_felt_array(TOKENURI3)
+    payload = [object.contract_address, *to_split_uint(tokenid),
+               len(token_uri_felt_array), *token_uri_felt_array]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='create_l2_object',
+        calldata=payload)
+
+    response = await philand.get_object_index().call()
+    created_object_id = response.result.current_index
+    print(f'Current object_id:{created_object_id}')
+
+    print("Batch write New Object is writing to parcel...")
+    payload = [4,5,3,2,1, 
+                4,7,6,5,4,
+                str_to_felt(ENS_NAME), 
+                4,1, created_object_id, 1, created_object_id]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='batch_write_object_to_parcel',
+        calldata=payload)
+
+    response = await philand.view_philand(str_to_felt(ENS_NAME)).call()
+    (im) = response.result
+    await view([im])
+    print('Above is the updated your philand')
+
+
 async def view(images):
     # For an philand appearance:
     # .replace('1','■ ').replace('0','. ')
@@ -207,4 +262,3 @@ async def view(images):
         print(format(image[40:48]).replace('1', '■ ').replace('0', '. '))
         print(format(image[48:56]).replace('1', '■ ').replace('0', '. '))
         print(format(image[56:64]).replace('1', '■ ').replace('0', '. '))
-        

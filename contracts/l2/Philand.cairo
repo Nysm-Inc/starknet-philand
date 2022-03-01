@@ -150,7 +150,7 @@ func constructor{
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
-    create_l2_object(contract_address=object_address,tokenid=Uint256(0,0),token_uri_len=token_uri_len, token_uri=token_uri,)
+    create_l2_object(contract_address=object_address,tokenid=Uint256(1,0),token_uri_len=token_uri_len, token_uri=token_uri,)
     return ()
 end
 
@@ -238,8 +238,8 @@ func create_philand{
     parcel.write(owner=owner, x=7, y=6, value=0)
     parcel.write(owner=owner, x=7, y=7, value=0)
 
-    let new_tile= 0
-    parcel_meta.write(owner,Metadata.tile_url,new_tile)
+    # let new_tile= 0
+    # parcel_meta.write(owner,Metadata.tile_url,new_tile)
 
     return ()
 end
@@ -343,6 +343,35 @@ func write_object_to_parcel{
     return ()
 end
 
+@external
+func batch_write_object_to_parcel{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        x_len : felt, 
+        x : felt*,
+        y_len : felt,
+        y : felt*,
+        owner : felt,
+        object_id_len : felt,
+        object_id : felt*
+    ):
+    assert x_len = y_len
+    assert x_len = object_id_len
+    if x_len == 0:
+        return ()
+    end
+    parcel.write(owner, [x], [y],value=[object_id])
+    return batch_write_object_to_parcel(
+        x_len = x_len - 1,
+        x = x + 1,
+        y_len = y_len - 1,
+        y = y + 1,
+        owner = owner,
+        object_id_len=object_id_len - 1,
+        object_id=object_id + 1)
+end
 
 # Returns a list of objects for the specified generation.
 @view
@@ -503,6 +532,7 @@ func l1_philand_address{
     let (res) = _l1_philand_address.read()
     return (res)
 end
+
 #############################
 ##### Private functions #####
 #############################
