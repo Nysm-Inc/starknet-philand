@@ -10,8 +10,11 @@ from utils import str_to_felt, felt_to_str, Signer, uint, str_to_felt_array, to_
 NUM_SIGNING_ACCOUNTS = 2
 DUMMY_PRIVATE = 12345678987654321
 L1_ADDRESS = 0x1
+DUMMY_ADDRESS =0x2
+
 signers = []
 ENS_NAME = "zak3939.eth"
+DUMMY_ENS_NAME = "test.eth"
 TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
 TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
@@ -19,12 +22,10 @@ L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
 OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
 PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
+
 ###########
 # HELPERS #
 ###########
-
-
-
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -134,7 +135,7 @@ async def test_create_object(
         to=philand.contract_address,
         selector_name='create_l2_object',
         calldata=payload)
-        
+
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     response = await philand.view_object(response.result.current_index).call()
@@ -146,6 +147,49 @@ async def test_create_object(
     for tu in execution_info.result.token_uri:
         token_uri += felt_to_str(tu)
     print(token_uri)
+    assert execution_info.result.token_uri == str_to_felt_array(TOKENURI2)
+
+@pytest.mark.asyncio
+async def test_write_newlink(
+    philand_factory
+):
+    _, philand, _, accounts = philand_factory
+
+    response = await philand.view_link_num(str_to_felt(ENS_NAME)).call()
+    print(f'Current link_num:{response.result.num}')
+    print('New link is creating...')
+    payload = [str_to_felt(ENS_NAME), 0, 2, DUMMY_ADDRESS,
+               str_to_felt(DUMMY_ENS_NAME)]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='write_newlink',
+        calldata=payload)
+    response = await philand.view_link_num(str_to_felt(ENS_NAME)).call()
+    print(f'Current link_num:{response.result.num}')
+    response = await philand.view_link(str_to_felt(ENS_NAME), response.result.num).call()
+    print(response.result.link)
+
+
+@pytest.mark.asyncio
+async def test_write_setting(
+    philand_factory
+):
+    _, philand, _, accounts = philand_factory
+
+    response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
+    print(f'Current setting land:{response.result.land_type}')
+    print(f'Creating land:{response.result.created_at}')
+    print('New link is creating...')
+    payload = [str_to_felt(ENS_NAME), 1 ]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='write_setting',
+        calldata=payload)
+    response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
+    print(f'Current link_num:{response.result.land_type}')
+    assert response.result.land_type == 1
 
 @pytest.mark.asyncio
 async def test_write_object_to_parcel(

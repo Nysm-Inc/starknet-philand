@@ -146,12 +146,12 @@ export async function deployBridge(): Promise<void> {
   );
 
   console.log(asDec(l2PHILAND.address))
-  await l2Signer.sendTransaction(deployer, l2PHILAND, "create_l2_object", [
-    asDec(l2Object.address),
-    [2,0],
-    4,
-    token_uri2,
-  ]);
+  // await l2Signer.sendTransaction(deployer, l2PHILAND, "create_l2_object", [
+  //   asDec(l2Object.address),
+  //   [2,0],
+  //   4,
+  //   token_uri2,
+  // ]);
 }
 
 export function printAddresses() {

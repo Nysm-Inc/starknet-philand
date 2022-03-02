@@ -76,11 +76,20 @@ func parcel(
     ):
 end
 
-struct Maplinks:
+
+struct Maplink:
     member x : felt
     member y : felt
     member contract_address : felt
     member owner : felt
+end
+
+@storage_var
+func _link_num(owner: felt) -> (res : felt):
+end
+
+@storage_var
+func _maplinks(owner: felt, link_index : felt) -> (res : Maplink):
 end
 
 
@@ -88,17 +97,14 @@ struct SettingEnum:
     member created_at : felt
     member updated_at : felt
     member land_type : felt
-    member links : Maplinks
     member text_records : felt
 end
+
 
 @storage_var
 func _settings(owner: felt, setting_index : felt) -> (res : felt):
 end
 
-@storage_var
-func _settings_link(owner: felt, setting_index : felt) -> (res : Maplinks):
-end
 
 @storage_var
 func parcel_meta(
@@ -108,6 +114,7 @@ func parcel_meta(
         res : felt
     ):
 end
+
 @storage_var
 func object_index(
     ) -> (
@@ -120,7 +127,6 @@ struct Tokendata:
     member tokenid : Uint256
 end
 
-# contract_address+tokenid
 @storage_var
 func object_info(
         object_id : felt
@@ -255,53 +261,89 @@ func create_philand{
     parcel.write(owner=owner, x=7, y=6, value=0)
     parcel.write(owner=owner, x=7, y=7, value=0)
 
+    # create init setting
     let (block_timestamp) = get_block_timestamp()
     _settings.write(owner, SettingEnum.created_at,block_timestamp)
     _settings.write(owner, SettingEnum.updated_at,block_timestamp)
     _settings.write(owner, SettingEnum.land_type,0)
     _settings.write(owner, SettingEnum.text_records,0)
-    let new_links = Maplinks(
+
+    let new_link = Maplink(
         x = 0,
         y = 0,
         contract_address = 0,
         owner = 0
     )
-    _settings_link.write(owner, SettingEnum.links,new_links)
+
+    _maplinks.write(owner, 0, new_link)
 
     return ()
 end
 
-
-
+# set new land type
 @external
-func claim_starter_object{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        owner : felt,
-        object_id : felt
-    ):
-    # check valid recipient
-    with_attr error_message("Object/invalid-recipient"):
-    #   assert_not_zero(account)
-      let (caller_address) = get_caller_address()
-      assert_not_zero(caller_address)
-    end
-
-    # todo already claimed
-    with_attr error_message("Object/invalid-nft"):
-    #   assert_not_zero(num)
-    end
-
-    # with_attr error_message("Object/invalid-tokenid"):
-    #   let (nftOwner) = IObject.ownerOf(tokenid)
-    # end
-
-    object_owner.write(owner=owner,object_id=1,value=1)
-    object_owner.write(owner=owner,object_id=2,value=1)
+func write_setting{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner :felt,land_type : felt):
+    _settings.write(owner, SettingEnum.land_type,land_type)
     return ()
 end
+
+# Create New lint to philand at specific parcel
+@external
+func write_newlink{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner : felt, x : felt, y : felt, contract_address : felt, target_owner : felt ):
+    alloc_locals
+
+    let (local num ) = view_link_num(owner)
+    let new_index = num + 1
+    let new_link = Maplink(
+        x = x,
+        y = y,
+        contract_address = contract_address,
+        owner = target_owner
+    )
+
+    _maplinks.write(owner, new_index, new_link)
+    _link_num.write(owner, new_index)
+    return ()
+end
+
+# @external
+# func claim_starter_object{
+#         syscall_ptr : felt*,
+#         pedersen_ptr : HashBuiltin*,
+#         range_check_ptr
+#     }(
+#         owner : felt,
+#         object_id : felt
+#     ):
+#     # check valid recipient
+#     with_attr error_message("Object/invalid-recipient"):
+#     #   assert_not_zero(account)
+#       let (caller_address) = get_caller_address()
+#       assert_not_zero(caller_address)
+#     end
+
+#     # todo already claimed
+#     with_attr error_message("Object/invalid-nft"):
+#     #   assert_not_zero(num)
+#     end
+
+#     # with_attr error_message("Object/invalid-tokenid"):
+#     #   let (nftOwner) = IObject.ownerOf(tokenid)
+#     # end
+
+#     object_owner.write(owner=owner,object_id=1,value=1)
+#     object_owner.write(owner=owner,object_id=2,value=1)
+#     return ()
+# end
+
 
 @l1_handler
 func claim_l1_object{
@@ -341,6 +383,7 @@ func claim_l2_object{
     return ()
 end
 
+# Philand contract object index
 @external
 func get_object_index{
         syscall_ptr : felt*,
@@ -354,6 +397,8 @@ func get_object_index{
     return (current_index)
 end
 
+
+# Write object id to parcel
 @external
 func write_object_to_parcel{
         syscall_ptr : felt*,
@@ -370,6 +415,7 @@ func write_object_to_parcel{
     return ()
 end
 
+# Write object id to parcel (batch operation)
 @external
 func batch_write_object_to_parcel{
         syscall_ptr : felt*,
@@ -521,6 +567,41 @@ func view_parcel{
     let (object_id) = parcel.read(owner, x, y)
     let (token) = object_info.read(object_id)
     return (token.contract_address, token.tokenid)
+end
+
+# Returns philand owner setting link num
+@view
+func view_link_num{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner :felt) -> (num : felt):
+    let (num) = _link_num.read(owner)
+    return (num)
+end
+
+# Returns philand owner link 
+@view
+func view_link{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner :felt, link_index : felt) -> (link : Maplink):
+    let (link) =_maplinks.read(owner, link_index)
+    return (link)
+end
+
+# Returns philand setting data (created,update,type).
+@view
+func view_setting{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner :felt) -> (created_at : felt,updated_at : felt,land_type : felt):
+    let (created_at) = _settings.read(owner, SettingEnum.created_at)
+    let (updated_at) = _settings.read(owner, SettingEnum.updated_at)
+    let (land_type) = _settings.read(owner, SettingEnum.land_type)
+    return (created_at,updated_at,land_type)
 end
 
 # Returns parcel object data (contract_address, tokenid).
