@@ -181,7 +181,7 @@ async def test_write_setting(
     print(f'Current setting land:{response.result.land_type}')
     print(f'Creating land:{response.result.created_at}')
     print('New link is creating...')
-    payload = [str_to_felt(ENS_NAME), 1 ]
+    payload = [str_to_felt(ENS_NAME), 1]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
