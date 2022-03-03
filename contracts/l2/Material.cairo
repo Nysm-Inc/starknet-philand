@@ -6,6 +6,23 @@ from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import assert_nn_le, assert_not_equal, assert_not_zero, assert_le
 from starkware.cairo.common.alloc import alloc
 
+from contracts.l2.utils.Ownable_base import (
+    Ownable_initializer,
+    Ownable_only_owner,
+    Ownable_get_owner,
+    Ownable_transfer_ownership
+)
+
+from contracts.l2.token.ERC721_Metadata_base import (
+    ERC721_Metadata_initializer,
+    ERC721_Metadata_tokenURI,
+    ERC721_Metadata_setBaseTokenURI,
+    ERC721_Metadata_setTokenURI,
+    Metadata_tokenURI
+)
+
+from contracts.l2.token.ERC165_base import ERC165_supports_interface
+from starkware.cairo.common.uint256 import Uint256
 
 
 #
@@ -24,15 +41,6 @@ end
 func initialized() -> (res : felt):
 end
 
-struct BlockchainNamespace:
-    member a : felt
-end
-
-# ChainID. Chain Agnostic specifies that the length can go up to 32 nines (i.e. 9999999....) but we will only support 31 nines.
-struct BlockchainReference:
-    member a : felt
-end
-
 struct AssetNamespace:
     member a : felt
 end
@@ -49,12 +57,7 @@ struct TokenId:
     member a : felt
 end
 
-# As defined by Chain Agnostics (CAIP-29 and CAIP-19):
-# {blockchain_namespace}:{blockchain_reference}/{asset_namespace}:{asset_reference}/{token_id}
-# tokenId will be represented by the substring '{id}'
 struct TokenUri:
-    member blockchain_namespace : BlockchainNamespace
-    member blockchain_reference : BlockchainReference
     member asset_namespace : AssetNamespace
     member asset_reference : AssetReference
     member token_id : TokenId
@@ -70,14 +73,12 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        recipient : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt,
-        amounts : felt*, uri_ : TokenUri):
-    # get_caller_address() returns '0' in the constructor;
-    # therefore, recipient parameter is included
-    _mint_batch(recipient, tokens_id_len, tokens_id, amounts_len, amounts)
+        tokenid : felt,
+        token_uri_len : felt,
+        token_uri : felt*):
 
-    # Set uri
-    _set_uri(uri_)
+   # Set uri
+    setTokenURI(token_uri_len, token_uri, Uint256(tokenid,0))
 
     return ()
 end
@@ -104,6 +105,7 @@ func initialize_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_ch
     return ()
 end
 
+@external
 func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         to : felt, token_id : felt, amount : felt) -> ():
     assert_not_zero(to)
@@ -300,4 +302,27 @@ func _burn_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_p
         tokens_id=tokens_id + 1,
         amounts_len=amounts_len - 1,
         amounts=amounts + 1)
+end
+
+
+@external
+func setTokenURI{
+        pedersen_ptr: HashBuiltin*,
+        syscall_ptr: felt*,
+        range_check_ptr
+    }(token_uri_len : felt, token_uri : felt*, token_id : Uint256):
+    # Ownable_only_owner()
+    
+    ERC721_Metadata_setTokenURI(token_uri_len, token_uri, token_id)
+    return ()
+end
+
+@view
+func tokenURI{
+        syscall_ptr: felt*,
+        pedersen_ptr: HashBuiltin*,
+        range_check_ptr
+    }(token_id : Uint256) -> (token_uri_len : felt, token_uri : felt*):
+    let (token_uri_len, token_uri) = Metadata_tokenURI(token_id)
+    return (token_uri_len=token_uri_len, token_uri=token_uri)
 end

@@ -28,7 +28,7 @@ end
 
 @contract_interface
 namespace IMaterial:
-    
+
     func _mint(to : felt, token_id : felt, amount : felt):
     end
 
@@ -53,7 +53,21 @@ end
 
 
 ##### Public functions #####
-# Philand contract object index
+# 
+@external
+func regist_owner{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt
+    ):
+    alloc_locals
+    let (local update_time) = get_block_timestamp()
+    get_last_login_time.write(owner,update_time)
+    return ()
+end
+
 @external
 func get_reward{
         syscall_ptr : felt*,
@@ -64,6 +78,7 @@ func get_reward{
     owner_address : felt
     )->(check : felt ):
     alloc_locals
+
 
     let (check) = check_reward(owner)
     if check == 1:
@@ -78,6 +93,22 @@ func get_reward{
 
     
 end
+
+@view
+func get_login_time{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt
+    )-> (
+    last_login_time : felt
+    ):
+    alloc_locals
+    let (last_login_time)= get_last_login_time.read(owner)
+
+    return (last_login_time)
+end 
 
 @view
 func check_elapsed_time{

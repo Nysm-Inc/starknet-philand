@@ -114,6 +114,7 @@ export async function deployBridge(): Promise<void> {
   console.log(BigInt(web3.utils.asciiToHex("{id}")))
   tokenUri.token_id=parseFixed("2070504573")
   console.log(tokenUri)
+
   const l2Object:StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Object",
@@ -127,10 +128,30 @@ export async function deployBridge(): Promise<void> {
  
   // const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
   
-  console.log(...token_uri)
-  console.log(token_uri.length)
-  console.log(
-    `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
+  // console.log(...token_uri)
+  // console.log(token_uri.length)
+  // console.log(
+  //   `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
+  // );
+
+  const l2Material = await deployL2(
+    STARKNET_NETWORK,
+    "Material",
+    BLOCK_NUMBER,
+    {
+      tokenid : 1,
+      token_uri : token_uri2
+     
+    }
+  );
+
+  const l2Login = await deployL2(
+    STARKNET_NETWORK,
+    "Login",
+    BLOCK_NUMBER,
+    {
+     material_address : asDec(l2Material.address),
+    }
   );
 
   const l2PHILAND = await deployL2(
@@ -146,12 +167,14 @@ export async function deployBridge(): Promise<void> {
   );
 
   console.log(asDec(l2PHILAND.address))
+  console.log(stringToFeltArray("zak3939.eth"))
   // await l2Signer.sendTransaction(deployer, l2PHILAND, "create_l2_object", [
   //   asDec(l2Object.address),
   //   [2,0],
   //   4,
   //   token_uri2,
   // ]);
+
 }
 
 export function printAddresses() {
@@ -161,6 +184,8 @@ export function printAddresses() {
     "account-deployer",
     "MessageENS",
     "Object",
+    "Material",
+    "Login",
     "Philand",
   ];
 
