@@ -19,6 +19,12 @@ async function main() {
         type: "image/png",
       }
     ),
+    attributes:[
+    {"trait_type": "Height", "value": "1"},
+    {"trait_type": "World Type", "value": "Land"},
+    {"trait_type": "Object Type", "value": "Car"},
+    {"trait_type": "Creator", "value": "ta2nb"}
+    ]
   });
 
   const url = new URL(metadata.url);

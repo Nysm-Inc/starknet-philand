@@ -10,7 +10,7 @@ from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address,get_block_timestamp,get_contract_address)
 
 from starkware.cairo.common.math_cmp import (is_nn_le)
-
+from starkware.cairo.common.uint256 import Uint256
 @storage_var
 func get_last_login_time(
         owner : felt,
@@ -29,7 +29,7 @@ end
 @contract_interface
 namespace IMaterial:
 
-    func _mint(to : felt, token_id : felt, amount : felt):
+    func _mint(to : felt, token_id : Uint256, amount : felt):
     end
 
 end
@@ -76,7 +76,7 @@ func get_reward{
     }(
     owner : felt,
     owner_address : felt
-    )->(check : felt ):
+    ):
     alloc_locals
 
 
@@ -85,10 +85,10 @@ func get_reward{
         let (local update_time) = get_block_timestamp()
         get_last_login_time.write(owner,update_time)
         let (local material_address) = _material_address.read()
-        IMaterial._mint(material_address,owner_address,1,1)
-        return (check)
+        IMaterial._mint(material_address,owner_address,Uint256(1,0),1)
+        return ()
     else:
-        return (check)
+        return ()
     end
 
     

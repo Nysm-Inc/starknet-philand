@@ -28,7 +28,7 @@ from starkware.cairo.common.uint256 import Uint256
 #
 
 @storage_var
-func balances(owner : felt, token_id : felt) -> (res : felt):
+func balances(owner : felt, token_id : Uint256) -> (res : felt):
 end
 
 @storage_var
@@ -36,26 +36,25 @@ func operator_approvals(owner : felt, operator : felt) -> (res : felt):
 end
 
 
-struct TokenUri:
-    member asset_namespace : felt
-    member asset_reference : felt
-    member token_id : felt
-end
+# struct TokenUri:
+#     member asset_namespace : felt
+#     member asset_reference : felt
+#     member token_id : felt
+# end
 
-@storage_var
-func _uri() -> (res: TokenUri):
-end
+# @storage_var
+# func _uri() -> (res: TokenUri):
+# end
 
 #
 # Constructor
 #
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        uri_ : TokenUri):
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
 
     # Set uri
-    _set_uri(uri_)
+    # _set_uri(uri_)
 
     # ERC721_initializer(name, symbol)
     # ERC721_Metadata_initializer()
@@ -66,16 +65,16 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 end
 
 
-func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
-    _uri.write(uri_)
-    return()
-end
+# func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
+#     _uri.write(uri_)
+#     return()
+# end
 
 
 # Todo require owner
 @external
 func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        to : felt, token_id : felt, amount : felt) -> ():
+        to : felt, token_id : Uint256, amount : felt) -> ():
     assert_not_zero(to)
     let (res) = balances.read(owner=to, token_id=token_id)
     balances.write(to, token_id, res + amount)
@@ -85,7 +84,7 @@ end
 # Todo require owner
 @external
 func _mint_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        to : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt,
+        to : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt,
         amounts : felt*) -> ():
     assert_not_zero(to)
     assert tokens_id_len = amounts_len
@@ -97,7 +96,7 @@ func _mint_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_p
     return _mint_batch(
         to=to,
         tokens_id_len=tokens_id_len - 1,
-        tokens_id=tokens_id + 1,
+        tokens_id=tokens_id + 2,
         amounts_len=amounts_len - 1,
         amounts=amounts + 1)
 end
@@ -118,15 +117,15 @@ end
 
 # Returns the same URI for all tokens type ID
 # Client calling the function must replace the {id} substring with the actual token type ID
-@view
-func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
-    let (res) = _uri.read()
-    return (res)
-end
+# @view
+# func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
+#     let (res) = _uri.read()
+#     return (res)
+# end
 
 @view
 func balance_of{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        owner : felt, token_id : felt) -> (res : felt):
+        owner : felt, token_id : Uint256) -> (res : felt):
     assert_not_zero(owner)
     let (res) = balances.read(owner=owner, token_id=token_id)
     return (res)
@@ -134,7 +133,7 @@ end
 
 @view
 func balance_of_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        owners_len : felt, owners : felt*, tokens_id_len : felt, tokens_id : felt*) -> (
+        owners_len : felt, owners : felt*, tokens_id_len : felt, tokens_id : Uint256*) -> (
         res_len : felt, res : felt*):
     assert owners_len = tokens_id_len
     alloc_locals
@@ -146,14 +145,14 @@ func balance_of_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_ch
 end
 
 func populate_balance_of_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        owners : felt*, tokens_id : felt*, rett : felt*, ret_index : felt, max : felt):
+        owners : felt*, tokens_id : Uint256*, rett : felt*, ret_index : felt, max : felt):
     alloc_locals
     if ret_index == max:
         return ()
     end
     let (local retval0 : felt) = balances.read(owner=owners[0], token_id=tokens_id[0])
     rett[0] = retval0
-    populate_balance_of_batch(owners + 1, tokens_id + 1, rett + 1, ret_index + 1, max)
+    populate_balance_of_batch(owners + 1, tokens_id + 2, rett + 1, ret_index + 1, max)
     return ()
 end
 
@@ -185,7 +184,7 @@ end
 
 @external
 func safe_transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        _from : felt, to : felt, token_id : felt, amount : felt):
+        _from : felt, to : felt, token_id : Uint256, amount : felt):
     _assert_is_owner_or_approved(_from)
     _transfer_from(_from, to, token_id, amount)
     return ()
@@ -193,7 +192,7 @@ end
 
 @external
 func safe_batch_transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        _from : felt, to : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt,
+        _from : felt, to : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt,
         amounts : felt*):
     _assert_is_owner_or_approved(_from)
     _batch_transfer_from(_from, to, tokens_id_len, tokens_id, amounts_len, amounts)
@@ -201,7 +200,7 @@ func safe_batch_transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, 
 end
 
 func _transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        sender : felt, recipient : felt, token_id : felt, amount : felt):
+        sender : felt, recipient : felt, token_id : Uint256, amount : felt):
     # check recipient != 0
     assert_not_zero(recipient)
 
@@ -219,7 +218,7 @@ func _transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_chec
 end
 
 func _batch_transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        _from : felt, to : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt,
+        _from : felt, to : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt,
         amounts : felt*):
     assert tokens_id_len = amounts_len
     assert_not_zero(to)
@@ -232,7 +231,7 @@ func _batch_transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, rang
         _from=_from,
         to=to,
         tokens_id_len=tokens_id_len - 1,
-        tokens_id=tokens_id + 1,
+        tokens_id=tokens_id + 2,
         amounts_len=amounts_len - 1,
         amounts=amounts + 1)
 end
@@ -257,7 +256,7 @@ end
 
 @external
 func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        _from : felt, token_id : felt, amount : felt):
+        _from : felt, token_id : Uint256, amount : felt):
     assert_not_zero(_from)
 
     let (from_balance) = balance_of(_from, token_id)
@@ -268,7 +267,7 @@ end
 
 @external
 func _burn_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-        _from : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt, amounts : felt*):
+        _from : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt, amounts : felt*):
     assert_not_zero(_from)
 
     assert tokens_id_len = amounts_len
@@ -279,7 +278,7 @@ func _burn_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_p
     return _burn_batch(
         _from=_from,
         tokens_id_len=tokens_id_len - 1,
-        tokens_id=tokens_id + 1,
+        tokens_id=tokens_id + 2,
         amounts_len=amounts_len - 1,
         amounts=amounts + 1)
 end

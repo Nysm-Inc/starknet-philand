@@ -47,3 +47,6 @@ print(*str_to_felt_array(
 print("next")
 print(*str_to_felt_array(
     "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"))
+
+
+print(0x046e34fb5292959063ac7f0feff0da25bb79e3109477aab092dfbe4ea3a6318c)
