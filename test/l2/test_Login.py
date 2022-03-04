@@ -34,7 +34,7 @@ async def login_factory():
     material = await starknet.deploy(
         "contracts/l2/Material.cairo",
         constructor_calldata=[
-            1,0,
+            1,
             4,
             184555836509371486644019136839411173249852705485729074225653387927518275942,
             210616560794178717850935920065495060911188822037429046327979330294206130042,

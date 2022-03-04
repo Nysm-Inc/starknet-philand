@@ -36,25 +36,25 @@ func operator_approvals(owner : felt, operator : felt) -> (res : felt):
 end
 
 
-# struct TokenUri:
-#     member asset_namespace : felt
-#     member asset_reference : felt
-#     member token_id : felt
-# end
+struct TokenUri:
+    member asset_namespace : felt
+    member asset_reference : felt
+    member token_id : felt
+end
 
-# @storage_var
-# func _uri() -> (res: TokenUri):
-# end
+@storage_var
+func _uri() -> (res: TokenUri):
+end
 
 #
 # Constructor
 #
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
 
     # Set uri
-    # _set_uri(uri_)
+    _set_uri(uri_)
 
     # ERC721_initializer(name, symbol)
     # ERC721_Metadata_initializer()
@@ -65,10 +65,10 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 end
 
 
-# func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
-#     _uri.write(uri_)
-#     return()
-# end
+func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
+    _uri.write(uri_)
+    return()
+end
 
 
 # Todo require owner
@@ -117,11 +117,11 @@ end
 
 # Returns the same URI for all tokens type ID
 # Client calling the function must replace the {id} substring with the actual token type ID
-# @view
-# func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
-#     let (res) = _uri.read()
-#     return (res)
-# end
+@view
+func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
+    let (res) = _uri.read()
+    return (res)
+end
 
 @view
 func balance_of{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(

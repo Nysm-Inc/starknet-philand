@@ -11,6 +11,8 @@ contract MessageENS {
     address private _adminSigner;
     address private _ensaddress;    
 
+    mapping (string => address) public owner_lists;
+
     // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
     bytes32 public baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
     mapping(string => address) public existed;
@@ -60,7 +62,9 @@ contract MessageENS {
                 node: string(abi.encodePacked(ensname))
             });
         }
-       
+
+        owner_lists[name]=msg.sender;
+
         emit LogCreatePhiland(msg.sender, name);
         uint256[] memory payload = new uint256[](1);
         payload[0] = ensname;
@@ -122,8 +126,17 @@ contract MessageENS {
         payload[1] = contractAddress;
         payload[2] = tokenid;
 
+        
+
         // Send the message to the StarkNet core contract.
         _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
+    }
+
+    function OwnerOfPhiland(string memory name) external view returns (bool){
+        if (owner_lists[name]!=address(0))
+            return true;
+        else
+            return false;
     }
 
     /// @dev check that the coupon sent was signed by the admin signer
@@ -145,7 +158,7 @@ contract MessageENS {
     return (low, high);
     }
 
-    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
         bytes memory tempEmptyStringTest = bytes(source);
         if (tempEmptyStringTest.length == 0) {
             return 0x0;

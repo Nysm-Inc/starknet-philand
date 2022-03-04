@@ -139,7 +139,7 @@ export async function deployBridge(): Promise<void> {
     "Material",
     BLOCK_NUMBER,
     {
-      tokenid : 1,
+      token_id : 1,
       token_uri : token_uri2
      
     }

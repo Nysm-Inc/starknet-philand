@@ -74,12 +74,12 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        tokenid : Uint256,
+        token_id : felt,
         token_uri_len : felt,
         token_uri : felt*):
 
    # Set uri
-    setTokenURI(token_uri_len, token_uri, tokenid)
+    setTokenURI(token_uri_len, token_uri, Uint256(token_id,0))
 
     return ()
 end

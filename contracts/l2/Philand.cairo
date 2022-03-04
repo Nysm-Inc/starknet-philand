@@ -124,7 +124,7 @@ end
 
 struct Tokendata:
     member contract_address : felt
-    member tokenid : Uint256
+    member token_id : Uint256
 end
 
 @storage_var
@@ -173,7 +173,7 @@ func constructor{
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
-    create_l2_object(contract_address=object_address,tokenid=Uint256(1,0),token_uri_len=token_uri_len, token_uri=token_uri,)
+    create_l2_object(contract_address=object_address,token_id=Uint256(1,0),token_uri_len=token_uri_len, token_uri=token_uri,)
     return ()
 end
 
@@ -335,8 +335,8 @@ end
 #     #   assert_not_zero(num)
 #     end
 
-#     # with_attr error_message("Object/invalid-tokenid"):
-#     #   let (nftOwner) = IObject.ownerOf(tokenid)
+#     # with_attr error_message("Object/invalid-token_id"):
+#     #   let (nftOwner) = IObject.ownerOf(token_id)
 #     # end
 
 #     object_owner.write(owner=owner,object_id=1,value=1)
@@ -354,9 +354,9 @@ func claim_l1_object{
         from_address : felt,
         owner : felt,
         contract_address : felt,
-        tokenid : Uint256
+        token_id : Uint256
     ):
-    create_l1nft_object(contract_address,tokenid)
+    create_l1nft_object(contract_address,token_id)
     let (current_index) = object_index.read()
     object_owner.write(owner,current_index,1)
     return ()
@@ -371,14 +371,14 @@ func claim_l2_object{
         from_address : felt,
         owner : felt,
         contract_address : felt,
-        tokenid : Uint256
+        token_id : Uint256
     ):
     # todo setowner=>L2addresss
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
     object_owner.write(owner,current_index,1)
-    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    let newTokendata= Tokendata(contract_address=contract_address,token_id=token_id)
     object_info.write(idx,newTokendata)
     return ()
 end
@@ -550,7 +550,7 @@ func view_philand{
         object_60, object_61,object_62, object_63)
 end
 
-# Returns parcel object data (contract_address, tokenid).
+# Returns parcel object data (contract_address, token_id).
 @view
 func view_parcel{
         syscall_ptr : felt*,
@@ -562,11 +562,11 @@ func view_parcel{
         y : felt
     ) -> (
         contract_address : felt,
-        tokenid : Uint256
+        token_id : Uint256
     ):
     let (object_id) = parcel.read(owner, x, y)
     let (token) = object_info.read(object_id)
-    return (token.contract_address, token.tokenid)
+    return (token.contract_address, token.token_id)
 end
 
 # Returns philand owner setting link num
@@ -604,7 +604,7 @@ func view_setting{
     return (created_at,updated_at,land_type)
 end
 
-# Returns parcel object data (contract_address, tokenid).
+# Returns parcel object data (contract_address, token_id).
 @view
 func view_object{
         syscall_ptr : felt*,
@@ -614,10 +614,10 @@ func view_object{
         object_id : felt
     ) -> (
         contract_address : felt,
-        tokenid : Uint256
+        token_id : Uint256
     ):
     let (token) = object_info.read(object_id)
-    return (token.contract_address, token.tokenid)
+    return (token.contract_address, token.token_id)
 end
 
 
@@ -650,12 +650,12 @@ func create_l1nft_object{
         range_check_ptr
     }(
         contract_address : felt,
-        tokenid : Uint256
+        token_id : Uint256
     ):
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
-    let newTokendata= Tokendata(contract_address=contract_address,tokenid=tokenid)
+    let newTokendata= Tokendata(contract_address=contract_address,token_id=token_id)
     object_info.write(idx,newTokendata)
 
     return ()
@@ -668,15 +668,15 @@ func create_l2_object{
         range_check_ptr
     }(
         contract_address : felt,
-        tokenid : Uint256,
+        token_id : Uint256,
         token_uri_len : felt,
         token_uri : felt*
     ):
     alloc_locals
     let (object) = _object_address.read()
-    IObject.setTokenURI(object,token_uri_len, token_uri, tokenid)
+    IObject.setTokenURI(object,token_uri_len, token_uri, token_id)
 
-    let newTokendata = Tokendata(contract_address=contract_address,tokenid=tokenid)
+    let newTokendata = Tokendata(contract_address=contract_address,token_id=token_id)
 
     let (local current_index) = object_index.read()
     let idx = current_index + 1

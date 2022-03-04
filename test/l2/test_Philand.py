@@ -60,8 +60,8 @@ async def object_factory(account_factory):
     print(f'Deploying object...')
     object = await starknet.deploy(source=OBJECT_FILE,
                                    constructor_calldata=[
-                                    #    int.from_bytes("object".encode(
-                                    #        "ascii"), 'big'), 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, int.from_bytes("{id}".encode("ascii"), 'big')
+                                       int.from_bytes("object".encode(
+                                           "ascii"), 'big'), 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, int.from_bytes("{id}".encode("ascii"), 'big')
                                    ])
     print(f'object is: {hex(object.contract_address)}')
     return starknet, object, accounts
@@ -88,8 +88,8 @@ async def philand_factory(object_factory):
     ])
     print(calldata)
     print(f'philand is: {hex(philand.contract_address)}')
-    tokenid=1
-    execution_info = await object.tokenURI(to_split_uint(tokenid)).call()
+    token_id=1
+    execution_info = await object.tokenURI(to_split_uint(token_id)).call()
     token_uri = ""
     for tu in execution_info.result.token_uri:
         token_uri += felt_to_str(tu)
@@ -122,13 +122,13 @@ async def test_create_object(
 ):
     _, philand, object, accounts = philand_factory
     
-    tokenid = 2    
+    token_id = 2    
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     print('New Object is creating...')
     
     token_uri_felt_array = str_to_felt_array(TOKENURI2)
-    payload = [object.contract_address, *to_split_uint(tokenid),
+    payload = [object.contract_address, *to_split_uint(token_id),
                 len(token_uri_felt_array),*token_uri_felt_array]
     await signers[0].send_transaction(
         account=accounts[0],
@@ -140,9 +140,9 @@ async def test_create_object(
     print(f'Current object_id:{response.result.current_index}')
     response = await philand.view_object(response.result.current_index).call()
     print(f'Contract address:{hex(response.result.contract_address)}')
-    print(f'tokenid:{response.result.tokenid}')
-    print(type(response.result.tokenid))
-    execution_info = await object.tokenURI(response.result.tokenid).call()
+    print(f'token_id:{response.result.token_id}')
+    print(type(response.result.token_id))
+    execution_info = await object.tokenURI(response.result.token_id).call()
     token_uri = ""
     for tu in execution_info.result.token_uri:
         token_uri += felt_to_str(tu)
@@ -210,8 +210,8 @@ async def test_write_object_to_parcel(
     print(f'Current object_id:{response.result.current_index}')
     print('New Object is Creating by L1...')
     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
-    tokenid = 13
-    payload = [str_to_felt(ENS_NAME),lootContract, *to_split_uint(tokenid)]
+    token_id = 13
+    payload = [str_to_felt(ENS_NAME),lootContract, *to_split_uint(token_id)]
 
     await starknet.send_message_to_l2(
         from_address=L1_ADDRESS,
@@ -237,7 +237,7 @@ async def test_write_object_to_parcel(
 
     response = await philand.view_parcel(str_to_felt(ENS_NAME),7,7).call()
     print(
-        f'Parcel(7,7):{response.result.contract_address}:{response.result.tokenid}')
+        f'Parcel(7,7):{response.result.contract_address}:{response.result.token_id}')
     print()
     
 
@@ -258,13 +258,13 @@ async def test_batch_write_object_to_parcel(
         ],
     )
 
-    tokenid = 1
+    token_id = 1
     response = await philand.get_object_index().call()
     print(f'Current object_id:{response.result.current_index}')
     print('New Object is creating...')
 
     token_uri_felt_array = str_to_felt_array(TOKENURI3)
-    payload = [object.contract_address, *to_split_uint(tokenid),
+    payload = [object.contract_address, *to_split_uint(token_id),
                len(token_uri_felt_array), *token_uri_felt_array]
     await signers[0].send_transaction(
         account=accounts[0],
