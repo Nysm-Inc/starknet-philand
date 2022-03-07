@@ -78,25 +78,37 @@ end
 
 
 struct Maplink:
+    member contract_address : felt
+    member target_owner : felt
+end
+
+
+@storage_var
+func parcel_link(
+        owner : felt,
+        x : felt,
+        y : felt
+    ) -> (
+        link : Maplink
+    ):
+end
+
+
+struct Spawnlink:
     member x : felt
     member y : felt
-    member contract_address : felt
-    member owner : felt
 end
 
-@storage_var
-func _link_num(owner: felt) -> (res : felt):
-end
-
-@storage_var
-func _maplinks(owner: felt, link_index : felt) -> (res : Maplink):
-end
+# @storage_var
+# func _settinglink(owner: felt) -> (res : Spawnlink):
+# end
 
 
 struct SettingEnum:
     member created_at : felt
     member updated_at : felt
     member land_type : felt
+    member spawn_link : Spawnlink
     member text_records : felt
 end
 
@@ -107,13 +119,17 @@ end
 
 
 @storage_var
-func parcel_meta(
-        owner : felt,
-        storage_index : felt
-    ) -> (
-        res : felt
-    ):
+func _setting_link(owner: felt, setting_index : felt) -> (res : Spawnlink):
 end
+
+# @storage_var
+# func parcel_meta(
+#         owner : felt,
+#         storage_index : felt
+#     ) -> (
+#         res : felt
+#     ):
+# end
 
 @storage_var
 func object_index(
@@ -194,6 +210,11 @@ func create_philand{
     alloc_locals
 
     assert_not_zero(owner)
+    
+    let map_link = Maplink(
+        contract_address =  0,
+        target_owner = 0
+    )
 
     # write philand parcel
     parcel.write(owner=owner, x=0, y=0, value=0)
@@ -261,28 +282,94 @@ func create_philand{
     parcel.write(owner=owner, x=7, y=6, value=0)
     parcel.write(owner=owner, x=7, y=7, value=0)
 
+    parcel_link.write(owner=owner, x=0, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=0, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=1, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=2, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=3, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=4, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=5, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=6, y=7, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=0, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=1, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=2, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=3, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=4, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=5, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=6, value=map_link)
+    parcel_link.write(owner=owner, x=7, y=7, value=map_link)
     # create init setting
     let (block_timestamp) = get_block_timestamp()
     _settings.write(owner, SettingEnum.created_at,block_timestamp)
     _settings.write(owner, SettingEnum.updated_at,block_timestamp)
     _settings.write(owner, SettingEnum.land_type,0)
-    _settings.write(owner, SettingEnum.text_records,0)
-
-    let new_link = Maplink(
-        x = 0,
-        y = 0,
-        contract_address = 0,
-        owner = 0
+    
+        # _settinglink.write(owner, SpawnlinkEnumk.x,0)
+    # _settinglink.write(owner, SpawnlinkEnumk.y,0)
+    
+    local spawn_link : Spawnlink = Spawnlink(
+        x =  0,
+        y = 0
     )
+    _setting_link.write(owner,SettingEnum.spawn_link,spawn_link)
 
-    _maplinks.write(owner, 0, new_link)
+    _settings.write(owner, SettingEnum.text_records,value=0)
+
 
     return ()
 end
 
 # set new land type
 @external
-func write_setting{
+func write_setting_landtype{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
@@ -291,26 +378,31 @@ func write_setting{
     return ()
 end
 
+@external
+func write_setting_spawn_link{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }(owner :felt,spawn_link : Spawnlink):
+    _setting_link.write(owner, SettingEnum.spawn_link,spawn_link)
+    return ()
+end
+
 # Create New lint to philand at specific parcel
 @external
-func write_newlink{
+func write_link{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }(owner : felt, x : felt, y : felt, contract_address : felt, target_owner : felt ):
-    alloc_locals
-
-    let (local num ) = view_link_num(owner)
-    let new_index = num + 1
-    let new_link = Maplink(
-        x = x,
-        y = y,
-        contract_address = contract_address,
-        owner = target_owner
+    alloc_locals    
+    
+    let map_link = Maplink(
+        contract_address =  contract_address,
+        target_owner = target_owner
     )
-
-    _maplinks.write(owner, new_index, new_link)
-    _link_num.write(owner, new_index)
+    parcel_link.write(owner,x,y,map_link)
+    
     return ()
 end
 
@@ -562,33 +654,116 @@ func view_parcel{
         y : felt
     ) -> (
         contract_address : felt,
-        token_id : Uint256
+        token_id : Uint256,
+        link : Maplink
     ):
     let (object_id) = parcel.read(owner, x, y)
     let (token) = object_info.read(object_id)
-    return (token.contract_address, token.token_id)
+    let (link) = parcel_link.read(owner, x, y)
+    return (token.contract_address, token.token_id,link)
 end
 
-# Returns philand owner setting link num
 @view
-func view_link_num{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-  }(owner :felt) -> (num : felt):
-    let (num) = _link_num.read(owner)
-    return (num)
-end
+func view_links{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        owner : felt
+    ) -> (
+        link_0 : Maplink, link_1 : Maplink, link_2 : Maplink, link_3 : Maplink,
+        link_4 : Maplink, link_5 : Maplink, link_6 : Maplink, link_7 : Maplink,
+        link_8 : Maplink, link_9 : Maplink, link_10 : Maplink, link_11 : Maplink,
+        link_12 : Maplink, link_13 : Maplink, link_14 : Maplink, link_15 : Maplink,
+        link_16 : Maplink, link_17 : Maplink, link_18 : Maplink, link_19 : Maplink,
+        link_20 : Maplink, link_21 : Maplink, link_22 : Maplink, link_23 : Maplink,
+        link_24 : Maplink, link_25 : Maplink, link_26 : Maplink, link_27 : Maplink,
+        link_28 : Maplink, link_29 : Maplink, link_30 : Maplink, link_31 : Maplink,
+        link_32 : Maplink, link_33 : Maplink, link_34 : Maplink, link_35 : Maplink,
+        link_36 : Maplink, link_37 : Maplink, link_38 : Maplink, link_39 : Maplink,
+        link_40 : Maplink, link_41 : Maplink, link_42 : Maplink, link_43 : Maplink,
+        link_44 : Maplink, link_45 : Maplink, link_46 : Maplink, link_47 : Maplink,
+        link_48 : Maplink, link_49 : Maplink, link_50 : Maplink, link_51 : Maplink,
+        link_52 : Maplink, link_53 : Maplink, link_54 : Maplink, link_55 : Maplink,
+        link_56 : Maplink, link_57 : Maplink, link_58 : Maplink, link_59 : Maplink,
+        link_60 : Maplink, link_61 : Maplink, link_62 : Maplink, link_63 : Maplink
+    ):
 
-# Returns philand owner link 
-@view
-func view_link{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-  }(owner :felt, link_index : felt) -> (link : Maplink):
-    let (link) =_maplinks.read(owner, link_index)
-    return (link)
+    let (link_0) = parcel_link.read(owner, 0, 0)
+    let (link_1) = parcel_link.read(owner, 0, 1)
+    let (link_2) = parcel_link.read(owner, 0, 2)
+    let (link_3) = parcel_link.read(owner, 0, 3)
+    let (link_4) = parcel_link.read(owner, 0, 4)
+    let (link_5) = parcel_link.read(owner, 0, 5)
+    let (link_6) = parcel_link.read(owner, 0, 6)
+    let (link_7) = parcel_link.read(owner, 0, 7)
+    let (link_8) = parcel_link.read(owner, 1, 0)
+    let (link_9) = parcel_link.read(owner, 1, 1)
+    let (link_10) = parcel_link.read(owner, 1, 2)
+    let (link_11) = parcel_link.read(owner, 1, 3)
+    let (link_12) = parcel_link.read(owner, 1, 4)
+    let (link_13) = parcel_link.read(owner, 1, 5)
+    let (link_14) = parcel_link.read(owner, 1, 6)
+    let (link_15) = parcel_link.read(owner, 1, 7)
+    let (link_16) = parcel_link.read(owner, 2, 0)
+    let (link_17) = parcel_link.read(owner, 2, 1)
+    let (link_18) = parcel_link.read(owner, 2, 2)
+    let (link_19) = parcel_link.read(owner, 2, 3)
+    let (link_20) = parcel_link.read(owner, 2, 4)
+    let (link_21) = parcel_link.read(owner, 2, 5)
+    let (link_22) = parcel_link.read(owner, 2, 6)
+    let (link_23) = parcel_link.read(owner, 2, 7)
+    let (link_24) = parcel_link.read(owner, 3, 0)
+    let (link_25) = parcel_link.read(owner, 3, 1)
+    let (link_26) = parcel_link.read(owner, 3, 2)
+    let (link_27) = parcel_link.read(owner, 3, 3)
+    let (link_28) = parcel_link.read(owner, 3, 4)
+    let (link_29) = parcel_link.read(owner, 3, 5)
+    let (link_30) = parcel_link.read(owner, 3, 6)
+    let (link_31) = parcel_link.read(owner, 3, 7)
+    let (link_32) = parcel_link.read(owner, 4, 0)
+    let (link_33) = parcel_link.read(owner, 4, 1)
+    let (link_34) = parcel_link.read(owner, 4, 2)
+    let (link_35) = parcel_link.read(owner, 4, 3)
+    let (link_36) = parcel_link.read(owner, 4, 4)
+    let (link_37) = parcel_link.read(owner, 4, 5)
+    let (link_38) = parcel_link.read(owner, 4, 6)
+    let (link_39) = parcel_link.read(owner, 4, 7)
+    let (link_40) = parcel_link.read(owner, 5, 0)
+    let (link_41) = parcel_link.read(owner, 5, 1)
+    let (link_42) = parcel_link.read(owner, 5, 2)
+    let (link_43) = parcel_link.read(owner, 5, 3)
+    let (link_44) = parcel_link.read(owner, 5, 4)
+    let (link_45) = parcel_link.read(owner, 5, 5)
+    let (link_46) = parcel_link.read(owner, 5, 6)
+    let (link_47) = parcel_link.read(owner, 5, 7)
+    let (link_48) = parcel_link.read(owner, 6, 0)
+    let (link_49) = parcel_link.read(owner, 6, 1)
+    let (link_50) = parcel_link.read(owner, 6, 2)
+    let (link_51) = parcel_link.read(owner, 6, 3)
+    let (link_52) = parcel_link.read(owner, 6, 4)
+    let (link_53) = parcel_link.read(owner, 6, 5)
+    let (link_54) = parcel_link.read(owner, 6, 6)
+    let (link_55) = parcel_link.read(owner, 6, 7)
+    let (link_56) = parcel_link.read(owner, 7, 0)
+    let (link_57) = parcel_link.read(owner, 7, 1)
+    let (link_58) = parcel_link.read(owner, 7, 2)
+    let (link_59) = parcel_link.read(owner, 7, 3)
+    let (link_60) = parcel_link.read(owner, 7, 4)
+    let (link_61) = parcel_link.read(owner, 7, 5)
+    let (link_62) = parcel_link.read(owner, 7, 6)
+    let (link_63) = parcel_link.read(owner, 7, 7)
+    return (link_0, link_1, link_2, link_3, link_4, link_5,
+        link_6, link_7, link_8, link_9, link_10, link_11,
+        link_12, link_13, link_14, link_15, link_16, link_17,
+        link_18, link_19, link_20, link_21, link_22, link_23,
+        link_24, link_25, link_26, link_27, link_28, link_29,
+        link_30, link_31, link_32, link_33, link_34, link_35,
+        link_36, link_37, link_38, link_39, link_40, link_41,
+        link_42, link_43, link_44, link_45, link_46, link_47,
+        link_48, link_49, link_50, link_51, link_52, link_53,
+        link_54, link_55, link_56, link_57, link_58, link_59,
+        link_60, link_61,link_62, link_63)
 end
 
 # Returns philand setting data (created,update,type).
@@ -597,11 +772,13 @@ func view_setting{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
-  }(owner :felt) -> (created_at : felt,updated_at : felt,land_type : felt):
+  }(owner :felt) -> (created_at : felt,updated_at : felt,land_type : felt, spawn_link : Spawnlink,text_records :felt):
     let (created_at) = _settings.read(owner, SettingEnum.created_at)
     let (updated_at) = _settings.read(owner, SettingEnum.updated_at)
     let (land_type) = _settings.read(owner, SettingEnum.land_type)
-    return (created_at,updated_at,land_type)
+    let (spawn_link) = _setting_link.read(owner, SettingEnum.spawn_link)
+    let (text_records)=_settings.read(owner, SettingEnum.text_records)
+    return (created_at,updated_at,land_type,spawn_link,text_records)
 end
 
 # Returns parcel object data (contract_address, token_id).

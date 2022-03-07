@@ -9,6 +9,7 @@ const {
   ecsign,
   bufferToHex,
 } = require("ethereumjs-utils");
+const { rejects } = require('assert');
 require('dotenv').config()
 
 const addr = '0x58Eb67DcA41dAC355cE0E9858bA3e8E9e867FC93'
@@ -48,19 +49,30 @@ function serializeCoupon(coupon) {
 }
 
 
-  
-  async function sample() {
-  const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const concurrentPromise = async <T>(promises: (() => Promise<T>)[], concurrency: number): Promise<T[]> => {
+  const results: T[] = [];
+  let currentIndex = 0;
 
-  // const eventBody = JSON.parse(event.body)
-  const response = await axios.get(`https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`);
-  const result = response.data.result
-  let counter =0
-  for (const txdata of result) {
-       const tx = await provider.getTransaction(txdata.hash);
-       try{
+  while (true) {
+    const chunks = promises.slice(currentIndex, currentIndex + concurrency);
+    if (chunks.length === 0) {
+      break;
+    }
+    Array.prototype.push.apply(results, await Promise.all(chunks.map(c => c())));
+    currentIndex += concurrency;
+  }
+  return results;
+};
+
+const timeoutExecution = (txdata: any): Promise<any> => {
+  return new Promise(resolve => {
+    // setTimeout(() => {
+    //   console.log(time);
+    //   resolve(time);
+    // }, time);
+    const tx = await provider.getTransaction(txdata.hash);
+    try{
          const decodedInput = inter.parseTransaction({ data: tx.data, value: tx.value});
-        // Decoded Transaction
          console.log({
             function_name: decodedInput.name,
             from: tx.from,
@@ -68,11 +80,71 @@ function serializeCoupon(coupon) {
             erc20Value: Number(decodedInput.args[1])
           })
           counter=counter+1;
+          resolve()
         }
         catch(e){
           console.log("skip");
+          rejects()
         }; 
-      }
+  });
+};
+
+
+  async function sample() {
+  const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+
+  // const eventBody = JSON.parse(event.body)
+  const response = await axios.get(`https://api-goerli.etherscan.io/api?module=account&action=txlist&address=${addr}&startblock=0&endblock=99999999&sort=asc&apikey=${ETHERSCAN_API_KEY}`);
+  console.log(response)
+  const result = response.data.result
+  let counter =0
+  // for (const txdata of result) {
+  //   console.log("start1")
+  //      const tx = await provider.getTransaction(txdata.hash);
+  //      console.log("start2")
+  //      try{
+  //        const decodedInput = inter.parseTransaction({ data: tx.data, value: tx.value});
+  //        console.log("start3")
+  //       // Decoded Transaction
+  //        console.log({
+  //           function_name: decodedInput.name,
+  //           from: tx.from,
+  //           to: decodedInput.args[0],
+  //           erc20Value: Number(decodedInput.args[1])
+  //         })
+  //         counter=counter+1;
+  //       }
+  //       catch(e){
+  //         console.log("skip");
+  //       }; 
+  //     }
+  console.log(typeof result)
+//   await Promise.all(result.map( 
+    
+//     async txdata: any => {
+//     // const tx =await provider.getTransaction(txdata.hash);
+//     // try{
+//     //     const decodedInput = inter.parseTransaction({ data: tx.data, value: tx.value});
+//     //     // Decoded Transaction
+//     //     console.log({
+//     //         function_name: decodedInput.name,
+//     //         from: tx.from,
+//     //         to: decodedInput.args[0],
+//     //         erc20Value: Number(decodedInput.args[1])
+//     //     })
+//     //     counter=counter+1;
+//     //     if(counter>=event.value){
+//     //         console.log("break");
+//     //     }
+//     //     }
+//     //     catch(e){
+//     //     console.log("skip");
+//     //     };
+// }));
+    (async () => {
+      const promises = [result].map((_, txdata) => timeoutExecution.bind(null, txdata));
+      await concurrentPromise(promises, 5);
+    })();
     console.log(counter);
 
     const signerPvtKeyString = process.env.ADMIN_SIGNER_PRIVATE_KEY;

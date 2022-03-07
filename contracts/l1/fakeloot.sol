@@ -1289,7 +1289,7 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 }
 
 
-contract Loot is ERC721Enumerable, ReentrancyGuard, Ownable {
+contract FakeLoot is ERC721Enumerable, ReentrancyGuard, Ownable {
 
         string[] private weapons = [
         "Warhammer",

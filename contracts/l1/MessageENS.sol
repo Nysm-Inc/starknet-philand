@@ -15,7 +15,6 @@ contract MessageENS {
 
     // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
     bytes32 public baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
-    mapping(string => address) public existed;
 
     // The selector of the "create_philand" l1_handler.
     uint256 constant CREATE_PHILAND_SELECTOR =

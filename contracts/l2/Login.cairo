@@ -9,7 +9,7 @@ from starkware.cairo.common.hash_state import (hash_init,
 from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address,get_block_timestamp,get_contract_address)
 
-from starkware.cairo.common.math_cmp import (is_nn_le)
+from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
 from starkware.cairo.common.uint256 import Uint256
 @storage_var
 func get_last_login_time(
@@ -75,7 +75,7 @@ func get_reward{
         range_check_ptr
     }(
     owner : felt,
-    owner_address : felt
+    receive_address : felt
     ):
     alloc_locals
 
@@ -85,7 +85,7 @@ func get_reward{
         let (local update_time) = get_block_timestamp()
         get_last_login_time.write(owner,update_time)
         let (local material_address) = _material_address.read()
-        IMaterial._mint(material_address,owner_address,Uint256(1,0),1)
+        IMaterial._mint(material_address,receive_address,Uint256(1,0),1)
         return ()
     else:
         return ()
@@ -127,6 +127,7 @@ func check_elapsed_time{
     return (elapsed_time)
 end 
 
+@view
 func check_reward{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -141,7 +142,7 @@ func check_reward{
     let (local current_time) = get_block_timestamp()
     let elapsed_time = current_time - last_login_time
     
-    let (local flg) = is_nn_le(elapsed_time, 100)
+    let (local flg) = is_nn(elapsed_time - 100)
     
     return (flg)
 end 

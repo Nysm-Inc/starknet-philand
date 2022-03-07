@@ -31,7 +31,8 @@ txs = eth.get_normal_txs_by_address(
 print(len(txs))
 
 w3 = Web3()
-json_load = json.loads(open("./utils/uniswap-abi.json").read())
+# json_load = json.loads(open("./utils/uniswap-abi.json").read())
+json_load = json.loads(open("./utils/abi.json").read())
 topic_map = get_topic_map(json_load)
 
 

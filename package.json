@@ -18,6 +18,7 @@
     "chain:l2": "starknet-devnet",
     "setBalance": "hardhat setBalance --network fork",
     "setDaiBalance": "hardhat setDaiBalance --network fork",
+    "deploy-fakeloot:goerli": "hardhat run --network goerli ./scripts/deployer/deploy-fakeloot.ts",
     "deploy-deployer:goerli": "STARKNET_NETWORK=alpha hardhat run --network goerli ./scripts/deployer/deploy-deployer.ts",
     "deploy-bridge:goerli": "STARKNET_NETWORK=alpha hardhat run --network goerli ./scripts/deployer/deploy-bridge.ts",
     "deploy-deployer:fork": "hardhat run --network fork ./scripts/deployer/deploy-deployer.ts",

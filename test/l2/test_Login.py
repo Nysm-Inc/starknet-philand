@@ -67,20 +67,27 @@ async def test_get_login_time(login_factory):
 
 
 @pytest.mark.asyncio
-async def check_elapsed_time(login_factory):
+async def test_check_elapsed_time(login_factory):
     _, material, login, account, _ = login_factory
    
     execution_info = await login.check_elapsed_time(str_to_felt(ENS_NAME)).call()
     print(execution_info.result.elapsed_time)
-
+    execution_info = await login.check_reward(str_to_felt(ENS_NAME)).call()
+    print("check:reward")
+    print(execution_info.result.flg)
+    assert execution_info.result.flg == 0
 
 @pytest.mark.asyncio
 async def test_get_reward(login_factory):
     _, material, login, account, _ = login_factory
-
+    execution_info = await material.balance_of(account.contract_address, (1, 0)).call()
+    print(execution_info.result.res)
+    assert execution_info.result.res == 0
     await signer.send_transaction(account, login.contract_address, 'get_reward', [str_to_felt(ENS_NAME),account.contract_address])
-
+    print(account.contract_address)
     execution_info = await material.balance_of(account.contract_address, (1,0)).call()
+    print("balance")
     print(execution_info.result.res)
 
+    assert execution_info.result.res == 0
 

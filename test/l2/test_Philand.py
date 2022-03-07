@@ -150,26 +150,23 @@ async def test_create_object(
     assert execution_info.result.token_uri == str_to_felt_array(TOKENURI2)
 
 @pytest.mark.asyncio
-async def test_write_newlink(
+async def test_write_link(
     philand_factory
 ):
     _, philand, _, accounts = philand_factory
 
-    response = await philand.view_link_num(str_to_felt(ENS_NAME)).call()
-    print(f'Current link_num:{response.result.num}')
     print('New link is creating...')
     payload = [str_to_felt(ENS_NAME), 0, 2, DUMMY_ADDRESS,
                str_to_felt(DUMMY_ENS_NAME)]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
-        selector_name='write_newlink',
+        selector_name='write_link',
         calldata=payload)
-    response = await philand.view_link_num(str_to_felt(ENS_NAME)).call()
-    print(f'Current link_num:{response.result.num}')
-    response = await philand.view_link(str_to_felt(ENS_NAME), response.result.num).call()
-    print(response.result.link)
 
+    response = await philand.view_parcel(str_to_felt(ENS_NAME),0,2).call()
+    print(response.result.link)
+    assert response.result.link.contract_address == DUMMY_ADDRESS
 
 @pytest.mark.asyncio
 async def test_write_setting(
@@ -179,17 +176,30 @@ async def test_write_setting(
 
     response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
     print(f'Current setting land:{response.result.land_type}')
-    print(f'Creating land:{response.result.created_at}')
-    print('New link is creating...')
+    print(f'Creating land at:{response.result.created_at}')
+    print(f'Land spawn:{response.result.spawn_link}')
+
+    print('New setting is creating...')
     payload = [str_to_felt(ENS_NAME), 1]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
-        selector_name='write_setting',
+        selector_name='write_setting_landtype',
         calldata=payload)
+
+    payload = [str_to_felt(ENS_NAME), 2,2]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='write_setting_spawn_link',
+        calldata=payload)
+
     response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
     print(f'Current link_num:{response.result.land_type}')
     assert response.result.land_type == 1
+
+    print(f'Current link_num:{response.result.spawn_link}')
+    assert response.result.spawn_link == (2,2)
 
 @pytest.mark.asyncio
 async def test_write_object_to_parcel(
@@ -237,8 +247,9 @@ async def test_write_object_to_parcel(
 
     response = await philand.view_parcel(str_to_felt(ENS_NAME),7,7).call()
     print(
-        f'Parcel(7,7):{response.result.contract_address}:{response.result.token_id}')
-    print()
+        f'Parcel(7,7):object{response.result.contract_address}:{response.result.token_id}')
+    print(
+        f'Parcel(7,7):link:{response.result.link}')
     
 
         
@@ -298,6 +309,21 @@ async def view(images):
     # .replace('1','■ ').replace('0','. ')
     for index, image in enumerate(images):
         print(f"your philand:")
+        print(format(image[0:8]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[8:16]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[16:24]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[24:32]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[32:40]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[40:48]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[48:56]).replace('1', '■ ').replace('0', '. '))
+        print(format(image[56:64]).replace('1', '■ ').replace('0', '. '))
+
+
+async def view2(images):
+    # For an philand appearance:
+    # .replace('1','■ ').replace('0','. ')
+    for index, image in enumerate(images):
+        print(f"your links:")
         print(format(image[0:8]).replace('1', '■ ').replace('0', '. '))
         print(format(image[8:16]).replace('1', '■ ').replace('0', '. '))
         print(format(image[16:24]).replace('1', '■ ').replace('0', '. '))
