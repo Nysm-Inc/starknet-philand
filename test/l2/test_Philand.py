@@ -115,6 +115,27 @@ async def test_create_philand(
     await view([im])
     print('Above is the newly created your philand')
 
+@pytest.mark.asyncio
+async def test_claim_starter_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+    payload = [str_to_felt(ENS_NAME),accounts[0].contract_address]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='claim_starter_object',
+        calldata=payload)
+
+    account_check = [accounts[0].contract_address,
+                accounts[0].contract_address, accounts[0].contract_address,
+                accounts[0].contract_address, accounts[0].contract_address]
+    token_ids = [(1, 0), (2, 0), (3, 0),(4,0),(5,0)]
+    response=await object.balance_of_batch(account_check, token_ids).call()
+    print(response.result.res)
+    assert response.result.res == [1,1,1,1,1]
+    assert len(response.result.res) == len(token_ids)
+
 
 @pytest.mark.asyncio
 async def test_create_object(

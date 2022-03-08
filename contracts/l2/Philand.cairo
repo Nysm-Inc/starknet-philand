@@ -42,10 +42,11 @@ end
 
 @contract_interface
 namespace IObject:
-    func _set_uri(uri_ : TokenUri):
-    end
     
-    func _mint(to : felt, token_id : felt, amount : felt):
+    func _mint(to : felt, token_id : Uint256, amount : felt):
+    end
+
+    func _mint_batch(to : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt, amounts : felt*):
     end
 
     func _burn(_from : felt, token_id : felt, amount : felt):
@@ -122,14 +123,6 @@ end
 func _setting_link(owner: felt, setting_index : felt) -> (res : Spawnlink):
 end
 
-# @storage_var
-# func parcel_meta(
-#         owner : felt,
-#         storage_index : felt
-#     ) -> (
-#         res : felt
-#     ):
-# end
 
 @storage_var
 func object_index(
@@ -406,35 +399,50 @@ func write_link{
     return ()
 end
 
-# @external
-# func claim_starter_object{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#         owner : felt,
-#         object_id : felt
-#     ):
-#     # check valid recipient
-#     with_attr error_message("Object/invalid-recipient"):
-#     #   assert_not_zero(account)
-#       let (caller_address) = get_caller_address()
-#       assert_not_zero(caller_address)
-#     end
+@external
+func claim_starter_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        owner : felt,
+        receive_address : felt
+    ):
+    # check valid recipient
+    # with_attr error_message("Object/invalid-recipient"):
+    # #   assert_not_zero(account)
+    #   let (caller_address) = get_caller_address()
+    #   assert_not_zero(caller_address)
+    # end
 
-#     # todo already claimed
-#     with_attr error_message("Object/invalid-nft"):
-#     #   assert_not_zero(num)
-#     end
+    # # todo already claimed
+    # with_attr error_message("Object/invalid-nft"):
+    # #   assert_not_zero(num)
+    # end
 
-#     # with_attr error_message("Object/invalid-token_id"):
-#     #   let (nftOwner) = IObject.ownerOf(token_id)
-#     # end
+    # with_attr error_message("Object/invalid-token_id"):
+    #   let (nftOwner) = IObject.ownerOf(token_id)
+    # end
+    alloc_locals
+    let (local object) = _object_address.read()
+    let (felt_array : felt*) = alloc()
+    assert [felt_array] = 1
+    assert [felt_array + 1] = 1
+    assert [felt_array + 2] = 1
+    assert [felt_array + 3] = 1
+    assert [felt_array + 4] = 1
 
-#     object_owner.write(owner=owner,object_id=1,value=1)
-#     object_owner.write(owner=owner,object_id=2,value=1)
-#     return ()
-# end
+    let (uint256_array : Uint256*) = alloc()
+    assert [uint256_array] = Uint256(1,0)
+    assert [uint256_array + 2] = Uint256(2,0)
+    assert [uint256_array + 4] = Uint256(3,0)
+    assert [uint256_array + 6] = Uint256(4,0)
+    assert [uint256_array + 8] = Uint256(5,0)
+
+    IObject._mint_batch(object,receive_address, 5,uint256_array,5,felt_array)
+    
+    return ()
+end
 
 
 @l1_handler

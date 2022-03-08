@@ -115,6 +115,7 @@ func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
     return ()
 end
 
+@external
 func _mint_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         to : felt, tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt,
         amounts : felt*) -> ():
