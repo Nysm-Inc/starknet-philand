@@ -6,7 +6,7 @@ import {
 import chai, { expect } from "chai";
 import { parseEther } from "ethers/lib/utils";
 import hre from "hardhat";
-import web3 from "web3";
+
 const { ethers } = require("hardhat");
 const {
   keccak256,
@@ -32,12 +32,14 @@ const claimL2Object = parseFixed(
   "725729645710710348624275617047258825327720453914706103365608274738200251740"
 );
 
-const UENSNAME=parseFixed(
-  "55354291560282261680205140228934436588969903936754548205611172710617586860032")
+
+  // const name_int = split uint 55354291560282261680205140228934436588969903936754548205611172710617586860032
+  const name_int = [parseFixed("200906542797035968731773474540731270692"),parseFixed("219828944448636554577399085665499793739")]
 
 // str_to_felt('zak3939.eth')=147948997034476692113290344
   // const ENSLABEL =web3.utils.asciiToHex('zak3939.eth')
-  const ENSLABEL =web3.utils.asciiToHex('zak3939')
+  // const ENSLABEL =web3.utils.asciiToHex('zak3939')
+  const ENSLABEL = ethers.utils.formatBytes32String('zak3939')
   const ENSNAME= BigInt(ENSLABEL).toString(10)
 
   beforeEach("checkens", function () {
@@ -58,7 +60,7 @@ const UENSNAME=parseFixed(
     
   describe("createPhiland", function () {
     it("sends a message to l2, emits event", async () => {
-      const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,ens,resolver,ethregistrar } =
+      const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,ens,resolver, } =
         await setupTest();
 
       await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), admin.address);
@@ -74,7 +76,7 @@ const UENSNAME=parseFixed(
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         createPhiland,
-        [UENSNAME]
+        [name_int[0],name_int[1]]
       );
     });
     
@@ -95,29 +97,34 @@ describe("claimL1NFT", function () {
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL1Object,
-        [UENSNAME,lootContract,tokenid]
+        [ENSNAME,lootContract,tokenid]
       );
     });
 });
 
 describe("claiml2Object", function () {
     it("sends a message to l2, claim nft event", async () => {
-      const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress,coupons } =
+      const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress,l2UserAddress,coupons } =
         await setupTest();
   
-      const ObjectContract = "0x03a83e4e8b1a6e413d15ea5ee5bcd5bb2b2439f341010c3740fd7e51b2e14b64"
-      const tokenid = 13
-      console.log(coupons[l1Alice.address]["coupon"])
-      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, 'zak3939',ObjectContract,tokenid,coupons[l1Alice.address]["coupon"]))
+      const tokenid = 6
+      const condition = "lootbalance"
+      
+      const conditionTX = await l1Philand.connect(l1Alice).setCouponType(condition,1)
+      await conditionTX.wait()
+      console.log(await l1Philand.connect(l1Alice).getCouponType(condition))
+      expect(await l1Philand.connect(l1Alice).getCouponType(condition)).to.equal(1)
+
+      await expect(l1Philand.connect(l1Alice).claimL2Object(l2PhilandAddress, 'zak3939',l2UserAddress,tokenid,condition,coupons[l1Alice.address]["coupon"]))
         .to.emit(l1Philand, "LogClaimL2Object")
-        .withArgs('zak3939',ObjectContract,tokenid);
+        .withArgs('zak3939',l2UserAddress,tokenid);
       console.log("finish")
       
       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
         l2PhilandAddress,
         claimL2Object,
-        [UENSNAME,ObjectContract,tokenid]
+        [name_int[0],name_int[1],l2UserAddress,6,0]
       );
     });
 });
@@ -128,8 +135,9 @@ describe("claiml2Object", function () {
 async function setupTest() {
   const [admin, l1Alice, l1Bob] = await hre.ethers.getSigners();
 
-  const starkNetFake = await smock.fake("IStarknetCore");
+  const starkNetFake = await smock.fake("IStarkNetLike");
   const L2_PHILAND_ADDRESS = 31415;
+  const L2_USER_ADDRESS = 11111;
   
   const ens = await simpleDeploy("ENSRegistry",[]);
   // const ens = await simpleDeploy("ENS",[]);
@@ -151,6 +159,7 @@ async function setupTest() {
     starkNetFake: starkNetFake as any,
     l1Philand: l1philand as any,
     l2PhilandAddress: L2_PHILAND_ADDRESS,
+    l2UserAddress: L2_USER_ADDRESS,
     coupons:coupons as any,
     ens:ens as any,
     resolver:resolver as any,
@@ -168,29 +177,36 @@ function hexToDec(hexString: string){
   return parseInt(hexString, 16);
 }
 
-function toSplitUint(value: any) {
-  const bits = value.toBigInt().toString(16).padStart(64, "0");
+// function toSplitUint(value: any) {
+//   const bits = value.toBigInt().toString(16).padStart(64, "0");
+//   return [BigInt(`0x${bits.slice(32)}`), BigInt(`0x${bits.slice(0, 32)}`)];
+// }
+
+function toSplitUint(value: bigint) {
+  const bits = value.toString(16).padStart(64, "0");
   return [BigInt(`0x${bits.slice(32)}`), BigInt(`0x${bits.slice(0, 32)}`)];
 }
 
-
 function getCoupon(addr:string){
     const CouponTypeEnum = {
-      Genesis: 0,
-      Author: 1,
-      Presale: 2,
+    lootbalance:1,
+    uniswap1:2,
+    uniswap5:3,
+    uniswap10:4,
+    snapshot:5,
+    ethbalance1:6
     };
     const coupons:any = {};
     const signerPvtKeyString = process.env.ADMIN_SIGNER_PRIVATE_KEY;
     const signerPvtKey = Buffer.from(signerPvtKeyString!, "hex");
     
-    const presaleAddresses=[addr]
-
+    const presaleAddresses=[addr];
+    console.log(CouponTypeEnum["lootbalance"]);
     for (let i = 0; i < presaleAddresses.length; i++) {
       const userAddress = ethers.utils.getAddress(presaleAddresses[i]);
       const hashBuffer = generateHashBuffer(
         ["uint256", "address"],
-        [CouponTypeEnum["Presale"], userAddress]
+        [CouponTypeEnum["lootbalance"], userAddress]
       );
       const coupon = createCoupon(hashBuffer, signerPvtKey);
       

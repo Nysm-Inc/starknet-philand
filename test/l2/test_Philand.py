@@ -14,7 +14,7 @@ DUMMY_ADDRESS =0x2
 
 signers = []
 ENS_NAME = "zak3939.eth"
-DUMMY_ENS_NAME = "test.eth"
+
 TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
 TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
@@ -22,7 +22,8 @@ L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
 OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
 PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
-
+ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
+DUMMY_ENS_NAME_INT = 3333333
 ###########
 # HELPERS #
 ###########
@@ -107,10 +108,13 @@ async def test_create_philand(
         to_address=philand.contract_address,
         selector="create_philand",
         payload=[
-            str_to_felt(ENS_NAME)
+            # str_to_felt(ENS_NAME)
+            *to_split_uint(ENS_NAME_INT)
         ],
     )
-    response = await philand.view_philand(accounts[0].contract_address).call()
+    numberOf_philand = await philand.view_numberof_philand().call()
+    assert numberOf_philand.result.res == 1
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     (im) = response.result
     await view([im])
     print('Above is the newly created your philand')
@@ -120,7 +124,7 @@ async def test_claim_starter_object(
     philand_factory
 ):
     starknet, philand, object, accounts = philand_factory
-    payload = [str_to_felt(ENS_NAME),accounts[0].contract_address]
+    payload = [*to_split_uint(ENS_NAME_INT),accounts[0].contract_address]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
@@ -177,15 +181,15 @@ async def test_write_link(
     _, philand, _, accounts = philand_factory
 
     print('New link is creating...')
-    payload = [str_to_felt(ENS_NAME), 0, 2, DUMMY_ADDRESS,
-               str_to_felt(DUMMY_ENS_NAME)]
+    payload = [*to_split_uint(ENS_NAME_INT), 0, 2, DUMMY_ADDRESS,
+               *to_split_uint(DUMMY_ENS_NAME_INT)]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
         selector_name='write_link',
         calldata=payload)
 
-    response = await philand.view_parcel(str_to_felt(ENS_NAME),0,2).call()
+    response = await philand.view_parcel(to_split_uint(ENS_NAME_INT), 0, 2).call()
     print(response.result.link)
     assert response.result.link.contract_address == DUMMY_ADDRESS
 
@@ -195,27 +199,27 @@ async def test_write_setting(
 ):
     _, philand, _, accounts = philand_factory
 
-    response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
+    response = await philand.view_setting(to_split_uint(ENS_NAME_INT)).call()
     print(f'Current setting land:{response.result.land_type}')
     print(f'Creating land at:{response.result.created_at}')
     print(f'Land spawn:{response.result.spawn_link}')
 
     print('New setting is creating...')
-    payload = [str_to_felt(ENS_NAME), 1]
+    payload = [*to_split_uint(ENS_NAME_INT), 1]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
         selector_name='write_setting_landtype',
         calldata=payload)
 
-    payload = [str_to_felt(ENS_NAME), 2,2]
+    payload = [*to_split_uint(ENS_NAME_INT), 2, 2]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
         selector_name='write_setting_spawn_link',
         calldata=payload)
 
-    response = await philand.view_setting(str_to_felt(ENS_NAME)).call()
+    response = await philand.view_setting(to_split_uint(ENS_NAME_INT)).call()
     print(f'Current link_num:{response.result.land_type}')
     assert response.result.land_type == 1
 
@@ -233,7 +237,7 @@ async def test_write_object_to_parcel(
         to_address=philand.contract_address,
         selector="create_philand",
         payload=[
-            str_to_felt(ENS_NAME)
+            *to_split_uint(ENS_NAME_INT)
         ],
     )
     
@@ -242,7 +246,8 @@ async def test_write_object_to_parcel(
     print('New Object is Creating by L1...')
     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
     token_id = 13
-    payload = [str_to_felt(ENS_NAME),lootContract, *to_split_uint(token_id)]
+    payload = [*to_split_uint(ENS_NAME_INT), lootContract,
+               *to_split_uint(token_id)]
 
     await starknet.send_message_to_l2(
         from_address=L1_ADDRESS,
@@ -254,19 +259,19 @@ async def test_write_object_to_parcel(
     print(f'Current object_id:{response.result.current_index}')
 
     print("New Object is writing to parcel...")
-    payload = [7, 7, str_to_felt(ENS_NAME), 1]
+    payload = [7, 7, *to_split_uint(ENS_NAME_INT), 1]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
         selector_name='write_object_to_parcel',
         calldata=payload)
 
-    response = await philand.view_philand(str_to_felt(ENS_NAME)).call()
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     (im) = response.result
     await view([im])
     print('Above is the updated your philand')
 
-    response = await philand.view_parcel(str_to_felt(ENS_NAME),7,7).call()
+    response = await philand.view_parcel(to_split_uint(ENS_NAME_INT), 7, 7).call()
     print(
         f'Parcel(7,7):object{response.result.contract_address}:{response.result.token_id}')
     print(
@@ -286,7 +291,7 @@ async def test_batch_write_object_to_parcel(
         to_address=philand.contract_address,
         selector="create_philand",
         payload=[
-            str_to_felt(ENS_NAME)
+            *to_split_uint(ENS_NAME_INT)
         ],
     )
 
@@ -311,7 +316,7 @@ async def test_batch_write_object_to_parcel(
     print("Batch write New Object is writing to parcel...")
     payload = [4,5,3,2,1, 
                 4,7,6,5,4,
-                str_to_felt(ENS_NAME), 
+               *to_split_uint(ENS_NAME_INT),
                 4,1, created_object_id, 1, created_object_id]
     await signers[0].send_transaction(
         account=accounts[0],
@@ -319,7 +324,7 @@ async def test_batch_write_object_to_parcel(
         selector_name='batch_write_object_to_parcel',
         calldata=payload)
 
-    response = await philand.view_philand(str_to_felt(ENS_NAME)).call()
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     (im) = response.result
     await view([im])
     print('Above is the updated your philand')

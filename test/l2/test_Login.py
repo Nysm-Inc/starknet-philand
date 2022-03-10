@@ -12,6 +12,7 @@ signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
 
 ENS_NAME = "zak3939.eth"
+ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -60,9 +61,9 @@ async def login_factory():
 async def test_get_login_time(login_factory):
     _, material, login, account, _ = login_factory
 
-    await signer.send_transaction(account, login.contract_address, 'regist_owner', [str_to_felt(ENS_NAME)])
+    await signer.send_transaction(account, login.contract_address, 'regist_owner', [*to_split_uint(ENS_NAME_INT)])
 
-    execution_info = await login.get_login_time(str_to_felt(ENS_NAME)).call()
+    execution_info = await login.get_login_time(to_split_uint(ENS_NAME_INT)).call()
     print(execution_info.result.last_login_time)
 
 
@@ -70,9 +71,9 @@ async def test_get_login_time(login_factory):
 async def test_check_elapsed_time(login_factory):
     _, material, login, account, _ = login_factory
    
-    execution_info = await login.check_elapsed_time(str_to_felt(ENS_NAME)).call()
+    execution_info = await login.check_elapsed_time(to_split_uint(ENS_NAME_INT)).call()
     print(execution_info.result.elapsed_time)
-    execution_info = await login.check_reward(str_to_felt(ENS_NAME)).call()
+    execution_info = await login.check_reward(to_split_uint(ENS_NAME_INT)).call()
     print("check:reward")
     print(execution_info.result.flg)
     assert execution_info.result.flg == 0
@@ -83,7 +84,7 @@ async def test_get_reward(login_factory):
     execution_info = await material.balance_of(account.contract_address, (1, 0)).call()
     print(execution_info.result.res)
     assert execution_info.result.res == 0
-    await signer.send_transaction(account, login.contract_address, 'get_reward', [str_to_felt(ENS_NAME),account.contract_address])
+    await signer.send_transaction(account, login.contract_address, 'get_reward', [*to_split_uint(ENS_NAME_INT),account.contract_address])
     print(account.contract_address)
     execution_info = await material.balance_of(account.contract_address, (1,0)).call()
     print("balance")

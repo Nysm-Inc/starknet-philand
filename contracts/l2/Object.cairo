@@ -71,7 +71,7 @@ func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
 end
 
 
-# Todo require owner
+# Todo require owner and change safe
 @external
 func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         to : felt, token_id : Uint256, amount : felt) -> ():

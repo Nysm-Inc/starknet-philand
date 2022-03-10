@@ -2,15 +2,15 @@
 pragma solidity ^0.8.8;
 // import "@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol";
 import { IENS } from './interfaces/IENS.sol';
-import { IStarknetCore } from './interfaces/IStarknetCore.sol';
+import { IStarkNetLike } from './interfaces/IStarkNetLike.sol';
 
 contract MessageENS {
      // The StarkNet core contract.
-    IStarknetCore _starknetCore;
+    IStarkNetLike _starknetLike;
     IENS _ens;
     address private _adminSigner;
     address private _ensaddress;    
-
+    address private _starknet;
     mapping (string => address) public owner_lists;
 
     // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
@@ -26,17 +26,24 @@ contract MessageENS {
     uint256 constant CLAIM_L2_OBJECT_SELECTOR =
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
-    error InvalidENS (address sender, string name,uint256 ensname, bytes32 label,address owner, string node);
+    error InvalidENS (address sender, string name,uint256 ensname_low,uint256 ensname_high ,bytes32 label,address owner, string node);
 
     event LogCreatePhiland(address indexed l1Sender, string name);
     event LogClaimL1NFT(string name,uint256 contract_address,uint256 tokenid);
-    event LogClaimL2Object(string name,uint256 contract_address,uint256 tokenid);
+    event LogClaimL2Object(string name,uint256 l2user_address, uint256 tokenid);
     
+    struct Coupon {
+    bytes32 r;
+    bytes32 s;
+    uint8 v;
+    }
+
     /**
       Initializes the contract state.
     */
-    constructor(IStarknetCore starknetCore,IENS ens,address adminSigner){
-        _starknetCore = starknetCore;
+    constructor(address starknet,IENS ens,address adminSigner){
+        
+        _starknet = starknet;
         _ens = ens;
         _adminSigner = adminSigner;
         
@@ -49,13 +56,18 @@ contract MessageENS {
         ) external {
 
         bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
-        uint256 ensname = uint256(stringToBytes32(name));
+        uint256 ensname = uint256(label);
+        uint256 ensname_low;
+        uint256 ensname_high;
+        (ensname_low,ensname_high)=toSplitUint(ensname);
         
+
         if (msg.sender != _ens.owner(label)){
             revert InvalidENS({
                 sender: msg.sender,
                 name: name,
-                ensname: ensname,
+                ensname_low: ensname_low,
+                ensname_high: ensname_high,
                 label: label,
                 owner: _ens.owner(label),
                 node: string(abi.encodePacked(ensname))
@@ -65,11 +77,12 @@ contract MessageENS {
         owner_lists[name]=msg.sender;
 
         emit LogCreatePhiland(msg.sender, name);
-        uint256[] memory payload = new uint256[](1);
-        payload[0] = ensname;
+        uint256[] memory payload = new uint256[](2);
+        payload[0] = ensname_low;
+        payload[1] = ensname_high;
 
         // Send the message to the StarkNet core contract.
-        _starknetCore.sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
+        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
     }
 
     function claimL1Object(
@@ -86,49 +99,62 @@ contract MessageENS {
         payload[2] = tokenid;
 
         // Send the message to the StarkNet core contract.
-        _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
+        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
     }
 
-    struct Coupon {
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
-    }
+    // enum CouponType {
+    // lootbalance,
+    // uniswap1,
+    // uniswap5,
+    // uniswap10,
+    // snapshot,
+    // ethbalance1
+    // }
     
-    enum CouponType {
-    Genesis,
-    Author,
-    Presale
+    mapping (string => uint256) public coupon_type;
+
+    function getCouponType(string calldata condition) view public returns (uint256){
+        return coupon_type[condition];
     }
 
+    function setCouponType(string calldata condition,uint256 tokenid) public {
+        coupon_type[condition] = tokenid;
+    }
 
     function claimL2Object(
         uint256 l2ContractAddress,
         string memory name,
-        uint256 contractAddress,
+        uint256 l2UserAddress,
         uint256 tokenid,
+        string calldata condition,
         Coupon memory coupon
         ) external {
 
         bytes32 digest = keccak256(
-        abi.encode(CouponType.Presale, msg.sender)
+        abi.encode(coupon_type[condition], msg.sender)
         ); 
     
         require(
         _isVerifiedCoupon(digest, coupon), 
         'Invalid coupon'
         ); 
-        emit LogClaimL2Object(name,contractAddress,tokenid);
+        emit LogClaimL2Object(name,l2UserAddress,tokenid);
 
-        uint256[] memory payload = new uint256[](3);
-        payload[0] = uint256(stringToBytes32(name));
-        payload[1] = contractAddress;
-        payload[2] = tokenid;
+        bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        uint256 ensname = uint256(label);
+        uint256 ensname_low;
+        uint256 ensname_high;
+        (ensname_low,ensname_high)=toSplitUint(ensname);
+
+        uint256[] memory payload = new uint256[](5);
+        payload[0] = ensname_low;
+        payload[1] = ensname_high;
+        payload[2] = l2UserAddress;
+        (payload[3], payload[4])=toSplitUint(tokenid);
 
         
-
         // Send the message to the StarkNet core contract.
-        _starknetCore.sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
+        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
     }
 
     function OwnerOfPhiland(string memory name) external view returns (bool){
@@ -167,5 +193,26 @@ contract MessageENS {
             result := mload(add(source, 32))
         }
     }
+    uint256 constant DEPOSIT_SELECTOR =
+        352040181584456735608515580760888541466059565068553383579463728554843487745;
 
+     function deposit(
+        uint256 l2ContractAddress,
+        uint256 user,
+        uint256 amount
+    ) external {
+        // require(amount < 2**64, "Invalid amount.");
+        // require(amount <= userBalances[user], "The user's balance is not large enough.");
+
+        // // Update the L1 balance.
+        // userBalances[user] -= amount;
+
+        // Construct the deposit message's payload.
+        uint256[] memory payload = new uint256[](2);
+        payload[0] = user;
+        payload[1] = amount;
+
+        // Send the message to the StarkNet core contract.
+        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, DEPOSIT_SELECTOR, payload);
+    }
 }

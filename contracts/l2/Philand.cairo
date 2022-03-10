@@ -69,7 +69,7 @@ end
 # For a given game at a given state.
 @storage_var
 func parcel(
-        owner : felt,
+        owner : Uint256,
         x : felt,
         y : felt
     ) -> (
@@ -80,13 +80,13 @@ end
 
 struct Maplink:
     member contract_address : felt
-    member target_owner : felt
+    member target_owner : Uint256
 end
 
 
 @storage_var
 func parcel_link(
-        owner : felt,
+        owner : Uint256,
         x : felt,
         y : felt
     ) -> (
@@ -115,14 +115,21 @@ end
 
 
 @storage_var
-func _settings(owner: felt, setting_index : felt) -> (res : felt):
+func _settings(owner: Uint256, setting_index : felt) -> (res : felt):
 end
 
 
 @storage_var
-func _setting_link(owner: felt, setting_index : felt) -> (res : Spawnlink):
+func _setting_link(owner: Uint256, setting_index : felt) -> (res : Spawnlink):
 end
 
+
+@storage_var
+func numberof_philand(
+    ) -> (
+         res : felt
+    ):
+end
 
 @storage_var
 func object_index(
@@ -145,14 +152,14 @@ func object_info(
 end
 
 
-@storage_var
-func object_owner(
-        owner : felt,
-        object_id : felt       
-    ) -> (
-        res: felt
-    ):
-end
+# @storage_var
+# func object_owner(
+#         owner : Uint256,
+#         object_id : felt       
+#     ) -> (
+#         res: felt
+#     ):
+# end
 
 @storage_var
 func _object_address() -> (res : felt):
@@ -179,6 +186,7 @@ func constructor{
 
     let (caller) = get_caller_address()
     object_index.write(0)
+    numberof_philand.write(0)
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
@@ -197,16 +205,17 @@ func create_philand{
         range_check_ptr
     }(  
         from_address : felt, 
-        owner : felt,
+        owner_low : felt,
+        owner_high : felt
     ):
     # Accepts a 64 element list representing the objects.
     alloc_locals
-
-    assert_not_zero(owner)
+    let owner : Uint256 = Uint256(owner_low,owner_high)
+    # assert_not_zero(owner)
     
     let map_link = Maplink(
         contract_address =  0,
-        target_owner = 0
+        target_owner = Uint256(0,0)
     )
 
     # write philand parcel
@@ -356,7 +365,9 @@ func create_philand{
 
     _settings.write(owner, SettingEnum.text_records,value=0)
 
-
+    let (res) = numberof_philand.read()
+    let index = res +1
+    numberof_philand.write(index)
     return ()
 end
 
@@ -366,7 +377,7 @@ func write_setting_landtype{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
-  }(owner :felt,land_type : felt):
+  }(owner : Uint256,land_type : felt):
     _settings.write(owner, SettingEnum.land_type,land_type)
     return ()
 end
@@ -376,7 +387,7 @@ func write_setting_spawn_link{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
-  }(owner :felt,spawn_link : Spawnlink):
+  }(owner : Uint256, spawn_link : Spawnlink):
     _setting_link.write(owner, SettingEnum.spawn_link,spawn_link)
     return ()
 end
@@ -387,7 +398,7 @@ func write_link{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
-  }(owner : felt, x : felt, y : felt, contract_address : felt, target_owner : felt ):
+  }(owner : Uint256, x : felt, y : felt, contract_address : felt, target_owner : Uint256):
     alloc_locals    
     
     let map_link = Maplink(
@@ -405,7 +416,7 @@ func claim_starter_object{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt,
+        owner : Uint256,
         receive_address : felt
     ):
     # check valid recipient
@@ -452,14 +463,21 @@ func claim_l1_object{
         range_check_ptr
     }(
         from_address : felt,
-        owner : felt,
+        owner : Uint256,
         contract_address : felt,
         token_id : Uint256
     ):
     create_l1nft_object(contract_address,token_id)
     let (current_index) = object_index.read()
-    object_owner.write(owner,current_index,1)
+    # object_owner.write(owner,current_index,1)
     return ()
+end
+
+# An event emitted whenever increase_balance() is called.
+# current_balance is the balance before it was increased.
+@event
+func mint_object_event(
+        object_address : felt, to : felt, token_id : Uint256, amount : felt):
 end
 
 @l1_handler
@@ -469,17 +487,29 @@ func claim_l2_object{
         range_check_ptr
     }(
         from_address : felt,
-        owner : felt,
-        contract_address : felt,
-        token_id : Uint256
+        owner_low : felt,
+        owner_high : felt,
+        receive_address : felt,
+        token_id_low : felt,
+        token_id_high : felt
     ):
+    alloc_locals
     # todo setowner=>L2addresss
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
-    object_owner.write(owner,current_index,1)
-    let newTokendata= Tokendata(contract_address=contract_address,token_id=token_id)
+    # object_owner.write(owner,current_index,1)
+
+    let (object_address) = _object_address.read()
+    let newTokendata = Tokendata(
+                        contract_address = object_address,
+                        token_id=Uint256(token_id_low,token_id_high)
+                        )
+
     object_info.write(idx,newTokendata)
+    
+    IObject._mint(object_address,receive_address,Uint256(token_id_low,token_id_high),1)
+    mint_object_event.emit(object_address=object_address,to=receive_address,token_id=Uint256(token_id_low,token_id_high),amount=1)
     return ()
 end
 
@@ -507,7 +537,7 @@ func write_object_to_parcel{
     }(
         x : felt,
         y : felt,
-        owner : felt,
+        owner : Uint256,
         object_id : felt
     ):
     
@@ -526,7 +556,7 @@ func batch_write_object_to_parcel{
         x : felt*,
         y_len : felt,
         y : felt*,
-        owner : felt,
+        owner : Uint256,
         object_id_len : felt,
         object_id : felt*
     ):
@@ -553,7 +583,7 @@ func view_philand{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt
+        owner : Uint256
     ) -> (
         object_0 : felt, object_1 : felt, object_2 : felt, object_3 : felt,
         object_4 : felt, object_5 : felt, object_6 : felt, object_7 : felt,
@@ -657,7 +687,7 @@ func view_parcel{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt,
+        owner : Uint256,
         x : felt,
         y : felt
     ) -> (
@@ -677,7 +707,7 @@ func view_links{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        owner : felt
+        owner : Uint256
     ) -> (
         link_0 : Maplink, link_1 : Maplink, link_2 : Maplink, link_3 : Maplink,
         link_4 : Maplink, link_5 : Maplink, link_6 : Maplink, link_7 : Maplink,
@@ -780,7 +810,7 @@ func view_setting{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
-  }(owner :felt) -> (created_at : felt,updated_at : felt,land_type : felt, spawn_link : Spawnlink,text_records :felt):
+  }(owner :Uint256) -> (created_at : felt,updated_at : felt,land_type : felt, spawn_link : Spawnlink,text_records :felt):
     let (created_at) = _settings.read(owner, SettingEnum.created_at)
     let (updated_at) = _settings.read(owner, SettingEnum.updated_at)
     let (land_type) = _settings.read(owner, SettingEnum.land_type)
@@ -805,7 +835,20 @@ func view_object{
     return (token.contract_address, token.token_id)
 end
 
+@view
+func view_numberof_philand{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }() -> (
+        res : felt,
+        
+    ):
+    let (res) = numberof_philand.read()
+    return (res)
+end
 
+# should change view =>external
 @view
 func object_address{
     syscall_ptr : felt*,
@@ -867,6 +910,27 @@ func create_l2_object{
     let idx = current_index + 1
     object_index.write(idx)
     object_info.write(idx,newTokendata)
+
+    return ()
+end
+
+
+@storage_var
+func balance(user : felt) -> (res : felt):
+end
+
+@l1_handler
+func deposit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        from_address : felt, user : felt, amount : felt):
+    # Make sure the message was sent by the intended L1 contract.
+    # assert from_address = L1_CONTRACT_ADDRESS
+
+    # Read the current balance.
+    let (res) = balance.read(user=user)
+
+    # Compute and update the new balance.
+    tempvar new_balance = res + amount
+    balance.write(user, new_balance)
 
     return ()
 end
