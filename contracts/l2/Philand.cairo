@@ -18,27 +18,7 @@ from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 #
 #######################
-struct AssetNamespace:
-    member a : felt
-end
 
-# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-struct AssetReference:
-    member a : felt
-end
-
-# ERC1155 returns the same URI for all token types.
-# TokenId will be represented by the substring '{id}' and so stored in a felt
-# Client calling the function must replace the '{id}' substring with the actual token type ID
-struct TokenId:
-    member a : felt
-end
-
-struct TokenUri:
-    member asset_namespace : AssetNamespace
-    member asset_reference : AssetReference
-    member token_id : TokenId
-end
 
 @contract_interface
 namespace IObject:
@@ -63,6 +43,12 @@ end
 ##### Constants #####
 # Width of the simulation grid.
 
+
+##### Event #####
+@event
+func mint_object_event(
+        object_address : felt, to : felt, token_id : Uint256, amount : felt):
+end
 
 ##### Storage #####
 
@@ -99,10 +85,6 @@ struct Spawnlink:
     member x : felt
     member y : felt
 end
-
-# @storage_var
-# func _settinglink(owner: felt) -> (res : Spawnlink):
-# end
 
 
 struct SettingEnum:
@@ -151,15 +133,7 @@ func object_info(
     ):
 end
 
-
-# @storage_var
-# func object_owner(
-#         owner : Uint256,
-#         object_id : felt       
-#     ) -> (
-#         res: felt
-#     ):
-# end
+##### Contract Address #####
 
 @storage_var
 func _object_address() -> (res : felt):
@@ -169,6 +143,25 @@ end
 func _l1_philand_address() -> (res : felt):
 end
 
+@view
+func object_address{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }() -> (res : felt):
+    let (res) = _object_address.read()
+    return (res)
+end
+
+@view
+func l1_philand_address{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }() -> (res : felt):
+    let (res) = _l1_philand_address.read()
+    return (res)
+end
 
 ##################
 @constructor
@@ -354,15 +347,12 @@ func create_philand{
     _settings.write(owner, SettingEnum.updated_at,block_timestamp)
     _settings.write(owner, SettingEnum.land_type,0)
     
-        # _settinglink.write(owner, SpawnlinkEnumk.x,0)
-    # _settinglink.write(owner, SpawnlinkEnumk.y,0)
-    
+
     local spawn_link : Spawnlink = Spawnlink(
         x =  0,
         y = 0
     )
     _setting_link.write(owner,SettingEnum.spawn_link,spawn_link)
-
     _settings.write(owner, SettingEnum.text_records,value=0)
 
     let (res) = numberof_philand.read()
@@ -473,12 +463,8 @@ func claim_l1_object{
     return ()
 end
 
-# An event emitted whenever increase_balance() is called.
-# current_balance is the balance before it was increased.
-@event
-func mint_object_event(
-        object_address : felt, to : felt, token_id : Uint256, amount : felt):
-end
+
+
 
 @l1_handler
 func claim_l2_object{
@@ -494,11 +480,11 @@ func claim_l2_object{
         token_id_high : felt
     ):
     alloc_locals
+
     # todo setowner=>L2addresss
     let (current_index) = object_index.read()
     let idx = current_index + 1
     object_index.write(idx)
-    # object_owner.write(owner,current_index,1)
 
     let (object_address) = _object_address.read()
     let newTokendata = Tokendata(
@@ -849,25 +835,6 @@ func view_numberof_philand{
 end
 
 # should change view =>external
-@view
-func object_address{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-  }() -> (res : felt):
-    let (res) = _object_address.read()
-    return (res)
-end
-
-@view
-func l1_philand_address{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-  }() -> (res : felt):
-    let (res) = _l1_philand_address.read()
-    return (res)
-end
 
 #############################
 ##### Private functions #####
@@ -914,23 +881,3 @@ func create_l2_object{
     return ()
 end
 
-
-@storage_var
-func balance(user : felt) -> (res : felt):
-end
-
-@l1_handler
-func deposit{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        from_address : felt, user : felt, amount : felt):
-    # Make sure the message was sent by the intended L1 contract.
-    # assert from_address = L1_CONTRACT_ADDRESS
-
-    # Read the current balance.
-    let (res) = balance.read(user=user)
-
-    # Compute and update the new balance.
-    tempvar new_balance = res + amount
-    balance.write(user, new_balance)
-
-    return ()
-end

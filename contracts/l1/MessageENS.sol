@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.8;
-// import "@ensdomains/ens-contracts/contracts/registry/ENSRegistry.sol";
+
 import { IENS } from './interfaces/IENS.sol';
 import { IStarkNetLike } from './interfaces/IStarkNetLike.sol';
+import { MultiOwner } from './utils/MultiOwner.sol';
 
-contract MessageENS {
+contract MessageENS is MultiOwner{
      // The StarkNet core contract.
     IStarkNetLike _starknetLike;
     IENS _ens;
@@ -85,22 +86,22 @@ contract MessageENS {
         IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
     }
 
-    function claimL1Object(
-        uint256 l2ContractAddress,
-        string memory name,
-        address contractAddress,
-        uint256 tokenid
-        ) external {
+    // function claimL1Object(
+    //     uint256 l2ContractAddress,
+    //     string memory name,
+    //     address contractAddress,
+    //     uint256 tokenid
+    //     ) external {
 
-        emit LogClaimL1NFT(name,uint256(uint160(contractAddress)),tokenid);        
-        uint256[] memory payload = new uint256[](3);
-        payload[0] = uint256(stringToBytes32(name));
-        payload[1] = uint256(uint160(contractAddress));
-        payload[2] = tokenid;
+    //     emit LogClaimL1NFT(name,uint256(uint160(contractAddress)),tokenid);        
+    //     uint256[] memory payload = new uint256[](3);
+    //     payload[0] = uint256(stringToBytes32(name));
+    //     payload[1] = uint256(uint160(contractAddress));
+    //     payload[2] = tokenid;
 
-        // Send the message to the StarkNet core contract.
-        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
-    }
+    //     // Send the message to the StarkNet core contract.
+    //     IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
+    // }
 
     // enum CouponType {
     // lootbalance,
@@ -117,7 +118,7 @@ contract MessageENS {
         return coupon_type[condition];
     }
 
-    function setCouponType(string calldata condition,uint256 tokenid) public {
+    function setCouponType(string calldata condition,uint256 tokenid) public onlyOwner() {
         coupon_type[condition] = tokenid;
     }
 
@@ -183,36 +184,5 @@ contract MessageENS {
     return (low, high);
     }
 
-    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
-        bytes memory tempEmptyStringTest = bytes(source);
-        if (tempEmptyStringTest.length == 0) {
-            return 0x0;
-        }
-
-        assembly {
-            result := mload(add(source, 32))
-        }
-    }
-    uint256 constant DEPOSIT_SELECTOR =
-        352040181584456735608515580760888541466059565068553383579463728554843487745;
-
-     function deposit(
-        uint256 l2ContractAddress,
-        uint256 user,
-        uint256 amount
-    ) external {
-        // require(amount < 2**64, "Invalid amount.");
-        // require(amount <= userBalances[user], "The user's balance is not large enough.");
-
-        // // Update the L1 balance.
-        // userBalances[user] -= amount;
-
-        // Construct the deposit message's payload.
-        uint256[] memory payload = new uint256[](2);
-        payload[0] = user;
-        payload[1] = amount;
-
-        // Send the message to the StarkNet core contract.
-        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, DEPOSIT_SELECTOR, payload);
-    }
+   
 }

@@ -24,9 +24,9 @@ const createPhiland = parseFixed(
   "617099311689109934115201364618365113888900634692095419483864089403220532029"
 );
 
-const claimL1Object = parseFixed(
-  "1426524085905910661260502794228018787518743932072178038305015687841949115798"
-);
+// const claimL1Object = parseFixed(
+//   "1426524085905910661260502794228018787518743932072178038305015687841949115798"
+// );
 
 const claimL2Object = parseFixed(
   "725729645710710348624275617047258825327720453914706103365608274738200251740"
@@ -82,35 +82,35 @@ const claimL2Object = parseFixed(
     
 });
 
-describe("claimL1NFT", function () {
-    it("sends a message to l2, claim nft event", async () => {
-      const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =
-        await setupTest();
+// describe("claimL1NFT", function () {
+//     it("sends a message to l2, claim nft event", async () => {
+//       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =
+//         await setupTest();
   
-      const lootContract = "0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7"
-      const tokenid = 13
-      await expect(l1Philand.connect(l1Alice).claimL1Object(l2PhilandAddress, 'zak3939',lootContract,tokenid))
-        .to.emit(l1Philand, "LogClaimL1NFT")
-        .withArgs('zak3939',lootContract,tokenid);
+//       const lootContract = "0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7"
+//       const tokenid = 13
+//       await expect(l1Philand.connect(l1Alice).claimL1Object(l2PhilandAddress, 'zak3939',lootContract,tokenid))
+//         .to.emit(l1Philand, "LogClaimL1NFT")
+//         .withArgs('zak3939',lootContract,tokenid);
 
-      expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
-      expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
-        l2PhilandAddress,
-        claimL1Object,
-        [ENSNAME,lootContract,tokenid]
-      );
-    });
-});
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
+//         l2PhilandAddress,
+//         claimL1Object,
+//         [ENSNAME,lootContract,tokenid]
+//       );
+//     });
+// });
 
 describe("claiml2Object", function () {
     it("sends a message to l2, claim nft event", async () => {
-      const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress,l2UserAddress,coupons } =
+      const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,l2UserAddress,coupons } =
         await setupTest();
   
       const tokenid = 6
       const condition = "lootbalance"
       
-      const conditionTX = await l1Philand.connect(l1Alice).setCouponType(condition,1)
+      const conditionTX = await l1Philand.connect(admin).setCouponType(condition,1)
       await conditionTX.wait()
       console.log(await l1Philand.connect(l1Alice).getCouponType(condition))
       expect(await l1Philand.connect(l1Alice).getCouponType(condition)).to.equal(1)
@@ -140,7 +140,6 @@ async function setupTest() {
   const L2_USER_ADDRESS = 11111;
   
   const ens = await simpleDeploy("ENSRegistry",[]);
-  // const ens = await simpleDeploy("ENS",[]);
   const resolver = await simpleDeploy("TestResolver",[]);
   const ethregistrar= await simpleDeploy("TestRegistrar",[ens.address,
       namehash.hash('eth'),]);
@@ -173,19 +172,10 @@ export function eth(amount: string) {
 }
 
 
-function hexToDec(hexString: string){
-  return parseInt(hexString, 16);
-}
-
-// function toSplitUint(value: any) {
-//   const bits = value.toBigInt().toString(16).padStart(64, "0");
-//   return [BigInt(`0x${bits.slice(32)}`), BigInt(`0x${bits.slice(0, 32)}`)];
+// function hexToDec(hexString: string){
+//   return parseInt(hexString, 16);
 // }
 
-function toSplitUint(value: bigint) {
-  const bits = value.toString(16).padStart(64, "0");
-  return [BigInt(`0x${bits.slice(32)}`), BigInt(`0x${bits.slice(0, 32)}`)];
-}
 
 function getCoupon(addr:string){
     const CouponTypeEnum = {
