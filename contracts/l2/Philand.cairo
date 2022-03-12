@@ -15,7 +15,7 @@ from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 ##### Description #####
 #
-
+# Management of philand's map contract
 #
 #######################
 
@@ -459,7 +459,7 @@ func claim_l1_object{
     ):
     create_l1nft_object(contract_address,token_id)
     let (current_index) = object_index.read()
-    # object_owner.write(owner,current_index,1)
+   
     return ()
 end
 
