@@ -40,8 +40,13 @@ const claimL2Object = parseFixed(
   // const ENSLABEL =web3.utils.asciiToHex('zak3939.eth')
   // const ENSLABEL =web3.utils.asciiToHex('zak3939')
   const ENSLABEL = ethers.utils.formatBytes32String('zak3939')
+  console.log(ENSLABEL)
   const ENSNAME= BigInt(ENSLABEL).toString(10)
-
+  console.log(ENSNAME)
+  const SUBENSLABEL = ethers.utils.formatBytes32String('test.zak3939')
+  console.log(SUBENSLABEL)
+  const SUBENSNAME= BigInt(SUBENSLABEL).toString(10)
+  console.log(SUBENSNAME)
   beforeEach("checkens", function () {
     it("checkens", async () => {
       const { admin,l1Alice,ens,resolver,ethregistrar } =
@@ -78,10 +83,39 @@ const claimL2Object = parseFixed(
         createPhiland,
         [name_int[0],name_int[1]]
       );
-    });
-    
+    });   
 });
 
+// describe("createPhilandwithsubdomain", function () {
+//     it("sends a message to l2, emits event", async () => {
+//       const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,ens,resolver, } =
+//         await setupTest();
+
+//       await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), admin.address);
+//       await ens.connect(admin).setSubnodeOwner(namehash.hash('eth'), sha3('zak3939'),l1Alice.address)
+//       await ens.connect(l1Alice).setSubnodeOwner(namehash.hash('zak3939.eth'), sha3('test'),l1Alice.address)
+//       // await ens.connect(l1Alice).setResolver(namehash.hash('zak3939.eth'),resolver.address)
+//       // await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address);
+//       // await ens.resolver(namehash.hash('zak3939.eth'))
+
+      
+//       await ens.connect(l1Alice).setResolver(namehash.hash('test.zak3939.eth'),resolver.address)
+//       await resolver.setAddr(namehash.hash('test.zak3939.eth'), l1Alice.address);
+//       await ens.resolver(namehash.hash('test.zak3939.eth'))
+
+
+//       await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, 'test.zak3939'))
+//         .to.emit(l1Philand, "LogCreatePhiland")
+//         .withArgs(l1Alice.address,'test.zak3939');
+
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
+//       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
+//         l2PhilandAddress,
+//         createPhiland,
+//         [name_int[0],name_int[1]]
+//       );
+//     });   
+// });
 // describe("claimL1NFT", function () {
 //     it("sends a message to l2, claim nft event", async () => {
 //       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =

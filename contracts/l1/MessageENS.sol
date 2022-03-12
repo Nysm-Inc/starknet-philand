@@ -4,6 +4,8 @@ pragma solidity ^0.8.8;
 import { IENS } from './interfaces/IENS.sol';
 import { IStarkNetLike } from './interfaces/IStarkNetLike.sol';
 import { MultiOwner } from './utils/MultiOwner.sol';
+import './utils/Strings.sol';
+
 
 contract MessageENS is MultiOwner{
      // The StarkNet core contract.
@@ -56,7 +58,27 @@ contract MessageENS is MultiOwner{
         string memory name
         ) external {
 
-        bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        strings.slice memory slicee = strings.toSlice(name);
+        strings.slice memory delim = strings.toSlice(".");
+        string[] memory parts = new string[](strings.count(slicee,delim) + 1);
+        for (uint i = 0; i < parts.length; i++) {
+            parts[i] = strings.toString(strings.split(slicee,delim));
+        }
+        bytes32 label;
+        if (parts.length==1){
+            label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        }else{
+        for (uint i = parts.length-1; i > 0; i--) {
+            if (i==parts.length - 1){
+                label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(parts[i]))));
+            }else {
+                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[i]))));
+            }
+            if(i==1){
+                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[0]))));
+            }
+            }
+        }
         uint256 ensname = uint256(label);
         uint256 ensname_low;
         uint256 ensname_high;
@@ -110,6 +132,7 @@ contract MessageENS is MultiOwner{
     // uniswap10,
     // snapshot,
     // ethbalance1
+    // polygon
     // }
     
     mapping (string => uint256) public coupon_type;

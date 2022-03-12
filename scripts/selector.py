@@ -28,10 +28,16 @@ def str_to_felt_array(text):
     return chunks
 
 
+def to_split_uint(a):
+    return (a & ((1 << 128) - 1), a >> 128)
+
+
 print(get_selector_from_name('create_philand'))
 print(get_selector_from_name('claim_l1_object'))
 print(get_selector_from_name('claim_l2_object'))
 print(get_selector_from_name('handle_deposit'))
+print(to_split_uint(
+    52647538822279922024551388030138050460193271338065356392198033900375906451456))
 
 print(str_to_felt('zak3939.eth'))
 print(str_to_bytes('zak3939.eth'))
