@@ -56,4 +56,33 @@ print(*str_to_felt_array(
     "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"))
 
 
-print(0x046e34fb5292959063ac7f0feff0da25bb79e3109477aab092dfbe4ea3a6318c)
+
+print("id:1")
+print(str_to_felt_array("https://bafyreig7a6iezakkky25h7qwtxw4idn7ttgmkkqfmiaf2eezf2zpsr2dg4.ipfs.dweb.link/metadata.json"))
+print("id:2")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreifhkrjl3eo3qixofehnshrxnlz6nosd3zachst7d6cr7gsn6krmxm/metadata.json"))
+print("id:3")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreibsvbkw6u6ltgtgne3l5efzlnwpf65bdqonyo5mdop5gmu6jtapca/metadata.json"))
+print("id:4")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreiadunyydcvk5gas2ltu2hpbllutftltjop66gq35ckmbo5o5pgcie/metadata.json"))
+print("id:5")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreidimhonbyf2dmfkwsfgru7jy2n6ixyfr4bmwqjuf7vqrx6voxi4tu/metadata.json"))
+print("id:6")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreids2mkzfzhl26hoshmmpc5mudmz4anti4dmskjsykgjvz2o5d3wwm/metadata.json"))
+print("id:7")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreieq3yrcie5phpgbwxaig6exosznc23cxcde3by36bakequ24zwymu/metadata.json"))
+print("id:8")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreifyd7b576se6cf5mzywxu4znfuqzw43lrf2irgjidhcqq4xvvrjti/metadata.json"))
+print("id:9")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreiaewslbnuxj4kfqvatzjs5dpmmrswtyah7r7rxtshw5a7igjks73u/metadata.json"))
+print("id:10")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreigb2ltsvhr4lgt6h2xmsyakw2nrxj3f4j6zb34n64au3t5ae4vhz4/metadata.json"))
+print("id:11")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreicud4icbxdgukl7u3fjxovoildamvwlh2pf7ipldyolrx6n3sqtiu/metadata.json"))
+print("id:12")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreib62zurt4enxttuydrtfpew4wti4u7bnd25dichniqdxhdipjscia/metadata.json"))
+print("material:id:1")
+print(str_to_felt_array("https://dweb.link/ipfs/bafyreihuydndhyqyu6x4rd2ofbpyfxeptva7tqlqdm3rlp4ub6dvgn3xry/metadata.json"))
+
+
+
