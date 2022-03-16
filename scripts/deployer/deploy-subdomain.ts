@@ -14,5 +14,5 @@ export async function deployFakeLoot() {
   await subdomain.deployed();
 
   console.log("test deployed to:", subdomain.address);
-  console.log(`npx hardhat verify --network goerli ${GOERLI_ENS_ADDRESS}`)
+  console.log(`npx hardhat verify --network goerli ${subdomain.address} ${GOERLI_ENS_ADDRESS}`)
 }

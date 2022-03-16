@@ -26,10 +26,10 @@ contract SubdomainENS {
         domainNode = keccak256(abi.encodePacked(TLD_NODE, keccak256(bytes(origin))));
         subnode = keccak256(abi.encodePacked(domainNode,keccak256(bytes(subdomain))));
         require(ens.owner(subnode)==address(0),'already minted');
-
+        
         ens.setSubnodeRecord(domainNode, keccak256(bytes(subdomain)), msg.sender,goerliResolver,0);
         ens.setSubnodeOwner(domainNode,keccak256(bytes(subdomain)),msg.sender);
-      
+
         emit NewSubdomainCreated(msg.sender, subdomain);
     }
 }

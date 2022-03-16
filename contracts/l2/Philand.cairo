@@ -52,6 +52,17 @@ end
 
 ##### Storage #####
 
+
+struct Tokendata:
+    member contract_address : felt
+    member token_id : Uint256
+end
+
+struct Maplink:
+    member contract_address : felt
+    member target_owner : Uint256
+end
+
 # For a given game at a given state.
 @storage_var
 func parcel(
@@ -59,14 +70,8 @@ func parcel(
         x : felt,
         y : felt
     ) -> (
-        object_id : felt
+        object : Tokendata
     ):
-end
-
-
-struct Maplink:
-    member contract_address : felt
-    member target_owner : Uint256
 end
 
 
@@ -107,31 +112,28 @@ end
 
 
 @storage_var
-func numberof_philand(
+func number_of_philand(
     ) -> (
          res : felt
     ):
 end
 
-@storage_var
-func object_index(
-    ) -> (
-         res : felt
-    ):
-end
+# @storage_var
+# func object_index(
+#     ) -> (
+#          res : felt
+#     ):
+# end
 
-struct Tokendata:
-    member contract_address : felt
-    member token_id : Uint256
-end
 
-@storage_var
-func object_info(
-        object_id : felt
-    ) -> (
-        res : Tokendata
-    ):
-end
+
+# @storage_var
+# func object_info(
+#         object_id : felt
+#     ) -> (
+#         res : Tokendata
+#     ):
+# end
 
 ##### Contract Address #####
 
@@ -178,8 +180,7 @@ func constructor{
     alloc_locals
 
     let (caller) = get_caller_address()
-    object_index.write(0)
-    numberof_philand.write(0)
+    number_of_philand.write(0)
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
@@ -206,76 +207,82 @@ func create_philand{
     let owner : Uint256 = Uint256(owner_low,owner_high)
     # assert_not_zero(owner)
     
+    let token_data = Tokendata(
+        contract_address =  0,
+        token_id = Uint256(0,0)
+    )
+
+
     let map_link = Maplink(
         contract_address =  0,
         target_owner = Uint256(0,0)
     )
 
     # write philand parcel
-    parcel.write(owner=owner, x=0, y=0, value=0)
-    parcel.write(owner=owner, x=0, y=1, value=0)
-    parcel.write(owner=owner, x=0, y=2, value=0)
-    parcel.write(owner=owner, x=0, y=3, value=0)
-    parcel.write(owner=owner, x=0, y=4, value=0)
-    parcel.write(owner=owner, x=0, y=5, value=0)
-    parcel.write(owner=owner, x=0, y=6, value=0)
-    parcel.write(owner=owner, x=0, y=7, value=0)
-    parcel.write(owner=owner, x=1, y=0, value=0)
-    parcel.write(owner=owner, x=1, y=1, value=0)
-    parcel.write(owner=owner, x=1, y=2, value=0)
-    parcel.write(owner=owner, x=1, y=3, value=0)
-    parcel.write(owner=owner, x=1, y=4, value=0)
-    parcel.write(owner=owner, x=1, y=5, value=0)
-    parcel.write(owner=owner, x=1, y=6, value=0)
-    parcel.write(owner=owner, x=1, y=7, value=0)
-    parcel.write(owner=owner, x=2, y=0, value=0)
-    parcel.write(owner=owner, x=2, y=1, value=0)
-    parcel.write(owner=owner, x=2, y=2, value=0)
-    parcel.write(owner=owner, x=2, y=3, value=0)
-    parcel.write(owner=owner, x=2, y=4, value=0)
-    parcel.write(owner=owner, x=2, y=5, value=0)
-    parcel.write(owner=owner, x=2, y=6, value=0)
-    parcel.write(owner=owner, x=2, y=7, value=0)
-    parcel.write(owner=owner, x=3, y=0, value=0)
-    parcel.write(owner=owner, x=3, y=1, value=0)
-    parcel.write(owner=owner, x=3, y=2, value=0)
-    parcel.write(owner=owner, x=3, y=3, value=0)
-    parcel.write(owner=owner, x=3, y=4, value=0)
-    parcel.write(owner=owner, x=3, y=5, value=0)
-    parcel.write(owner=owner, x=3, y=6, value=0)
-    parcel.write(owner=owner, x=3, y=7, value=0)
-    parcel.write(owner=owner, x=4, y=0, value=0)
-    parcel.write(owner=owner, x=4, y=1, value=0)
-    parcel.write(owner=owner, x=4, y=2, value=0)
-    parcel.write(owner=owner, x=4, y=3, value=0)
-    parcel.write(owner=owner, x=4, y=4, value=0)
-    parcel.write(owner=owner, x=4, y=5, value=0)
-    parcel.write(owner=owner, x=4, y=6, value=0)
-    parcel.write(owner=owner, x=4, y=7, value=0)
-    parcel.write(owner=owner, x=5, y=0, value=0)
-    parcel.write(owner=owner, x=5, y=1, value=0)
-    parcel.write(owner=owner, x=5, y=2, value=0)
-    parcel.write(owner=owner, x=5, y=3, value=0)
-    parcel.write(owner=owner, x=5, y=4, value=0)
-    parcel.write(owner=owner, x=5, y=5, value=0)
-    parcel.write(owner=owner, x=5, y=6, value=0)
-    parcel.write(owner=owner, x=5, y=7, value=0)
-    parcel.write(owner=owner, x=6, y=0, value=0)
-    parcel.write(owner=owner, x=6, y=1, value=0)
-    parcel.write(owner=owner, x=6, y=2, value=0)
-    parcel.write(owner=owner, x=6, y=3, value=0)
-    parcel.write(owner=owner, x=6, y=4, value=0)
-    parcel.write(owner=owner, x=6, y=5, value=0)
-    parcel.write(owner=owner, x=6, y=6, value=0)
-    parcel.write(owner=owner, x=6, y=7, value=0)
-    parcel.write(owner=owner, x=7, y=0, value=0)
-    parcel.write(owner=owner, x=7, y=1, value=0)
-    parcel.write(owner=owner, x=7, y=2, value=0)
-    parcel.write(owner=owner, x=7, y=3, value=0)
-    parcel.write(owner=owner, x=7, y=4, value=0)
-    parcel.write(owner=owner, x=7, y=5, value=0)
-    parcel.write(owner=owner, x=7, y=6, value=0)
-    parcel.write(owner=owner, x=7, y=7, value=0)
+    parcel.write(owner=owner, x=0, y=0, value=token_data)
+    parcel.write(owner=owner, x=0, y=1, value=token_data)
+    parcel.write(owner=owner, x=0, y=2, value=token_data)
+    parcel.write(owner=owner, x=0, y=3, value=token_data)
+    parcel.write(owner=owner, x=0, y=4, value=token_data)
+    parcel.write(owner=owner, x=0, y=5, value=token_data)
+    parcel.write(owner=owner, x=0, y=6, value=token_data)
+    parcel.write(owner=owner, x=0, y=7, value=token_data)
+    parcel.write(owner=owner, x=1, y=0, value=token_data)
+    parcel.write(owner=owner, x=1, y=1, value=token_data)
+    parcel.write(owner=owner, x=1, y=2, value=token_data)
+    parcel.write(owner=owner, x=1, y=3, value=token_data)
+    parcel.write(owner=owner, x=1, y=4, value=token_data)
+    parcel.write(owner=owner, x=1, y=5, value=token_data)
+    parcel.write(owner=owner, x=1, y=6, value=token_data)
+    parcel.write(owner=owner, x=1, y=7, value=token_data)
+    parcel.write(owner=owner, x=2, y=0, value=token_data)
+    parcel.write(owner=owner, x=2, y=1, value=token_data)
+    parcel.write(owner=owner, x=2, y=2, value=token_data)
+    parcel.write(owner=owner, x=2, y=3, value=token_data)
+    parcel.write(owner=owner, x=2, y=4, value=token_data)
+    parcel.write(owner=owner, x=2, y=5, value=token_data)
+    parcel.write(owner=owner, x=2, y=6, value=token_data)
+    parcel.write(owner=owner, x=2, y=7, value=token_data)
+    parcel.write(owner=owner, x=3, y=0, value=token_data)
+    parcel.write(owner=owner, x=3, y=1, value=token_data)
+    parcel.write(owner=owner, x=3, y=2, value=token_data)
+    parcel.write(owner=owner, x=3, y=3, value=token_data)
+    parcel.write(owner=owner, x=3, y=4, value=token_data)
+    parcel.write(owner=owner, x=3, y=5, value=token_data)
+    parcel.write(owner=owner, x=3, y=6, value=token_data)
+    parcel.write(owner=owner, x=3, y=7, value=token_data)
+    parcel.write(owner=owner, x=4, y=0, value=token_data)
+    parcel.write(owner=owner, x=4, y=1, value=token_data)
+    parcel.write(owner=owner, x=4, y=2, value=token_data)
+    parcel.write(owner=owner, x=4, y=3, value=token_data)
+    parcel.write(owner=owner, x=4, y=4, value=token_data)
+    parcel.write(owner=owner, x=4, y=5, value=token_data)
+    parcel.write(owner=owner, x=4, y=6, value=token_data)
+    parcel.write(owner=owner, x=4, y=7, value=token_data)
+    parcel.write(owner=owner, x=5, y=0, value=token_data)
+    parcel.write(owner=owner, x=5, y=1, value=token_data)
+    parcel.write(owner=owner, x=5, y=2, value=token_data)
+    parcel.write(owner=owner, x=5, y=3, value=token_data)
+    parcel.write(owner=owner, x=5, y=4, value=token_data)
+    parcel.write(owner=owner, x=5, y=5, value=token_data)
+    parcel.write(owner=owner, x=5, y=6, value=token_data)
+    parcel.write(owner=owner, x=5, y=7, value=token_data)
+    parcel.write(owner=owner, x=6, y=0, value=token_data)
+    parcel.write(owner=owner, x=6, y=1, value=token_data)
+    parcel.write(owner=owner, x=6, y=2, value=token_data)
+    parcel.write(owner=owner, x=6, y=3, value=token_data)
+    parcel.write(owner=owner, x=6, y=4, value=token_data)
+    parcel.write(owner=owner, x=6, y=5, value=token_data)
+    parcel.write(owner=owner, x=6, y=6, value=token_data)
+    parcel.write(owner=owner, x=6, y=7, value=token_data)
+    parcel.write(owner=owner, x=7, y=0, value=token_data)
+    parcel.write(owner=owner, x=7, y=1, value=token_data)
+    parcel.write(owner=owner, x=7, y=2, value=token_data)
+    parcel.write(owner=owner, x=7, y=3, value=token_data)
+    parcel.write(owner=owner, x=7, y=4, value=token_data)
+    parcel.write(owner=owner, x=7, y=5, value=token_data)
+    parcel.write(owner=owner, x=7, y=6, value=token_data)
+    parcel.write(owner=owner, x=7, y=7, value=token_data)
 
     parcel_link.write(owner=owner, x=0, y=0, value=map_link)
     parcel_link.write(owner=owner, x=0, y=1, value=map_link)
@@ -355,9 +362,9 @@ func create_philand{
     _setting_link.write(owner,SettingEnum.spawn_link,spawn_link)
     _settings.write(owner, SettingEnum.text_records,value=0)
 
-    let (res) = numberof_philand.read()
+    let (res) = number_of_philand.read()
     let index = res +1
-    numberof_philand.write(index)
+    number_of_philand.write(index)
     return ()
 end
 
@@ -458,7 +465,7 @@ func claim_l1_object{
         token_id : Uint256
     ):
     create_l1nft_object(contract_address,token_id)
-    let (current_index) = object_index.read()
+    
    
     return ()
 end
@@ -482,9 +489,6 @@ func claim_l2_object{
     alloc_locals
 
     # todo setowner=>L2addresss
-    let (current_index) = object_index.read()
-    let idx = current_index + 1
-    object_index.write(idx)
 
     let (object_address) = _object_address.read()
     let newTokendata = Tokendata(
@@ -492,26 +496,12 @@ func claim_l2_object{
                         token_id=Uint256(token_id_low,token_id_high)
                         )
 
-    object_info.write(idx,newTokendata)
     
     IObject._mint(object_address,receive_address,Uint256(token_id_low,token_id_high),1)
     mint_object_event.emit(object_address=object_address,to=receive_address,token_id=Uint256(token_id_low,token_id_high),amount=1)
     return ()
 end
 
-# Philand contract object index
-@external
-func get_object_index{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-    )-> (
-        current_index : felt,
-    ):
-    let (current_index) = object_index.read()
-    return (current_index)
-end
 
 
 # Write object id to parcel
@@ -524,10 +514,14 @@ func write_object_to_parcel{
         x : felt,
         y : felt,
         owner : Uint256,
-        object_id : felt
+        contract_address : felt,
+        token_id : Uint256
     ):
-    
-    parcel.write(owner, x, y,value=object_id)
+    let token_data = Tokendata(
+        contract_address =  contract_address,
+        token_id = token_id
+    )
+    parcel.write(owner, x, y,value=token_data)
     return ()
 end
 
@@ -543,23 +537,23 @@ func batch_write_object_to_parcel{
         y_len : felt,
         y : felt*,
         owner : Uint256,
-        object_id_len : felt,
-        object_id : felt*
+        token_data_len : felt,
+        token_data : Tokendata*
     ):
     assert x_len = y_len
-    assert x_len = object_id_len
+    assert x_len = token_data_len
     if x_len == 0:
         return ()
     end
-    parcel.write(owner, [x], [y],value=[object_id])
+    parcel.write(owner, [x], [y],value=[token_data])
     return batch_write_object_to_parcel(
         x_len = x_len - 1,
         x = x + 1,
         y_len = y_len - 1,
         y = y + 1,
         owner = owner,
-        object_id_len = object_id_len - 1,
-        object_id = object_id + 1)
+        token_data_len = token_data_len - 1,
+        token_data = token_data + 3)
 end
 
 # Returns a list of objects for the specified generation.
@@ -571,22 +565,22 @@ func view_philand{
     }(
         owner : Uint256
     ) -> (
-        object_0 : felt, object_1 : felt, object_2 : felt, object_3 : felt,
-        object_4 : felt, object_5 : felt, object_6 : felt, object_7 : felt,
-        object_8 : felt, object_9 : felt, object_10 : felt, object_11 : felt,
-        object_12 : felt, object_13 : felt, object_14 : felt, object_15 : felt,
-        object_16 : felt, object_17 : felt, object_18 : felt, object_19 : felt,
-        object_20 : felt, object_21 : felt, object_22 : felt, object_23 : felt,
-        object_24 : felt, object_25 : felt, object_26 : felt, object_27 : felt,
-        object_28 : felt, object_29 : felt, object_30 : felt, object_31 : felt,
-        object_32 : felt, object_33 : felt, object_34 : felt, object_35 : felt,
-        object_36 : felt, object_37 : felt, object_38 : felt, object_39 : felt,
-        object_40 : felt, object_41 : felt, object_42 : felt, object_43 : felt,
-        object_44 : felt, object_45 : felt, object_46 : felt, object_47 : felt,
-        object_48 : felt, object_49 : felt, object_50 : felt, object_51 : felt,
-        object_52 : felt, object_53 : felt, object_54 : felt, object_55 : felt,
-        object_56 : felt, object_57 : felt, object_58 : felt, object_59 : felt,
-        object_60 : felt, object_61 : felt, object_62 : felt, object_63 : felt
+        object_0 : Tokendata, object_1 : Tokendata, object_2 : Tokendata, object_3 : Tokendata,
+        object_4 : Tokendata, object_5 : Tokendata, object_6 : Tokendata, object_7 : Tokendata,
+        object_8 : Tokendata, object_9 : Tokendata, object_10 : Tokendata, object_11 : Tokendata,
+        object_12 : Tokendata, object_13 : Tokendata, object_14 : Tokendata, object_15 : Tokendata,
+        object_16 : Tokendata, object_17 : Tokendata, object_18 : Tokendata, object_19 : Tokendata,
+        object_20 : Tokendata, object_21 : Tokendata, object_22 : Tokendata, object_23 : Tokendata,
+        object_24 : Tokendata, object_25 : Tokendata, object_26 : Tokendata, object_27 : Tokendata,
+        object_28 : Tokendata, object_29 : Tokendata, object_30 : Tokendata, object_31 : Tokendata,
+        object_32 : Tokendata, object_33 : Tokendata, object_34 : Tokendata, object_35 : Tokendata,
+        object_36 : Tokendata, object_37 : Tokendata, object_38 : Tokendata, object_39 : Tokendata,
+        object_40 : Tokendata, object_41 : Tokendata, object_42 : Tokendata, object_43 : Tokendata,
+        object_44 : Tokendata, object_45 : Tokendata, object_46 : Tokendata, object_47 : Tokendata,
+        object_48 : Tokendata, object_49 : Tokendata, object_50 : Tokendata, object_51 : Tokendata,
+        object_52 : Tokendata, object_53 : Tokendata, object_54 : Tokendata, object_55 : Tokendata,
+        object_56 : Tokendata, object_57 : Tokendata, object_58 : Tokendata, object_59 : Tokendata,
+        object_60 : Tokendata, object_61 : Tokendata, object_62 : Tokendata, object_63 : Tokendata
     ):
 
     let (object_0) = parcel.read(owner, 0, 0)
@@ -663,7 +657,7 @@ func view_philand{
         object_42, object_43, object_44, object_45, object_46, object_47,
         object_48, object_49, object_50, object_51, object_52, object_53,
         object_54, object_55, object_56, object_57, object_58, object_59,
-        object_60, object_61,object_62, object_63)
+        object_60, object_61, object_62, object_63)
 end
 
 # Returns parcel object data (contract_address, token_id).
@@ -681,10 +675,9 @@ func view_parcel{
         token_id : Uint256,
         link : Maplink
     ):
-    let (object_id) = parcel.read(owner, x, y)
-    let (token) = object_info.read(object_id)
+    let (object) = parcel.read(owner, x, y)
     let (link) = parcel_link.read(owner, x, y)
-    return (token.contract_address, token.token_id,link)
+    return (object.contract_address, object.token_id,link)
 end
 
 @view
@@ -805,24 +798,9 @@ func view_setting{
     return (created_at,updated_at,land_type,spawn_link,text_records)
 end
 
-# Returns parcel object data (contract_address, token_id).
-@view
-func view_object{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-        object_id : felt
-    ) -> (
-        contract_address : felt,
-        token_id : Uint256
-    ):
-    let (token) = object_info.read(object_id)
-    return (token.contract_address, token.token_id)
-end
 
 @view
-func view_numberof_philand{
+func view_number_of_philand{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -830,7 +808,7 @@ func view_numberof_philand{
         res : felt,
         
     ):
-    let (res) = numberof_philand.read()
+    let (res) = number_of_philand.read()
     return (res)
 end
 
@@ -847,11 +825,7 @@ func create_l1nft_object{
         contract_address : felt,
         token_id : Uint256
     ):
-    let (current_index) = object_index.read()
-    let idx = current_index + 1
-    object_index.write(idx)
-    let newTokendata= Tokendata(contract_address=contract_address,token_id=token_id)
-    object_info.write(idx,newTokendata)
+
 
     return ()
 end
@@ -870,13 +844,6 @@ func create_l2_object{
     alloc_locals
     let (object) = _object_address.read()
     IObject.setTokenURI(object,token_uri_len, token_uri, token_id)
-
-    let newTokendata = Tokendata(contract_address=contract_address,token_id=token_id)
-
-    let (local current_index) = object_index.read()
-    let idx = current_index + 1
-    object_index.write(idx)
-    object_info.write(idx,newTokendata)
 
     return ()
 end
