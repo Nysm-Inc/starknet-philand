@@ -131,7 +131,7 @@ const config: HardhatUserConfig = {
   },
   starknet: {
     // The default in this version of the plugin
-    dockerizedVersion: "0.7.1"
+    dockerizedVersion: "0.8.0"
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

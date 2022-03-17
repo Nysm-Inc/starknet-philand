@@ -30,6 +30,7 @@ contract MessageENS is MultiOwner{
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
     error InvalidENS (address sender, string name,uint256 ensname_low,uint256 ensname_high ,bytes32 label,address owner, string node);
+    error AllreadyClaimedPhiland (address sender, address owner,string name );
 
     event LogCreatePhiland(address indexed l1Sender, string name);
     event LogClaimL1NFT(string name,uint256 contract_address,uint256 tokenid);
@@ -96,7 +97,13 @@ contract MessageENS is MultiOwner{
                 node: string(abi.encodePacked(ensname))
             });
         }
-
+        if (owner_lists[name]!= address(0)){
+            revert  AllreadyClaimedPhiland({
+                sender: msg.sender,
+                owner: owner_lists[name],
+                name: name
+            });
+        }
         owner_lists[name]=msg.sender;
 
         emit LogCreatePhiland(msg.sender, name);

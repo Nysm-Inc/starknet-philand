@@ -164,7 +164,21 @@ describe("claiml2Object", function () {
 });
 
 
+describe("ErrorcreatePhiland", function () {
+    it("sends a message to l2, emits event", async () => {
+      const { admin,l1Alice,  l1Philand, l2PhilandAddress,ens,resolver, } =
+        await setupTest();
 
+      await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), admin.address);
+      await ens.connect(admin).setSubnodeOwner(namehash.hash('eth'), sha3('zak3939'),l1Alice.address)
+      await ens.connect(l1Alice).setResolver(namehash.hash('zak3939.eth'),resolver.address)
+      await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address);
+      await ens.resolver(namehash.hash('zak3939.eth'))
+      await l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, 'zak3939');
+      await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, 'zak3939')).to.be.revertedWith("revert");
+
+    });   
+});
 
 async function setupTest() {
   const [admin, l1Alice, l1Bob] = await hre.ethers.getSigners();

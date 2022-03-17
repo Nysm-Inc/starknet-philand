@@ -154,7 +154,14 @@ export async function deployBridge(): Promise<void> {
      material_address : asDec(l2Material.address),
     }
   );
-
+  const l2Craft = await deployL2(
+    STARKNET_NETWORK,
+    "Craft",
+    BLOCK_NUMBER,
+    {
+     material_address : asDec(l2Material.address),
+    }
+  );
   const l2PHILAND = await deployL2(
     STARKNET_NETWORK,
     "Philand",
