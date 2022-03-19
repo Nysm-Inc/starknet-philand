@@ -12,6 +12,20 @@ from starkware.starknet.common.syscalls import (call_contract,
 from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
 from starkware.cairo.common.uint256 import Uint256
 
+from contracts.l2.utils.safemath import (
+    uint256_checked_div_rem
+) 
+
+@contract_interface
+namespace IXoroshiro:
+    func next() -> (rnd : felt):
+    end
+end
+
+@storage_var
+func _last_rnd()  -> (res : felt):
+end
+
 @storage_var
 func get_last_login_time(
         owner : Uint256,
@@ -20,6 +34,9 @@ func get_last_login_time(
     ):
 end
 
+@storage_var
+func _IXoroshiro_address() -> (res : felt):
+end
 
 @storage_var
 func _material_address() -> (res : felt):
@@ -44,9 +61,11 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
+    IXoroshiro_address : felt,
     material_address : felt
     ):
-    
+
+    _IXoroshiro_address.write(IXoroshiro_address)
     _material_address.write(material_address)
 
     return ()
@@ -91,8 +110,18 @@ func get_reward{
     else:
         return ()
     end
-
     
+end
+
+@external
+func get_next_rnd{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}() -> (rnd : felt):
+    alloc_locals
+    let (IXoroshiro_address) = _IXoroshiro_address.read()
+    let (rnd) = IXoroshiro.next(contract_address=IXoroshiro_address)
+    _last_rnd.write(rnd)
+    return (rnd)
 end
 
 @view
@@ -147,6 +176,25 @@ func check_reward{
     
     return (flg)
 end 
+
+@view
+func get_latest_rnd{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}() -> (rnd : felt):
+    alloc_locals
+    let (rnd)=_last_rnd.read()
+    return (rnd)
+end
+
+@view
+func get_latest_3div_rnd{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}() -> (c : Uint256, rem : Uint256):
+    alloc_locals
+    let (rnd)=_last_rnd.read()
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(3,0))
+    return (c,rem)
+end
 
 @view
 func material_address{

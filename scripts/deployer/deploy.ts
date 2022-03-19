@@ -82,6 +82,9 @@ export async function deployBridge(): Promise<void> {
     `${NETWORK.toUpperCase()}_L1_STARKNET_ADDRESS`
   );
 
+  const XOROSHIRO_ADDRESS = getRequiredEnv(
+    `${NETWORK.toUpperCase()}_XOROSHIRO_ADDRESS`
+  );
   // @ts-ignore
   const BLOCK_NUMBER = await l1Signer.provider.getBlockNumber();
   console.log(l1Signer.address)
@@ -151,6 +154,7 @@ export async function deployBridge(): Promise<void> {
     "Login",
     BLOCK_NUMBER,
     {
+      IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
      material_address : asDec(l2Material.address),
     }
   );

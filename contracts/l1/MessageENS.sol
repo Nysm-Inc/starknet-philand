@@ -8,25 +8,23 @@ import './utils/Strings.sol';
 
 
 contract MessageENS is MultiOwner{
-     // The StarkNet core contract.
+
     IStarkNetLike _starknetLike;
     IENS _ens;
     address private _adminSigner;
     address private _ensaddress;    
     address private _starknet;
+
     mapping (string => address) public owner_lists;
+    mapping (string => uint256) public coupon_type;
 
-    // https://goerli.etherscan.io/address/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85#code
-    bytes32 public baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
-
-    // The selector of the "create_philand" l1_handler.
-    uint256 constant CREATE_PHILAND_SELECTOR =
+    bytes32 private baseNode = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
+    bytes32 public label;
+    
+    uint256 private CREATE_PHILAND_SELECTOR =
         617099311689109934115201364618365113888900634692095419483864089403220532029;
 
-    uint256 constant CLAIM_L1_OBJECT_SELECTOR =
-        1426524085905910661260502794228018787518743932072178038305015687841949115798;
-
-    uint256 constant CLAIM_L2_OBJECT_SELECTOR =
+    uint256 private CLAIM_L2_OBJECT_SELECTOR =
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
     error InvalidENS (address sender, string name,uint256 ensname_low,uint256 ensname_high ,bytes32 label,address owner, string node);
@@ -46,40 +44,32 @@ contract MessageENS is MultiOwner{
       Initializes the contract state.
     */
     constructor(address starknet,IENS ens,address adminSigner){
-        
         _starknet = starknet;
         _ens = ens;
         _adminSigner = adminSigner;
         
     }
 
-    //todo ens check and set ens method
+
+    function setCreatePhilandSelector(uint256 _createPhilandSelector) external onlyOwner {
+        CREATE_PHILAND_SELECTOR = _createPhilandSelector;
+    }
+
+    function setClaimL2ObjectSelector(uint256 _claimL2ObjectSelector) external onlyOwner {
+        CLAIM_L2_OBJECT_SELECTOR = _claimL2ObjectSelector;
+    }
+
+    function setEnsBaseNode(bytes32 _basenode) external onlyOwner {
+        baseNode = _basenode;
+    }
+
     function createPhiland(
         uint256 l2ContractAddress,
-        string memory name
+        string calldata name
         ) external {
 
-        strings.slice memory slicee = strings.toSlice(name);
-        strings.slice memory delim = strings.toSlice(".");
-        string[] memory parts = new string[](strings.count(slicee,delim) + 1);
-        for (uint i = 0; i < parts.length; i++) {
-            parts[i] = strings.toString(strings.split(slicee,delim));
-        }
-        bytes32 label;
-        if (parts.length==1){
-            label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
-        }else{
-        for (uint i = parts.length-1; i > 0; i--) {
-            if (i==parts.length - 1){
-                label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(parts[i]))));
-            }else {
-                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[i]))));
-            }
-            if(i==1){
-                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[0]))));
-            }
-            }
-        }
+        label = createENSLable(name);
+        
         uint256 ensname = uint256(label);
         uint256 ensname_low;
         uint256 ensname_high;
@@ -104,9 +94,10 @@ contract MessageENS is MultiOwner{
                 name: name
             });
         }
-        owner_lists[name]=msg.sender;
 
+        owner_lists[name]=msg.sender;
         emit LogCreatePhiland(msg.sender, name);
+
         uint256[] memory payload = new uint256[](2);
         payload[0] = ensname_low;
         payload[1] = ensname_high;
@@ -115,46 +106,9 @@ contract MessageENS is MultiOwner{
         IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
     }
 
-    // function claimL1Object(
-    //     uint256 l2ContractAddress,
-    //     string memory name,
-    //     address contractAddress,
-    //     uint256 tokenid
-    //     ) external {
-
-    //     emit LogClaimL1NFT(name,uint256(uint160(contractAddress)),tokenid);        
-    //     uint256[] memory payload = new uint256[](3);
-    //     payload[0] = uint256(stringToBytes32(name));
-    //     payload[1] = uint256(uint160(contractAddress));
-    //     payload[2] = tokenid;
-
-    //     // Send the message to the StarkNet core contract.
-    //     IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L1_OBJECT_SELECTOR, payload);
-    // }
-
-    // enum CouponType {
-    // lootbalance,
-    // uniswap1,
-    // uniswap5,
-    // uniswap10,
-    // snapshot,
-    // ethbalance1
-    // polygon
-    // }
-    
-    mapping (string => uint256) public coupon_type;
-
-    function getCouponType(string calldata condition) view public returns (uint256){
-        return coupon_type[condition];
-    }
-
-    function setCouponType(string calldata condition,uint256 tokenid) public onlyOwner() {
-        coupon_type[condition] = tokenid;
-    }
-
     function claimL2Object(
         uint256 l2ContractAddress,
-        string memory name,
+        string calldata name,
         uint256 l2UserAddress,
         uint256 tokenid,
         string calldata condition,
@@ -171,7 +125,7 @@ contract MessageENS is MultiOwner{
         ); 
         emit LogClaimL2Object(name,l2UserAddress,tokenid);
 
-        bytes32 label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
         uint256 ensname = uint256(label);
         uint256 ensname_low;
         uint256 ensname_high;
@@ -183,7 +137,6 @@ contract MessageENS is MultiOwner{
         payload[2] = l2UserAddress;
         (payload[3], payload[4])=toSplitUint(tokenid);
 
-        
         // Send the message to the StarkNet core contract.
         IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
     }
@@ -214,5 +167,35 @@ contract MessageENS is MultiOwner{
     return (low, high);
     }
 
-   
+    function getCouponType(string calldata condition) view public returns (uint256){
+        return coupon_type[condition];
+    }
+
+    function setCouponType(string calldata condition,uint256 tokenid) public onlyOwner() {
+        coupon_type[condition] = tokenid;
+    }
+
+    function createENSLable(string calldata name) private returns (bytes32) {
+        strings.slice memory slicee = strings.toSlice(name);
+        strings.slice memory delim = strings.toSlice(".");
+        string[] memory parts = new string[](strings.count(slicee,delim) + 1);
+        for (uint i = 0; i < parts.length; i++) {
+            parts[i] = strings.toString(strings.split(slicee,delim));
+        }
+        if (parts.length==1){
+            label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(name))));
+        }else{
+        for (uint i = parts.length-1; i > 0; i--) {
+            if (i==parts.length - 1){
+                label = keccak256(abi.encodePacked(baseNode, keccak256(bytes(parts[i]))));
+            }else {
+                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[i]))));
+            }
+            if(i==1){
+                label = keccak256(abi.encodePacked(label, keccak256(bytes(parts[0]))));
+            }
+            }
+        }
+        return label;
+    }
 }
