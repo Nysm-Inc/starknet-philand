@@ -16,7 +16,7 @@ from contracts.l2.utils.safemath import (
     uint256_checked_div_rem
 ) 
 
-from contracts.l2.interfaces.IDairyMaterial import IDairyMaterial 
+from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial 
 from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
 
 
@@ -26,7 +26,7 @@ end
 
 @storage_var
 func get_last_login_time(
-        owner : Uint256,
+        owner : felt,
     ) -> (
         last_login_time : felt
     ):
@@ -37,7 +37,7 @@ func _IXoroshiro_address() -> (res : felt):
 end
 
 @storage_var
-func _dairy_material_address() -> (res : felt):
+func _daily_material_address() -> (res : felt):
 end
 
 
@@ -52,11 +52,11 @@ func constructor{
         range_check_ptr
     }(
     IXoroshiro_address : felt,
-    dairy_material_address : felt
+    daily_material_address : felt
     ):
 
     _IXoroshiro_address.write(IXoroshiro_address)
-    _dairy_material_address.write(dairy_material_address)
+    _daily_material_address.write(daily_material_address)
 
     return ()
 end
@@ -81,7 +81,7 @@ func regist_owner{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    owner : Uint256
+    owner : felt
     ):
     alloc_locals
     let (local update_time) = get_block_timestamp()
@@ -95,15 +95,14 @@ func get_reward{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    owner : Uint256,
-    receive_address : felt
+    owner : felt,
     ):
     alloc_locals
 
     let (check) = check_reward(owner)
     if check == 1:
         let (update_time) = get_block_timestamp()
-        let (dairy_material_address) =  _dairy_material_address.read()
+        let (daily_material_address) =  _daily_material_address.read()
 
         get_last_login_time.write(owner,update_time)
         let (rnd)=get_next_rnd()
@@ -111,25 +110,25 @@ func get_reward{
 
         # soil
         if rem.low == 0:
-            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(0,0),1)
+            IDailyMaterial._mint(daily_material_address,owner,Uint256(0,0),1)
             return ()
         end
 
         # oil
         if rem.low == 1:
-            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(1,0),1)
+            IDailyMaterial._mint(daily_material_address,owner,Uint256(1,0),1)
             return ()
         end
 
         # seed
         if rem.low == 2:
-            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(2,0),1)
+            IDailyMaterial._mint(daily_material_address,owner,Uint256(2,0),1)
             return ()
         end
 
         #  iron
         if rem.low == 3:
-            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(3,0),1)
+            IDailyMaterial._mint(daily_material_address,owner,Uint256(3,0),1)
             return ()
         end
         return ()
@@ -147,7 +146,7 @@ func get_login_time{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    owner : Uint256
+    owner : felt
     )-> (
     last_login_time : felt
     ):
@@ -163,7 +162,7 @@ func check_elapsed_time{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    owner : Uint256
+    owner : felt
     )-> (
     elapsed_time : felt
     ):
@@ -180,7 +179,7 @@ func check_reward{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    owner : Uint256
+    owner : felt
     )-> (
     flg : felt
     ):
@@ -214,11 +213,11 @@ func get_latest_100div_rnd{syscall_ptr : felt*,
 end
 
 @view
-func dairy_material_address{
+func daily_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) =  _dairy_material_address.read()
+    let (res) =  _daily_material_address.read()
     return (res)
 end

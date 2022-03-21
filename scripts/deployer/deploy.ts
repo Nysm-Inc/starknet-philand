@@ -93,14 +93,14 @@ export async function deployBridge(): Promise<void> {
   const DEPLOYER_KEY = getRequiredEnv(`DEPLOYER_ECDSA_PRIVATE_KEY`);
   const l2Signer = new Signer(DEPLOYER_KEY);
 
-  const deployer = await getL2ContractAt(
-    "Account",
-    getAddress("account-deployer", NETWORK)
-  );
+  // const deployer = await getL2ContractAt(
+  //   "Account",
+  //   getAddress("account-deployer", NETWORK)
+  // );
 
-  console.log(`Deploying from:`);
-  console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
-  console.log(`\tl2: ${deployer.address.toString()}`);
+  // console.log(`Deploying from:`);
+  // console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
+  // console.log(`\tl2: ${deployer.address.toString()}`);
 
 
   const Message = await deployL1(
@@ -118,17 +118,60 @@ export async function deployBridge(): Promise<void> {
   console.log(BigInt(web3.utils.asciiToHex("{id}")))
   tokenUri.token_id=parseFixed("2070504573")
   console.log(tokenUri)
-
-  const l2Object:StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "Object",
-    BLOCK_NUMBER,
-    {
-     uri_:tokenUri
-    }
-  );
   const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
   const token_uri2=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("210616560794178717850935920065495060911188822037429046327979330294206130042"), parseFixed("187985923959723853589968256655376306670773667376910287781628159691950468714"), 7565166]
+  
+  const l2DailyMaterial:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "DailyMaterial",
+    BLOCK_NUMBER,
+    {
+      token_id : 1,
+      token_uri:token_uri
+    }
+  );
+  
+  const l2CraftMaterial:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "CraftMaterial",
+    BLOCK_NUMBER,
+    {
+      token_id : 1,
+     token_uri:token_uri
+    }
+  );
+  const l2WrapMaterial:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "WrapMaterial",
+    BLOCK_NUMBER,
+    {
+      token_id : 1,
+     token_uri:token_uri
+    }
+  );
+  const l2WrapCraftMaterial:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "WrapCraftMaterial",
+    BLOCK_NUMBER,
+    {
+      token_id : 1,
+     token_uri:token_uri
+    }
+  );
+  
+
+  const l2Wrap:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "Wrap",
+    BLOCK_NUMBER,
+    {
+     daily_material_address : asDec(l2DailyMaterial.address),
+     craft_material_address : asDec(l2CraftMaterial.address),
+     wrap_material_address : asDec(l2WrapMaterial.address),
+     wrap_craft_material_address : asDec(l2WrapCraftMaterial.address),
+    }
+  );
+
  
   // const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
   
@@ -138,32 +181,32 @@ export async function deployBridge(): Promise<void> {
   //   `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
   // );
 
-  const l2Material = await deployL2(
+  const l2Object:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "Material",
+    "Object",
     BLOCK_NUMBER,
     {
-      token_id : 1,
-      token_uri : token_uri2
-     
+     uri_:tokenUri
     }
   );
 
-  const l2Login = await deployL2(
+
+  const l2DailyBonus:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "Login",
+    "DailyBonus",
     BLOCK_NUMBER,
     {
-      IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
-     material_address : asDec(l2Material.address),
+    IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
+    daily_material_address : asDec(l2DailyMaterial.address),
     }
   );
-  const l2Craft = await deployL2(
+  const l2Craft:StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Craft",
     BLOCK_NUMBER,
     {
-     material_address : asDec(l2Material.address),
+     daily_material_address : asDec(l2DailyMaterial.address),
+     craft_material_address : asDec(l2CraftMaterial.address),
     }
   );
   const l2PHILAND = await deployL2(
@@ -179,7 +222,7 @@ export async function deployBridge(): Promise<void> {
   );
 
   console.log(asDec(l2PHILAND.address))
-  console.log(stringToFeltArray("zak3939.eth"))
+
   // await l2Signer.sendTransaction(deployer, l2PHILAND, "create_l2_object", [
   //   asDec(l2Object.address),
   //   [2,0],
@@ -195,9 +238,14 @@ export function printAddresses() {
   const contracts = [
     "account-deployer",
     "MessageENS",
+    "CraftMaterial",
+    "DailyMaterial",
+    "WrapMaterial",
+    "WrapCraftMaterial",
     "Object",
-    "Material",
-    "Login",
+    "Craft",
+    "DailyBonus",
+    "Wrap",
     "Philand",
   ];
 

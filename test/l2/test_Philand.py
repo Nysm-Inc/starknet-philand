@@ -19,10 +19,10 @@ TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhsek
 TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
 L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
-L2_PHI_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2/phi")
-ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "utils/Account.cairo")
-OBJECT_FILE = os.path.join(L2_PHI_CONTRACTS_DIR, "token/Object.cairo")
-PHILAND_FILE = os.path.join(L2_PHI_CONTRACTS_DIR, "Philand.cairo")
+
+ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
+OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
+PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
 ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
 DUMMY_ENS_NAME_INT = 3333333
 ###########

@@ -11,8 +11,8 @@ import time
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
 
-ENS_NAME = "zak3939.eth"
-ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
+# ENS_NAME = "zak3939.eth"
+# ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -23,11 +23,11 @@ def event_loop():
 async def bonus_factory():
     starknet = await Starknet.empty()
     account = await starknet.deploy(
-        "contracts/l2/utils/Account.cairo",
+        "contracts/l2/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
     operator = await starknet.deploy(
-        "contracts/l2/utils/Account.cairo",
+        "contracts/l2/Account.cairo",
         constructor_calldata=[other.public_key]
     )
 
@@ -36,8 +36,8 @@ async def bonus_factory():
         constructor_calldata=[161803398]
     )
 
-    dairyMaterial = await starknet.deploy(
-        "contracts/l2/material/token/DailyMaterial.cairo",
+    dailyMaterial = await starknet.deploy(
+        "contracts/l2/DailyMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -52,49 +52,49 @@ async def bonus_factory():
     )
 
     bonus = await starknet.deploy(
-        "contracts/l2/material/DailyBonus.cairo",
+        "contracts/l2/DailyBonus.cairo",
         constructor_calldata=[
             xoroshiro128.contract_address,
-            dairyMaterial.contract_address
+            dailyMaterial.contract_address
         ]
     )
 
-    return starknet, dairyMaterial, bonus, account, operator
+    return starknet, dailyMaterial, bonus, account, operator
 
 
 @pytest.mark.asyncio
 async def test_get_login_time(bonus_factory):
-    _, dairyMaterial, bonus, account, _ = bonus_factory
+    _, dailyMaterial, bonus, account, _ = bonus_factory
 
-    await signer.send_transaction(account, bonus.contract_address, 'regist_owner', [*to_split_uint(ENS_NAME_INT)])
+    await signer.send_transaction(account, bonus.contract_address, 'regist_owner', [account.contract_address])
 
-    execution_info = await bonus.get_login_time(to_split_uint(ENS_NAME_INT)).call()
+    execution_info = await bonus.get_login_time(account.contract_address).call()
     print(execution_info.result.last_login_time)
 
 
 @pytest.mark.asyncio
 async def test_check_elapsed_time(bonus_factory):
-    _, dairyMaterial, bonus, account, _ = bonus_factory
+    _, dailyMaterial, bonus, account, _ = bonus_factory
    
-    execution_info = await bonus.check_elapsed_time(to_split_uint(ENS_NAME_INT)).call()
+    execution_info = await bonus.check_elapsed_time(account.contract_address).call()
     print(execution_info.result.elapsed_time)
-    execution_info = await bonus.check_reward(to_split_uint(ENS_NAME_INT)).call()
+    execution_info = await bonus.check_reward(account.contract_address).call()
     print("check:reward")
     print(execution_info.result.flg)
     assert execution_info.result.flg == 0
 
 @pytest.mark.asyncio
 async def test_get_reward(bonus_factory):
-    _, dairyMaterial, bonus, account, _ = bonus_factory
+    _, dailyMaterial, bonus, account, _ = bonus_factory
     
     accounts = [account.contract_address, account.contract_address, account.contract_address,
                 account.contract_address]
     token_ids = [(0, 0), (1, 0), (2, 0), (3, 0)]
-    execution_info = await dairyMaterial.balance_of_batch(accounts, token_ids).call()
+    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
     assert execution_info.result.res == [0,0,0,0]
 
-    await signer.send_transaction(account, bonus.contract_address, 'get_reward', [*to_split_uint(ENS_NAME_INT), account.contract_address])
-    execution_info = await dairyMaterial.balance_of_batch(accounts, token_ids).call()
+    await signer.send_transaction(account, bonus.contract_address, 'get_reward', [account.contract_address])
+    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
 
     print("balance")
     print(execution_info.result.res)

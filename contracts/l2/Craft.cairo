@@ -16,7 +16,7 @@ from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
 from starkware.cairo.common.uint256 import Uint256
 
 from contracts.l2.interfaces.ICraftMaterial import ICraftMaterial 
-from contracts.l2.interfaces.IDairyMaterial import IDairyMaterial 
+from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial
 
 @storage_var
 func get_stake_start_time_for_iron_2_steel(
@@ -27,7 +27,7 @@ func get_stake_start_time_for_iron_2_steel(
 end
 
 @storage_var
-func _dairy_material_address() -> (res : felt):
+func _daily_material_address() -> (res : felt):
 end
 
 @storage_var
@@ -43,11 +43,11 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    dairy_material_address : felt,
+    daily_material_address : felt,
     craft_material_address : felt
     ):
     
-    _dairy_material_address.write(dairy_material_address)
+    _daily_material_address.write(daily_material_address)
     _craft_material_address.write(craft_material_address)
 
     return ()
@@ -66,13 +66,13 @@ func craft_soil_2_brick{
     ):
     alloc_locals
     # Check user has enough funds.
-    let (dairy_material_address) = _dairy_material_address.read()
+    let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
-    let (account_from_balance) = IDairyMaterial.balance_of(dairy_material_address,
+    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
         owner=sender_address, token_id=Uint256(0,0))
-    assert_le(4,account_from_balance)
+    assert_nn_le(4,account_from_balance)
 
-    IDairyMaterial._burn(dairy_material_address,_from = sender_address, token_id = Uint256(0,0), amount=4)
+    IDailyMaterial._burn(daily_material_address,_from = sender_address, token_id = Uint256(0,0), amount=4)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(0,0), amount=1)
     return ()
 end
@@ -91,7 +91,7 @@ func craft_brick_2_brickHouse{
 
     let (account_from_balance) = ICraftMaterial.balance_of(craft_material_address,
         owner=sender_address, token_id=Uint256(0,0))
-    assert_le(4,account_from_balance)
+    assert_nn_le(4,account_from_balance)
 
     ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(0,0), amount=4)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(1,0), amount=1)
@@ -108,7 +108,7 @@ func craft_soilAndSeed_2_wood{
     ):
     alloc_locals
     # Check user has enough funds.
-    let (dairy_material_address) = _dairy_material_address.read()
+    let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
 
     let (sender_array : felt*) = alloc()
@@ -119,16 +119,16 @@ func craft_soilAndSeed_2_wood{
     assert [uint256_array] = Uint256(0,0)
     assert [uint256_array + 2] = Uint256(2,0)
     
-    let (_,account_from_balances) = IDairyMaterial.balance_of_batch(dairy_material_address,
+    let (_,account_from_balances) = IDailyMaterial.balance_of_batch(daily_material_address,
         owners_len=2,owners=sender_array, tokens_id_len=2,tokens_id=uint256_array)
-    assert_le(1,account_from_balances[0])
-    assert_le(1,account_from_balances[1])
+    assert_nn_le(1,account_from_balances[0])
+    assert_nn_le(1,account_from_balances[1])
 
     let (felt_array : felt*) = alloc()
     assert [felt_array] = 1
     assert [felt_array + 1] = 1
     
-    IDairyMaterial._burn_batch(dairy_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
+    IDailyMaterial._burn_batch(daily_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
     return ()
 end
@@ -143,17 +143,17 @@ func craft_ironAndWood_2_ironSword{
     ):
     alloc_locals
     # Check user has enough funds.
-    let (dairy_material_address) = _dairy_material_address.read()
-    let (account_from_dairy_balance) = IDairyMaterial.balance_of(dairy_material_address,
+    let (daily_material_address) = _daily_material_address.read()
+    let (account_from_daily_balance) = IDailyMaterial.balance_of(daily_material_address,
         owner=sender_address, token_id=Uint256(3,0))
-    assert_le(1,account_from_dairy_balance)
+    assert_nn_le(1,account_from_daily_balance)
 
     let (craft_material_address) = _craft_material_address.read()
     let (account_from_craft_balance) = ICraftMaterial.balance_of(craft_material_address,
         owner=sender_address, token_id=Uint256(2,0))
-    assert_le(1,account_from_craft_balance)
+    assert_nn_le(1,account_from_craft_balance)
 
-    IDairyMaterial._burn(dairy_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
+    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
     ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(2,0), amount=1)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(3,0), amount=1)
     return ()
@@ -170,13 +170,13 @@ func stake_iron_2_steel{
     alloc_locals
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
-    let (dairy_material_address) = _dairy_material_address.read()
+    let (daily_material_address) = _daily_material_address.read()
 
-    let (account_from_balance) = IDairyMaterial.balance_of(dairy_material_address,
+    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
         owner=sender_address, token_id=Uint256(3,0))
-    assert_le(1,account_from_balance)
+    assert_nn_le(1,account_from_balance)
 
-    IDairyMaterial._burn(dairy_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
+    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
     get_stake_start_time_for_iron_2_steel.write(sender_address,update_time)
     return ()
 end
@@ -219,13 +219,13 @@ func craft_oil_2_plastic{
     ):
     alloc_locals
     # Check user has enough funds.
-    let (dairy_material_address) = _dairy_material_address.read()
+    let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
-    let (account_from_balance) = IDairyMaterial.balance_of(dairy_material_address,
+    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
         owner=sender_address, token_id=Uint256(1,0))
-    assert_le(1,account_from_balance)
+    assert_nn_le(1,account_from_balance)
 
-    IDairyMaterial._burn(dairy_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
+    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
     return ()
 end
@@ -252,8 +252,8 @@ func craft_plasticAndSteel_2_computer{
     
     let (_,account_from_balances) = ICraftMaterial.balance_of_batch(craft_material_address,
         owners_len=2,owners=sender_array, tokens_id_len=2,tokens_id=uint256_array)
-    assert_le(2,account_from_balances[0])
-    assert_le(1,account_from_balances[1])
+    assert_nn_le(2,account_from_balances[0])
+    assert_nn_le(1,account_from_balances[1])
 
     let (felt_array : felt*) = alloc()
     assert [felt_array] = 2
@@ -278,7 +278,7 @@ func craft_computer_2_electronicsStore{
 
     let (account_from_balance) = ICraftMaterial.balance_of(craft_material_address,
         owner=sender_address, token_id=Uint256(6,0))
-    assert_le(4,account_from_balance)
+    assert_nn_le(4,account_from_balance)
 
     ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(6,0), amount=4)
     ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(7,0), amount=1)
@@ -286,12 +286,12 @@ func craft_computer_2_electronicsStore{
 end
 
 @view
-func dairy_material_address{
+func daily_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _dairy_material_address.read()
+    let (res) = _daily_material_address.read()
     return (res)
 end
 

@@ -23,17 +23,17 @@ def event_loop():
 async def craft_factory():
     starknet = await Starknet.empty()
     account = await starknet.deploy(
-        "contracts/l2/utils/Account.cairo",
+        "contracts/l2/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
     operator = await starknet.deploy(
-        "contracts/l2/utils/Account.cairo",
+        "contracts/l2/Account.cairo",
         constructor_calldata=[other.public_key]
     )
 
 
     dairyMaterial = await starknet.deploy(
-        "contracts/l2/material/token/DailyMaterial.cairo",
+        "contracts/l2/DailyMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -45,7 +45,7 @@ async def craft_factory():
     )
 
     craftMaterial = await starknet.deploy(
-        "contracts/l2/material/token/CraftMaterial.cairo",
+        "contracts/l2/CraftMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -57,7 +57,7 @@ async def craft_factory():
     )
 
     craft = await starknet.deploy(
-        "contracts/l2/material/Craft.cairo",
+        "contracts/l2/Craft.cairo",
         constructor_calldata=[
             dairyMaterial.contract_address,
             craftMaterial.contract_address,
@@ -92,7 +92,7 @@ async def test_craft_soil_2_brick(craft_factory):
 
 @pytest.mark.asyncio
 async def test_craft_brick_2_brickhouse(craft_factory):
-    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+    _, _, craftMaterial, craft, account, _ = craft_factory
 
     execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 1
@@ -185,7 +185,7 @@ async def test_craft_iron_2_steel(craft_factory):
     await signer.send_transaction(account, craft.contract_address, 'stake_iron_2_steel', [account.contract_address])
     
     execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
-    assert execution_info.result.res == 0
+    assert execution_info.result.res == 2
 
     await signer.send_transaction(account, craft.contract_address, 'craft_iron_2_steel', [account.contract_address])
     execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
