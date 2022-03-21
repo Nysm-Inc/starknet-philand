@@ -23,17 +23,17 @@ def event_loop():
 async def craft_factory():
     starknet = await Starknet.empty()
     account = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/l2/utils/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
     operator = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/l2/utils/Account.cairo",
         constructor_calldata=[other.public_key]
     )
 
 
-    material = await starknet.deploy(
-        "contracts/l2/Material.cairo",
+    dairyMaterial = await starknet.deploy(
+        "contracts/l2/material/token/DailyMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -41,35 +41,218 @@ async def craft_factory():
             210616560794178717850935920065495060911188822037429046327979330294206130042,
             187985923959723853589968256655376306670773667376910287781628159691950468714,
             7565166,
-            # int.from_bytes("object".encode("ascii"), 'big'),
-            # 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599,
-            # int.from_bytes("{id}".encode("ascii"), 'big')
+        ]
+    )
+
+    craftMaterial = await starknet.deploy(
+        "contracts/l2/material/token/CraftMaterial.cairo",
+        constructor_calldata=[
+            1,
+            4,
+            184555836509371486644019136839411173249852705485729074225653387927518275942,
+            210616560794178717850935920065495060911188822037429046327979330294206130042,
+            187985923959723853589968256655376306670773667376910287781628159691950468714,
+            7565166,
         ]
     )
 
     craft = await starknet.deploy(
-        "contracts/l2/Craft.cairo",
+        "contracts/l2/material/Craft.cairo",
         constructor_calldata=[
-            material.contract_address
+            dairyMaterial.contract_address,
+            craftMaterial.contract_address,
         ]
     )
 
-    return starknet, material, craft, account, operator
+    return starknet, dairyMaterial, craftMaterial, craft, account, operator
 
 
 @pytest.mark.asyncio
-async def test_craft(craft_factory):
-    _, material, craft, account, _ = craft_factory
-    execution_info = await material.balance_of(account.contract_address, (1, 0)).call()
-    print(execution_info.result.res)
+async def test_craft_soil_2_brick(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+    
+    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 0
 
-    await signer.send_transaction(account, material.contract_address, '_mint', [account.contract_address, 1, 0, 4])
-    execution_info = await material.balance_of(account.contract_address, (1, 0)).call()
-    print(execution_info.result.res)
+    await signer.send_transaction(account, dairyMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 4])
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
-    await signer.send_transaction(account, craft.contract_address, 'soil_2_brick', [account.contract_address])
-    execution_info = await material.balance_of(account.contract_address, (2, 0)).call()
+    await signer.send_transaction(account, craft.contract_address, 'craft_soil_2_brick', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 1
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
     
+
+@pytest.mark.asyncio
+async def test_craft_brick_2_brickhouse(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 3])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 4
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_brick_2_brickHouse', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_soilAndSeed_2_wood(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, dairyMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 0, 0, 2, 0, 2, 1, 1])
+    accounts = [account.contract_address,
+                account.contract_address]
+    token_ids = [(0, 0), (2, 0)]
+    execution_info = await dairyMaterial.balance_of_batch(accounts, token_ids).call()
+    assert execution_info.result.res == [1,1]
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_soilAndSeed_2_wood', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+@pytest.mark.asyncio
+async def test_craft_ironAndWood_2_ironSword(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, dairyMaterial.contract_address, '_mint', [account.contract_address, 3, 0, 1])
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 1
+
+    # await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 2, 0, 1])
+    # execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    # assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_ironAndWood_2_ironSword', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_iron_2_steel(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, dairyMaterial.contract_address, '_mint', [account.contract_address, 3, 0, 3])
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 3
+
+    await signer.send_transaction(account, craft.contract_address, 'stake_iron_2_steel', [account.contract_address])
+    
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_iron_2_steel', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_oil_2_plastic(craft_factory):
+    _, dairyMaterial, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, dairyMaterial.contract_address, '_mint', [account.contract_address, 1, 0, 1])
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_oil_2_plastic', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (5, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_plasticAndSteel_2_computer(craft_factory):
+    _, _, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (5, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 4, 0, 5, 0, 2, 1, 1])
+    accounts = [account.contract_address,
+                account.contract_address]
+    token_ids = [(4, 0), (5, 0)]
+    execution_info = await craftMaterial.balance_of_batch(accounts, token_ids).call()
+    assert execution_info.result.res == [1, 2]
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_plasticAndSteel_2_computer', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (6, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (5, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_computer_2_electronicsStore(craft_factory):
+    _, _, craftMaterial, craft, account, _ = craft_factory
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (6, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 6, 0, 3])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (6, 0)).call()
+    assert execution_info.result.res == 4
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_computer_2_electronicsStore', [account.contract_address])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (7, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (6, 0)).call()
+    assert execution_info.result.res == 0

@@ -175,7 +175,7 @@ func populate_balance_of_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*,
     end
     let (local retval0 : felt) = balances.read(owner=owners[0], token_id=tokens_id[0])
     rett[0] = retval0
-    populate_balance_of_batch(owners + 1, tokens_id + 1, rett + 1, ret_index + 1, max)
+    populate_balance_of_batch(owners + 1, tokens_id + 2, rett + 1, ret_index + 1, max)
     return ()
 end
 

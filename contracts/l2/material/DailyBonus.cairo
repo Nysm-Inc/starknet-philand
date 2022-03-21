@@ -16,11 +16,9 @@ from contracts.l2.utils.safemath import (
     uint256_checked_div_rem
 ) 
 
-@contract_interface
-namespace IXoroshiro:
-    func next() -> (rnd : felt):
-    end
-end
+from contracts.l2.interfaces.IDairyMaterial import IDairyMaterial 
+from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
+
 
 @storage_var
 func _last_rnd()  -> (res : felt):
@@ -39,18 +37,10 @@ func _IXoroshiro_address() -> (res : felt):
 end
 
 @storage_var
-func _material_address() -> (res : felt):
+func _dairy_material_address() -> (res : felt):
 end
 
 
-
-@contract_interface
-namespace IMaterial:
-
-    func _mint(to : felt, token_id : Uint256, amount : felt):
-    end
-
-end
 
 ##### Constants #####
 # Width of the simulation grid.
@@ -62,17 +52,28 @@ func constructor{
         range_check_ptr
     }(
     IXoroshiro_address : felt,
-    material_address : felt
+    dairy_material_address : felt
     ):
 
     _IXoroshiro_address.write(IXoroshiro_address)
-    _material_address.write(material_address)
+    _dairy_material_address.write(dairy_material_address)
 
     return ()
 end
 
 
 ##### Public functions #####
+
+@external
+func get_next_rnd{syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr}() -> (rnd : felt):
+    alloc_locals
+    let (IXoroshiro_address) = _IXoroshiro_address.read()
+    let (rnd) = IXoroshiro.next(contract_address=IXoroshiro_address)
+    _last_rnd.write(rnd)
+    return (rnd)
+end
 # 
 @external
 func regist_owner{
@@ -99,13 +100,38 @@ func get_reward{
     ):
     alloc_locals
 
-
     let (check) = check_reward(owner)
     if check == 1:
-        let (local update_time) = get_block_timestamp()
+        let (update_time) = get_block_timestamp()
+        let (dairy_material_address) =  _dairy_material_address.read()
+
         get_last_login_time.write(owner,update_time)
-        let (local material_address) = _material_address.read()
-        IMaterial._mint(material_address,receive_address,Uint256(1,0),1)
+        let (rnd)=get_next_rnd()
+        let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
+
+        # soil
+        if rem.low == 0:
+            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(0,0),1)
+            return ()
+        end
+
+        # oil
+        if rem.low == 1:
+            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(1,0),1)
+            return ()
+        end
+
+        # seed
+        if rem.low == 2:
+            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(2,0),1)
+            return ()
+        end
+
+        #  iron
+        if rem.low == 3:
+            IDairyMaterial._mint(dairy_material_address,receive_address,Uint256(3,0),1)
+            return ()
+        end
         return ()
     else:
         return ()
@@ -113,16 +139,7 @@ func get_reward{
     
 end
 
-@external
-func get_next_rnd{syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr}() -> (rnd : felt):
-    alloc_locals
-    let (IXoroshiro_address) = _IXoroshiro_address.read()
-    let (rnd) = IXoroshiro.next(contract_address=IXoroshiro_address)
-    _last_rnd.write(rnd)
-    return (rnd)
-end
+
 
 @view
 func get_login_time{
@@ -187,21 +204,21 @@ func get_latest_rnd{syscall_ptr : felt*,
 end
 
 @view
-func get_latest_3div_rnd{syscall_ptr : felt*,
+func get_latest_100div_rnd{syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr}() -> (c : Uint256, rem : Uint256):
     alloc_locals
     let (rnd)=_last_rnd.read()
-    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(3,0))
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
     return (c,rem)
 end
 
 @view
-func material_address{
+func dairy_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _material_address.read()
+    let (res) =  _dairy_material_address.read()
     return (res)
 end

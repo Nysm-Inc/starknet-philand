@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.8;
 
-import { IENS } from './interfaces/IENS.sol';
-import { IStarkNetLike } from './interfaces/IStarkNetLike.sol';
-import { MultiOwner } from './utils/MultiOwner.sol';
-import './utils/Strings.sol';
+import { IENS } from '../interfaces/IENS.sol';
+import { IStarkNetLike } from '../interfaces/IStarkNetLike.sol';
+import { MultiOwner } from '../utils/MultiOwner.sol';
+import '../utils/Strings.sol';
 
 
 contract MessageENS is MultiOwner{
@@ -154,7 +154,6 @@ contract MessageENS is MultiOwner{
 		view
 		returns (bool)
 	{
-		
 		address signer = ecrecover(digest, coupon.v, coupon.r, coupon.s);
 		require(signer != address(0), 'ECDSA: invalid signature'); // Added check for zero address
 		return signer == _adminSigner;

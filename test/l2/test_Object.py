@@ -19,17 +19,17 @@ def event_loop():
 async def object_factory():
     starknet = await Starknet.empty()
     account = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/l2/utils/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
     operator = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/l2/utils/Account.cairo",
         constructor_calldata=[other.public_key]
     )
 
 
     object = await starknet.deploy(
-        "contracts/l2/Object.cairo",
+        "contracts/l2/phi/token/Object.cairo",
         constructor_calldata=[
             int.from_bytes("object".encode("ascii"), 'big'), 
             0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, 
