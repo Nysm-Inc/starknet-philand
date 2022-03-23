@@ -12,7 +12,8 @@ contract SubdomainENS {
     bytes32 public cmbyte;
     bytes32 public domainNode;
     bytes32 subnode;
-    
+    mapping (string => bytes32) public domainData;
+
     // namehash('eth')
     bytes32 TLD_NODE = 0x93cdeb708b7545dc668eb9280176169d1c33cfd8ed6f04690a0bcc88a93fc4ae;
     address goerliResolver = 0x4B1488B7a6B320d2D721406204aBc3eeAa9AD329;
@@ -43,6 +44,7 @@ contract SubdomainENS {
         require(ens.owner(domainNode)==address(0),'already minted');
         cmbyte = keccak256(abi.encodePacked(keccak256(bytes(origin)), msg.sender, goerliResolver, msg.sender, domainNode));
         ensr.commit(cmbyte);
+        domainData[origin]=domainNode;
         return domainNode;
     }
 

@@ -61,11 +61,10 @@ func craft_soil_2_brick{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
     # Check user has enough funds.
+    let (sender_address) = get_caller_address()
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
     let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
@@ -82,10 +81,9 @@ func craft_brick_2_brickHouse{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 
@@ -103,11 +101,10 @@ func craft_soilAndSeed_2_wood{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
     # Check user has enough funds.
+    let (sender_address) = get_caller_address()
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
 
@@ -138,10 +135,9 @@ func craft_ironAndWood_2_ironSword{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (daily_material_address) = _daily_material_address.read()
     let (account_from_daily_balance) = IDailyMaterial.balance_of(daily_material_address,
@@ -164,10 +160,9 @@ func stake_iron_2_steel{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
     let (daily_material_address) = _daily_material_address.read()
@@ -186,10 +181,9 @@ func craft_iron_2_steel{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
     let (local current_time) = get_block_timestamp()
@@ -214,10 +208,9 @@ func craft_oil_2_plastic{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
@@ -235,10 +228,9 @@ func craft_plasticAndSteel_2_computer{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 
@@ -269,10 +261,9 @@ func craft_computer_2_electronicsStore{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
-    sender_address : felt
-    ):
+    }():
     alloc_locals
+    let (sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 

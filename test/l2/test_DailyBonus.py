@@ -10,6 +10,7 @@ import time
 
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
+STARTING_PRICE = uint(500)
 
 # ENS_NAME = "zak3939.eth"
 # ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
@@ -26,7 +27,7 @@ async def bonus_factory():
         "contracts/l2/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
-    operator = await starknet.deploy(
+    treasury = await starknet.deploy(
         "contracts/l2/Account.cairo",
         constructor_calldata=[other.public_key]
     )
@@ -50,16 +51,35 @@ async def bonus_factory():
             # int.from_bytes("{id}".encode("ascii"), 'big')
         ]
     )
-
+    # ERC20 type accepted as payment
+    erc20 = await starknet.deploy(
+        "contracts/l2/token/ERC20_Mintable.cairo",
+        constructor_calldata=[
+            str_to_felt("Mintable Token"),
+            str_to_felt("MTKN"),
+            18,
+            *STARTING_PRICE,
+            account.contract_address,
+            account.contract_address
+        ]
+    )
     bonus = await starknet.deploy(
         "contracts/l2/DailyBonus.cairo",
         constructor_calldata=[
             xoroshiro128.contract_address,
-            dailyMaterial.contract_address
+            dailyMaterial.contract_address,
+            erc20.contract_address,
+            treasury.contract_address
         ]
     )
+    await signer.send_transaction(
+        account=account,
+        to=erc20.contract_address,
+        selector_name="approve",
+        calldata=[bonus.contract_address, *STARTING_PRICE]
+    )
 
-    return starknet, dailyMaterial, bonus, account, operator
+    return starknet, dailyMaterial, bonus, account, treasury
 
 
 @pytest.mark.asyncio
@@ -101,3 +121,21 @@ async def test_get_reward(bonus_factory):
 
     assert sum(execution_info.result.res) == 0
 
+
+@pytest.mark.asyncio
+async def test_get_reward2(bonus_factory):
+    _, dailyMaterial, bonus, account, _ = bonus_factory
+
+    accounts = [account.contract_address, account.contract_address, account.contract_address,
+                account.contract_address]
+    token_ids = [(0, 0), (5, 0), (6, 0), (7, 0)]
+    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+    assert execution_info.result.res == [0, 0, 0, 0]
+
+    await signer.send_transaction(account, bonus.contract_address, 'get_reward2', [account.contract_address])
+    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+
+    print("balance")
+    print(execution_info.result.res)
+
+    assert sum(execution_info.result.res) == 1
