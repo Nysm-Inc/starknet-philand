@@ -46,7 +46,7 @@ func _actual_result_gold(block_number : felt)  -> (res : felt):
 end
 
 @storage_var
-func _gold_parcent(block_number : felt)  -> (res : felt):
+func _gold_parcent(block_number : felt)  -> (res : Uint256):
 end
 
 @storage_var
@@ -91,8 +91,8 @@ func constructor{
     _treasurey_address.write(treasury_address)
 
     let (currentBlock) = get_block_number()
-    _gold_parcent.write(currentBlock,50)
-
+    _gold_parcent.write(currentBlock,Uint256(50,0))
+    set_fee(Uint256(1,0))
     return ()
 end
 
@@ -120,6 +120,7 @@ func regist_owner{
     ):
     alloc_locals
     let (local update_time) = get_block_timestamp()
+
     get_last_login_time.write(owner,update_time)
     return ()
 end
@@ -184,19 +185,29 @@ func get_reward2{
     alloc_locals
 
     let (check) = check_reward(owner)
-    # if check == 1:
-    let (update_time) = get_block_timestamp()
+
     let (daily_material_address) =  _daily_material_address.read()
-
-    # get_last_login_time.write(owner,update_time)
-    let (rnd)=get_next_rnd()
-    let (currentBlock) = get_block_number()
-    let (gold_parcent) = _gold_parcent.read(currentBlock)
-
     
-    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
-    let (local check) = is_nn_le(rem.low, gold_parcent)
+    let (local currentBlock) = get_block_number()
+    let last_block_number = currentBlock - 1
+   
+    let (gold_parcent) = _gold_parcent.read(currentBlock)
+    let (count_gold) = _actual_result_gold.read(currentBlock)
+    
+    if count_gold == 0:
+        IDailyMaterial._mint(daily_material_address,owner,Uint256(5,0),1)
+        let (last_gold_parcent) = _gold_parcent.read(last_block_number)
+        let (new_parcent : Uint256) = _calc_gold_parcent(last_block_number,last_gold_parcent)      
+        _gold_parcent.write(currentBlock,new_parcent)
+        let new_count = count_gold + 1
+        _actual_result_gold.write(currentBlock,new_count)
+        return ()
+    end
 
+    let (rnd)= get_next_rnd()
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
+    let (local check) = is_nn_le(rem.low, gold_parcent.low)
+  
     let (user) = get_caller_address()
     let (fee) = get_fee()
     let (erc20Address) = _erc20Address.read()
@@ -224,7 +235,10 @@ func get_reward2{
 
         # gold
         if check == 1:
+
             IDailyMaterial._mint(daily_material_address,owner,Uint256(6,0),1)
+            let new_count = count_gold + 1
+            _actual_result_gold.write(currentBlock,new_count)
             return ()
         end
 
@@ -312,6 +326,18 @@ func get_latest_100div_rnd{syscall_ptr : felt*,
     return (c,rem)
 end
 
+
+@external
+func set_fee{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }(value : Uint256):
+    alloc_locals
+
+    _fee.write(value=value)
+    return ()
+end
 @view
 func get_fee{
         syscall_ptr : felt*,
@@ -325,6 +351,25 @@ func get_fee{
     let (res) = _fee.read()
     return (res)
 end
+
+@external
+func _calc_gold_parcent{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    last_block_number : felt,
+    last_gold_parcent : Uint256
+    )-> (
+    res : Uint256
+    ):
+    alloc_locals
+    
+    let (count_gold) = _actual_result_gold.read(last_block_number)
+    let res = last_gold_parcent
+
+    return (res)
+end 
 
 @view
 func daily_material_address{

@@ -276,6 +276,24 @@ func craft_computer_2_electronicsStore{
     return ()
 end
 
+
+@view
+func check_elapsed_stake_time_iron_2_steel{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }()-> (
+    elapsed_time : felt
+    ):
+    alloc_locals
+    let (sender_address) = get_caller_address()
+    let (local last_login_time)= get_stake_start_time_for_iron_2_steel.read(sender_address)
+    let (local current_time) = get_block_timestamp()
+    let elapsed_time = current_time - last_login_time
+    return (elapsed_time)
+end 
+
+
 @view
 func daily_material_address{
     syscall_ptr : felt*,

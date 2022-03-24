@@ -13,6 +13,7 @@ from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address,get_block_timestamp,get_contract_address)
 from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
+from contracts.l2.utils.constants import FALSE, TRUE
 ##### Description #####
 #
 # Management of philand's map contract
@@ -92,6 +93,13 @@ end
 func _setting_link(user: Uint256, setting_index : felt) -> (res : Spawnlink):
 end
 
+@storage_var
+func claimed_user(
+        user : Uint256,
+    ) -> (
+        res : felt
+    ):
+end
 
 @storage_var
 func number_of_philand(
@@ -172,6 +180,7 @@ func create_philand{
     let user : Uint256 = Uint256(user_low,user_high)
     # assert_not_zero(user)
     
+
     let token_data = Tokendata(
         contract_address =  0,
         token_id = Uint256(0,0)
@@ -318,7 +327,7 @@ func create_philand{
     _settings.write(user, SettingEnum.created_at,block_timestamp)
     _settings.write(user, SettingEnum.updated_at,block_timestamp)
     _settings.write(user, SettingEnum.land_type,0)
-    
+    claimed_user.write(user,TRUE)
 
     local spawn_link : Spawnlink = Spawnlink(
         x =  0,
@@ -547,7 +556,10 @@ func view_philand{
         object_56 : Tokendata, object_57 : Tokendata, object_58 : Tokendata, object_59 : Tokendata,
         object_60 : Tokendata, object_61 : Tokendata, object_62 : Tokendata, object_63 : Tokendata
     ):
-
+    with_attr error_message("philand dose not exist"):
+        let (user_flg) = claimed_user.read(user)
+        assert  user_flg=TRUE 
+    end
     let (object_0) = parcel.read(user, 0, 0)
     let (object_1) = parcel.read(user, 0, 1)
     let (object_2) = parcel.read(user, 0, 2)

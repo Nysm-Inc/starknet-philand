@@ -177,7 +177,7 @@ func mint{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     }(to: felt, amount: Uint256):
-    Ownable_only_owner()
+    # Ownable_only_owner()
     ERC20_mint(to, amount)
     return ()
 end

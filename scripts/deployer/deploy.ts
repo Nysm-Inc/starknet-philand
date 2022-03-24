@@ -19,6 +19,23 @@ const { genKeyPair, getStarkKey } = ec;
 
 import { getAddress, save, Signer } from "../utils";
 
+const tokenUri: any= {};
+console.log(BigInt(web3.utils.asciiToHex('object')))
+tokenUri.asset_namespace= parseFixed("122468482507636")
+console.log(BigInt(web3.utils.asciiToHex('philand')))
+tokenUri.asset_reference=parseFixed("1639999390772836")
+console.log(BigInt(web3.utils.asciiToHex("{id}")))
+tokenUri.token_id=parseFixed("2070504573")
+console.log(tokenUri)
+const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
+// const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
+
+// console.log(...token_uri)
+// console.log(token_uri.length)
+// console.log(
+//   `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
+// );
+
 async function genAndSaveKeyPair(): Promise<KeyPair> {
   const keyPair:any = genKeyPair();
   writeFileSync(
@@ -93,14 +110,14 @@ export async function deployBridge(): Promise<void> {
   const DEPLOYER_KEY = getRequiredEnv(`DEPLOYER_ECDSA_PRIVATE_KEY`);
   const l2Signer = new Signer(DEPLOYER_KEY);
 
-  // const deployer = await getL2ContractAt(
-  //   "Account",
-  //   getAddress("account-deployer", NETWORK)
-  // );
+  const deployer = await getL2ContractAt(
+    "Account",
+    getAddress("account-deployer", NETWORK)
+  );
 
-  // console.log(`Deploying from:`);
-  // console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
-  // console.log(`\tl2: ${deployer.address.toString()}`);
+  console.log(`Deploying from:`);
+  console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
+  console.log(`\tl2: ${deployer.address.toString()}`);
 
 
   const Message = await deployL1(
@@ -110,16 +127,19 @@ export async function deployBridge(): Promise<void> {
     l1Signer.address,  
   ]);
 
-  const tokenUri: any= {};
-  console.log(BigInt(web3.utils.asciiToHex('object')))
-  tokenUri.asset_namespace= parseFixed("122468482507636")
-  console.log(BigInt(web3.utils.asciiToHex('philand')))
-  tokenUri.asset_reference=parseFixed("1639999390772836")
-  console.log(BigInt(web3.utils.asciiToHex("{id}")))
-  tokenUri.token_id=parseFixed("2070504573")
-  console.log(tokenUri)
-  const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
-  const token_uri2=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("210616560794178717850935920065495060911188822037429046327979330294206130042"), parseFixed("187985923959723853589968256655376306670773667376910287781628159691950468714"), 7565166]
+  const l2ERC20:StarknetContract = await deployL2(
+    STARKNET_NETWORK,
+    "ERC20_Mintable",
+    BLOCK_NUMBER,
+    {
+      name: stringToFeltArray("Mintable Token"),
+      symbol: stringToFeltArray("MTKN"),
+      decimals: 18,
+      initial_supply: {low:500,high:0},
+      recipient: asDec(deployer.address),
+      owner: asDec(deployer.address)
+    }
+  );
   
   const l2DailyMaterial:StarknetContract = await deployL2(
     STARKNET_NETWORK,
@@ -173,14 +193,7 @@ export async function deployBridge(): Promise<void> {
   );
 
  
-  // const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
-  
-  // console.log(...token_uri)
-  // console.log(token_uri.length)
-  // console.log(
-  //   `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
-  // );
-
+ 
   const l2Object:StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Object",
@@ -189,7 +202,7 @@ export async function deployBridge(): Promise<void> {
      uri_:tokenUri
     }
   );
-
+  
 
   const l2DailyBonus:StarknetContract = await deployL2(
     STARKNET_NETWORK,
@@ -198,6 +211,8 @@ export async function deployBridge(): Promise<void> {
     {
     IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
     daily_material_address : asDec(l2DailyMaterial.address),
+    erc20Address : asDec(l2ERC20.address),
+    treasury_address : asDec(deployer.address),
     }
   );
   const l2Craft:StarknetContract = await deployL2(
@@ -238,6 +253,7 @@ export function printAddresses() {
   const contracts = [
     "account-deployer",
     "MessageENS",
+    "ERC20_Mintable",
     "CraftMaterial",
     "DailyMaterial",
     "WrapMaterial",
