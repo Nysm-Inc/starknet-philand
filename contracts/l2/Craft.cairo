@@ -19,7 +19,23 @@ from contracts.l2.interfaces.ICraftMaterial import ICraftMaterial
 from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial
 
 @storage_var
+func get_stake_start_time_for_soilAndSeed_2_wood(
+        owner : felt,
+    ) -> (
+        start_stake_time : felt
+    ):
+end
+
+@storage_var
 func get_stake_start_time_for_iron_2_steel(
+        owner : felt,
+    ) -> (
+        start_stake_time : felt
+    ):
+end
+
+@storage_var
+func get_stake_start_time_for_oil_2_plastic(
         owner : felt,
     ) -> (
         start_stake_time : felt
@@ -97,7 +113,7 @@ func craft_brick_2_brickHouse{
 end
 
 @external
-func craft_soilAndSeed_2_wood{
+func stake_soilAndSeed_2_wood{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -107,6 +123,7 @@ func craft_soilAndSeed_2_wood{
     let (sender_address) = get_caller_address()
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
+    let (update_time) = get_block_timestamp()
 
     let (sender_array : felt*) = alloc()
     assert [sender_array] = sender_address
@@ -126,8 +143,36 @@ func craft_soilAndSeed_2_wood{
     assert [felt_array + 1] = 1
     
     IDailyMaterial._burn_batch(daily_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
+    get_stake_start_time_for_soilAndSeed_2_wood.write(sender_address,update_time)
+    
     return ()
+end
+
+@external
+func craft_soilAndSeed_2_wood{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    let (sender_address) = get_caller_address()
+    # Check user has enough funds.
+    let (craft_material_address) = _craft_material_address.read()
+    let (local current_time) = get_block_timestamp()
+    let (local last_stake_time) = get_stake_start_time_for_soilAndSeed_2_wood.read(sender_address)
+    if last_stake_time == 0:
+        return()
+    end
+    let elapsed_time = current_time - last_stake_time
+    let (local flg) = is_nn(elapsed_time - 100)
+    
+    if flg ==1:
+        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
+        get_stake_start_time_for_soilAndSeed_2_wood.write(sender_address,0)
+        return()
+    else:
+        return ()
+    end
 end
 
 @external
@@ -195,12 +240,34 @@ func craft_iron_2_steel{
     let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
-        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
+        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
         get_stake_start_time_for_iron_2_steel.write(sender_address,0)
         return()
     else:
         return ()
     end
+end
+
+@external
+func stake_oil_2_plastic{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    let (sender_address) = get_caller_address()
+    # Check user has enough funds.
+    let (update_time) = get_block_timestamp()
+    let (daily_material_address) = _daily_material_address.read()
+    let (craft_material_address) = _craft_material_address.read()
+    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
+        owner=sender_address, token_id=Uint256(1,0))
+    assert_nn_le(1,account_from_balance)
+
+    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
+    get_stake_start_time_for_iron_2_steel.write(sender_address,update_time)
+    
+    return ()
 end
 
 @external
@@ -212,15 +279,22 @@ func craft_oil_2_plastic{
     alloc_locals
     let (sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
-    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
-        owner=sender_address, token_id=Uint256(1,0))
-    assert_nn_le(1,account_from_balance)
-
-    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
-    return ()
+    let (local current_time) = get_block_timestamp()
+    let (local last_stake_time) = get_stake_start_time_for_oil_2_plastic.read(sender_address)
+    if last_stake_time == 0:
+        return()
+    end
+    let elapsed_time = current_time - last_stake_time
+    let (local flg) = is_nn(elapsed_time - 100)
+    
+    if flg ==1:
+        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
+        get_stake_start_time_for_oil_2_plastic.write(sender_address,0)
+        return()
+    else:
+        return ()
+    end
 end
 
 @external
@@ -276,6 +350,21 @@ func craft_computer_2_electronicsStore{
     return ()
 end
 
+@view
+func check_elapsed_stake_time_soilAndSeed_2_wood{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }()-> (
+    elapsed_time : felt
+    ):
+    alloc_locals
+    let (sender_address) = get_caller_address()
+    let (local last_login_time)= get_stake_start_time_for_soilAndSeed_2_wood.read(sender_address)
+    let (local current_time) = get_block_timestamp()
+    let elapsed_time = current_time - last_login_time
+    return (elapsed_time)
+end 
 
 @view
 func check_elapsed_stake_time_iron_2_steel{
@@ -293,6 +382,21 @@ func check_elapsed_stake_time_iron_2_steel{
     return (elapsed_time)
 end 
 
+@view
+func check_elapsed_stake_time_oil_2_plastic{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }()-> (
+    elapsed_time : felt
+    ):
+    alloc_locals
+    let (sender_address) = get_caller_address()
+    let (local last_login_time)= get_stake_start_time_for_oil_2_plastic.read(sender_address)
+    let (local current_time) = get_block_timestamp()
+    let elapsed_time = current_time - last_login_time
+    return (elapsed_time)
+end 
 
 @view
 func daily_material_address{

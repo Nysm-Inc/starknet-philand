@@ -4,16 +4,23 @@
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import (HashBuiltin,
     BitwiseBuiltin)
+from starkware.cairo.common.math import (
+    assert_le,
+    assert_not_equal,
+    split_felt,
+)
 from starkware.cairo.common.hash_state import (hash_init,
     hash_update, HashState)
 from starkware.starknet.common.syscalls import (call_contract,get_block_number,
     get_caller_address,get_block_timestamp,get_contract_address)
 
-from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
+from starkware.cairo.common.math_cmp import (is_nn_le,is_nn,is_le)
 from starkware.cairo.common.uint256 import Uint256
 
 from contracts.l2.token.IERC20 import IERC20
 from contracts.l2.utils.safemath import (
+    uint256_checked_add,
+    uint256_checked_sub_le,
     uint256_checked_div_rem
 ) 
 
@@ -193,11 +200,11 @@ func get_reward2{
    
     let (gold_parcent) = _gold_parcent.read(currentBlock)
     let (count_gold) = _actual_result_gold.read(currentBlock)
-    
+
     if count_gold == 0:
         IDailyMaterial._mint(daily_material_address,owner,Uint256(5,0),1)
         let (last_gold_parcent) = _gold_parcent.read(last_block_number)
-        let (new_parcent : Uint256) = _calc_gold_parcent(last_block_number,last_gold_parcent)      
+        let (new_parcent : Uint256) = _recalc_gold_parcent(last_block_number,last_gold_parcent)      
         _gold_parcent.write(currentBlock,new_parcent)
         let new_count = count_gold + 1
         _actual_result_gold.write(currentBlock,new_count)
@@ -353,7 +360,7 @@ func get_fee{
 end
 
 @external
-func _calc_gold_parcent{
+func _recalc_gold_parcent{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -366,9 +373,33 @@ func _calc_gold_parcent{
     alloc_locals
     
     let (count_gold) = _actual_result_gold.read(last_block_number)
-    let res = last_gold_parcent
+    let (a) = is_le(count_gold, 8)
+    if a == 1:
+        let (add_p: Uint256) = uint256_checked_sub_le(Uint256(8,0),Uint256(count_gold,0))
+        let (new_parcent: Uint256) = uint256_checked_add(last_gold_parcent,add_p)
+        let (check) = is_le(new_parcent.low,100)
+        if check ==1:
+            return (new_parcent)
+        else:
+            let max = Uint256(100,0)
+            return (max)
+        end
+        
+    end
 
-    return (res)
+    let (b) = is_le(count_gold, 12)
+    if b ==1:
+        return (last_gold_parcent)
+    end
+
+    let (sub_p: Uint256) = uint256_checked_sub_le(Uint256(count_gold,0),Uint256(12,0))
+    let (check) = is_le(last_gold_parcent.low,sub_p.low)
+    if check ==1:
+        return (last_gold_parcent)
+    else:
+        let (new_parcent: Uint256)= uint256_checked_sub_le(last_gold_parcent,sub_p)
+        return (new_parcent)
+    end
 end 
 
 @view
@@ -379,4 +410,9 @@ func daily_material_address{
   }() -> (res : felt):
     let (res) =  _daily_material_address.read()
     return (res)
+end
+
+func felt_to_uint256{range_check_ptr}(x) -> (x_ : Uint256):
+    let split = split_felt(x)
+    return (Uint256(low=split.low, high=split.high))
 end
