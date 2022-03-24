@@ -129,9 +129,13 @@ async def test_craft_soilAndSeed_2_wood(craft_factory):
     execution_info = await dairyMaterial.balance_of_batch(accounts, token_ids).call()
     assert execution_info.result.res == [1,1]
 
+    await signer.send_transaction(account, craft.contract_address, 'stake_soilAndSeed_2_wood', [])
+    execution_info = await dairyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
     await signer.send_transaction(account, craft.contract_address, 'craft_soilAndSeed_2_wood', [])
     execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
+    assert execution_info.result.res == 0
 
     execution_info = await dairyMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 0
@@ -147,22 +151,19 @@ async def test_craft_ironAndWood_2_ironSword(craft_factory):
     assert execution_info.result.res == 0
 
     execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
+    assert execution_info.result.res == 0
 
     await signer.send_transaction(account, dairyMaterial.contract_address, '_mint', [account.contract_address, 3, 0, 1])
     execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
     assert execution_info.result.res == 1
 
-    # await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 2, 0, 1])
-    # execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
-    # assert execution_info.result.res == 1
-    await signer.send_transaction(account, craft.contract_address, 'stake_ironAndWood_2_ironSword', [])
-    execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
-    assert execution_info.result.res == 0
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 2, 0, 1])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
 
     await signer.send_transaction(account, craft.contract_address, 'craft_ironAndWood_2_ironSword', [])
     execution_info = await craftMaterial.balance_of(account.contract_address, (3, 0)).call()
-    assert execution_info.result.res == 0
+    assert execution_info.result.res == 1
 
 
     execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
@@ -210,7 +211,7 @@ async def test_craft_oil_2_plastic(craft_factory):
 
     await signer.send_transaction(account, craft.contract_address, 'craft_oil_2_plastic', [])
     execution_info = await craftMaterial.balance_of(account.contract_address, (5, 0)).call()
-    assert execution_info.result.res == 1
+    assert execution_info.result.res == 0
 
 
 @pytest.mark.asyncio
@@ -221,9 +222,9 @@ async def test_craft_plasticAndSteel_2_computer(craft_factory):
     assert execution_info.result.res == 0
 
     execution_info = await craftMaterial.balance_of(account.contract_address, (5, 0)).call()
-    assert execution_info.result.res == 1
+    assert execution_info.result.res == 0
 
-    await signer.send_transaction(account, craftMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 4, 0, 5, 0, 2, 1, 1])
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 4, 0, 5, 0, 2, 1, 2])
     accounts = [account.contract_address,
                 account.contract_address]
     token_ids = [(4, 0), (5, 0)]
