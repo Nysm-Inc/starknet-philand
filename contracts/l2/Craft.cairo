@@ -265,7 +265,7 @@ func stake_oil_2_plastic{
     assert_nn_le(1,account_from_balance)
 
     IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
-    get_stake_start_time_for_iron_2_steel.write(owner=sender_address,value=update_time)
+    get_stake_start_time_for_oil_2_plastic.write(owner=sender_address,value=update_time)
     
     return ()
 end
