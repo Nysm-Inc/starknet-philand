@@ -92,6 +92,38 @@ func wrap_daily_material{
 end
 
 @external
+func batch_wrap_daily_material{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt,
+    tokens_id_len : felt,
+    tokens_id : Uint256*,
+    amounts_len : felt, 
+    amounts : felt*
+    ):
+    alloc_locals
+
+    let (daily_material_address) = _daily_material_address.read()
+    let (wrap_material_address) = _wrap_material_address.read()
+
+    IDailyMaterial._burn_batch(daily_material_address,_from = owner, 
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+        
+    IWrapMaterial._mint_batch(wrap_material_address,to=owner, 
+        tokens_id_len =tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+
+    return ()
+end
+
+@external
 func unwrap_daily_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -112,6 +144,35 @@ func unwrap_daily_material{
     IWrapMaterial._burn(wrap_material_address,_from = owner, token_id = token_id, amount=amount)
     IDailyMaterial._mint(daily_material_address,to=owner, token_id = token_id, amount=amount)
 
+    return ()
+end
+
+@external
+func batch_unwrap_daily_material{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt,
+    tokens_id_len : felt,
+    tokens_id : Uint256*,
+    amounts_len : felt, 
+    amounts : felt*
+    ):
+    alloc_locals
+    let (wrap_material_address) = _wrap_material_address.read()
+    let (daily_material_address) = _daily_material_address.read()
+
+    IWrapMaterial._burn_batch(wrap_material_address,_from = owner,
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+    IDailyMaterial._mint_batch(daily_material_address,to=owner,
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
     return ()
 end
 
@@ -141,6 +202,36 @@ func wrap_craft_material{
 end
 
 @external
+func batch_wrap_craft_material{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt,
+    tokens_id_len : felt,
+    tokens_id : Uint256*,
+    amounts_len : felt, 
+    amounts : felt*
+    ):
+    alloc_locals
+    
+    let (craft_material_address) = _craft_material_address.read()
+    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
+
+    ICraftMaterial._burn_batch(craft_material_address,_from =owner, 
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+    IWrapCraftMaterial._mint_batch(wrap_craft_material_address,to=owner, 
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+    return ()
+end
+
+@external
 func unwrap_craft_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
@@ -160,6 +251,36 @@ func unwrap_craft_material{
 
     IWrapCraftMaterial._burn(wrap_craft_material_address,_from =owner, token_id = token_id, amount=amount)
     ICraftMaterial._mint(craft_material_address,to=owner, token_id=token_id, amount=amount)
+
+    return ()
+end
+
+@external
+func batch_unwrap_craft_material{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    owner : felt,
+    tokens_id_len : felt,
+    tokens_id : Uint256*,
+    amounts_len : felt, 
+    amounts : felt*
+    ):
+    alloc_locals
+    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
+    let (craft_material_address) = _craft_material_address.read()
+
+    IWrapCraftMaterial._burn_batch(wrap_craft_material_address,_from =owner, 
+        tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
+    ICraftMaterial._mint_batch(craft_material_address,to=owner, 
+    tokens_id_len=tokens_id_len,
+        tokens_id=tokens_id,
+        amounts_len=amounts_len,
+        amounts=amounts)
 
     return ()
 end

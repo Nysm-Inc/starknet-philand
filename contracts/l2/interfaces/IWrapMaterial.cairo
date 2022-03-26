@@ -8,6 +8,9 @@ namespace IWrapMaterial:
     func _mint(to : felt, token_id : Uint256, amount : felt):
     end
 
+    func _mint_batch(to : felt, tokens_id_len : felt, tokens_id : felt*, amounts_len : felt,amounts : felt*):
+    end
+
     func _burn(_from : felt, token_id : Uint256, amount : felt):
     end
     

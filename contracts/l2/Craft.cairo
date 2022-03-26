@@ -80,7 +80,7 @@ func craft_soil_2_brick{
     }():
     alloc_locals
     # Check user has enough funds.
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
     let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
@@ -99,7 +99,7 @@ func craft_brick_2_brickHouse{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 
@@ -120,7 +120,7 @@ func stake_soilAndSeed_2_wood{
     }():
     alloc_locals
     # Check user has enough funds.
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     let (daily_material_address) = _daily_material_address.read()
     let (craft_material_address) = _craft_material_address.read()
     let (update_time) = get_block_timestamp()
@@ -143,7 +143,7 @@ func stake_soilAndSeed_2_wood{
     assert [felt_array + 1] = 1
     
     IDailyMaterial._burn_batch(daily_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
-    get_stake_start_time_for_soilAndSeed_2_wood.write(sender_address,update_time)
+    get_stake_start_time_for_soilAndSeed_2_wood.write(owner=sender_address,value=update_time)
     
     return ()
 end
@@ -155,7 +155,7 @@ func craft_soilAndSeed_2_wood{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
     let (local current_time) = get_block_timestamp()
@@ -168,7 +168,7 @@ func craft_soilAndSeed_2_wood{
     
     if flg ==1:
         ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
-        get_stake_start_time_for_soilAndSeed_2_wood.write(sender_address,0)
+        get_stake_start_time_for_soilAndSeed_2_wood.write(owner=sender_address,value=0)
         return()
     else:
         return ()
@@ -182,7 +182,7 @@ func craft_ironAndWood_2_ironSword{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (daily_material_address) = _daily_material_address.read()
     let (account_from_daily_balance) = IDailyMaterial.balance_of(daily_material_address,
@@ -207,7 +207,7 @@ func stake_iron_2_steel{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
     let (daily_material_address) = _daily_material_address.read()
@@ -217,7 +217,7 @@ func stake_iron_2_steel{
     assert_nn_le(1,account_from_balance)
 
     IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
-    get_stake_start_time_for_iron_2_steel.write(sender_address,update_time)
+    get_stake_start_time_for_iron_2_steel.write(owner=sender_address,value=update_time)
     return ()
 end
 
@@ -228,7 +228,7 @@ func craft_iron_2_steel{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
     let (local current_time) = get_block_timestamp()
@@ -241,7 +241,7 @@ func craft_iron_2_steel{
     
     if flg ==1:
         ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
-        get_stake_start_time_for_iron_2_steel.write(sender_address,0)
+        get_stake_start_time_for_iron_2_steel.write(owner=sender_address,value=0)
         return()
     else:
         return ()
@@ -255,7 +255,7 @@ func stake_oil_2_plastic{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
     let (daily_material_address) = _daily_material_address.read()
@@ -265,7 +265,7 @@ func stake_oil_2_plastic{
     assert_nn_le(1,account_from_balance)
 
     IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
-    get_stake_start_time_for_iron_2_steel.write(sender_address,update_time)
+    get_stake_start_time_for_iron_2_steel.write(owner=sender_address,value=update_time)
     
     return ()
 end
@@ -277,7 +277,7 @@ func craft_oil_2_plastic{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
     let (local current_time) = get_block_timestamp()
@@ -290,7 +290,7 @@ func craft_oil_2_plastic{
     
     if flg ==1:
         ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
-        get_stake_start_time_for_oil_2_plastic.write(sender_address,0)
+        get_stake_start_time_for_oil_2_plastic.write(owner=sender_address,value=0)
         return()
     else:
         return ()
@@ -304,7 +304,7 @@ func craft_plasticAndSteel_2_computer{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 
@@ -337,7 +337,7 @@ func craft_computer_2_electronicsStore{
         range_check_ptr
     }():
     alloc_locals
-    let (sender_address) = get_caller_address()
+    let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (craft_material_address) = _craft_material_address.read()
 
@@ -355,14 +355,19 @@ func check_elapsed_stake_time_soilAndSeed_2_wood{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }()-> (
+    }(
+    sender_address :felt
+    )-> (
     elapsed_time : felt
     ):
     alloc_locals
-    let (sender_address) = get_caller_address()
-    let (local last_login_time)= get_stake_start_time_for_soilAndSeed_2_wood.read(sender_address)
+    # let (local sender_address) = get_caller_address()
+    let (local last_stake_time)= get_stake_start_time_for_soilAndSeed_2_wood.read(sender_address)
+    if last_stake_time == 0:
+        return(0)
+    end
     let (local current_time) = get_block_timestamp()
-    let elapsed_time = current_time - last_login_time
+    let elapsed_time = current_time -  last_stake_time
     return (elapsed_time)
 end 
 
@@ -371,14 +376,18 @@ func check_elapsed_stake_time_iron_2_steel{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }()-> (
+    }(
+    sender_address :felt )-> (
     elapsed_time : felt
     ):
     alloc_locals
-    let (sender_address) = get_caller_address()
-    let (local last_login_time)= get_stake_start_time_for_iron_2_steel.read(sender_address)
+    # let (local sender_address) = get_caller_address()
+    let (local last_stake_time)= get_stake_start_time_for_iron_2_steel.read(sender_address)
+    if last_stake_time == 0:
+        return(0)
+    end
     let (local current_time) = get_block_timestamp()
-    let elapsed_time = current_time - last_login_time
+    let elapsed_time = current_time - last_stake_time
     return (elapsed_time)
 end 
 
@@ -387,14 +396,19 @@ func check_elapsed_stake_time_oil_2_plastic{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }()-> (
+    }(
+    sender_address :felt
+    )-> (
     elapsed_time : felt
     ):
     alloc_locals
-    let (sender_address) = get_caller_address()
-    let (local last_login_time)= get_stake_start_time_for_oil_2_plastic.read(sender_address)
+    # let (local sender_address) = get_caller_address()
+    let (local last_stake_time)= get_stake_start_time_for_oil_2_plastic.read(sender_address)
+    if last_stake_time == 0:
+        return(0)
+    end
     let (local current_time) = get_block_timestamp()
-    let elapsed_time = current_time - last_login_time
+    let elapsed_time = current_time - last_stake_time
     return (elapsed_time)
 end 
 
