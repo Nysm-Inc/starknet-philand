@@ -123,7 +123,61 @@ async def test_unwrap_daily_material(wrap_factory):
     execution_info = await dailyMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
-    
+
+@pytest.mark.asyncio
+async def test_batch_wrap_daily_material(wrap_factory):
+    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, dailyMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_daily_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+
+@pytest.mark.asyncio
+async def test_batch_unwrap_daily_material(wrap_factory):
+    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
+
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_daily_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
 @pytest.mark.asyncio
 async def test_wrap_craft_material(wrap_factory):
     _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
@@ -158,3 +212,59 @@ async def test_unwrap_craft_material(wrap_factory):
 
     execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
+
+
+@pytest.mark.asyncio
+async def test_batch_wrap_craft_material(wrap_factory):
+    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, craftMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_craft_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+
+@pytest.mark.asyncio
+async def test_batch_unwrap_craft_material(wrap_factory):
+    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_craft_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1

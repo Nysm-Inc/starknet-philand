@@ -359,6 +359,37 @@ func get_fee{
     return (res)
 end
 
+@view
+func history_gold_parcent{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }(
+    blockNumber : felt
+    ) -> (
+        gold_parcent : Uint256
+    ):
+    alloc_locals
+   
+    let (gold_parcent) = _gold_parcent.read(blockNumber)
+    return (gold_parcent)
+end
+
+@view
+func get_gold_parcent{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }() -> (
+        gold_parcent : Uint256
+    ):
+    alloc_locals
+    let (local currentBlock) = get_block_number()
+   
+    let (gold_parcent) = _gold_parcent.read(currentBlock)
+    return (gold_parcent)
+end
+
 @external
 func _recalc_gold_parcent{
         syscall_ptr : felt*,
@@ -384,7 +415,6 @@ func _recalc_gold_parcent{
             let max = Uint256(100,0)
             return (max)
         end
-        
     end
 
     let (b) = is_le(count_gold, 12)

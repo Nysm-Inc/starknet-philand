@@ -5,8 +5,9 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.math import assert_nn_le, assert_not_equal, assert_not_zero, assert_le
 from starkware.cairo.common.alloc import alloc
-from starkware.cairo.common.uint256 import Uint256
-
+from starkware.cairo.common.uint256 import (
+    Uint256, uint256_add, uint256_sub, uint256_lt, uint256_eq, uint256_check
+)
 from contracts.l2.utils.Ownable_base import (
     Ownable_initializer,
     Ownable_only_owner,
@@ -112,6 +113,7 @@ func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
     assert_not_zero(to)
     let (res) = balances.read(owner=to, token_id=token_id)
     balances.write(to, token_id, res + amount)
+    _add_token_enumeration(token_id)
     return ()
 end
 
@@ -233,10 +235,11 @@ func _transfer_from{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_chec
 
     # substract from sender
     balances.write(sender, token_id, sender_balance - amount)
-
+    _remove_token_enumeration(token_id)
     # add to recipient
     let (res) = balances.read(owner=recipient, token_id=token_id)
     balances.write(recipient, token_id, res + amount)
+    _add_token_enumeration(token_id)
     return ()
 end
 
@@ -285,6 +288,7 @@ func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
     let (from_balance) = balance_of(_from, token_id)
     assert_le(amount, from_balance)
     balances.write(_from, token_id, from_balance - amount)
+    _remove_token_enumeration(token_id)
     return ()
 end
 
@@ -327,4 +331,68 @@ func tokenURI{
     }(token_id : Uint256) -> (token_uri_len : felt, token_uri : felt*):
     let (token_uri_len, token_uri) = Metadata_tokenURI(token_id)
     return (token_uri_len=token_uri_len, token_uri=token_uri)
+end
+
+#
+# Internals
+#
+@storage_var
+func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
+end
+
+@storage_var
+func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
+end
+
+@view
+func ERC1155_Enumerable_totalSupply{
+        syscall_ptr: felt*, 
+        pedersen_ptr: HashBuiltin*, 
+        range_check_ptr
+    }() -> (totalSupply: Uint256):
+    let (totalSupply) = ERC1155_Enumerable_all_tokens_len.read()
+    return (totalSupply)
+end
+
+@view
+func ERC1155_Enumerable_token_totalSupply{
+        syscall_ptr: felt*, 
+        pedersen_ptr: HashBuiltin*, 
+        range_check_ptr
+    }(token_id: Uint256) -> (totalSupply: Uint256):
+    let (tokenSupply) = ERC1155_Enumerable_token_len.read(token_id=token_id)
+    return (tokenSupply)
+end
+
+func _add_token_enumeration{
+        pedersen_ptr: HashBuiltin*, 
+        syscall_ptr: felt*, 
+        range_check_ptr
+    }(token_id: Uint256):
+    alloc_locals
+    let (supply: Uint256) = ERC1155_Enumerable_all_tokens_len.read()    
+    let (local new_supply: Uint256, _) = uint256_add(supply, Uint256(1, 0))
+    ERC1155_Enumerable_all_tokens_len.write(new_supply)
+
+    let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
+    let (local new_supply_token: Uint256, _) = uint256_add(supply, Uint256(1, 0))
+    ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
+    return ()
+end
+
+
+func _remove_token_enumeration{
+        pedersen_ptr: HashBuiltin*, 
+        syscall_ptr: felt*, 
+        range_check_ptr
+    }(token_id: Uint256):
+    alloc_locals
+    let (local supply: Uint256) = ERC1155_Enumerable_all_tokens_len.read()
+    let (local new_supply: Uint256) = uint256_sub(supply, Uint256(1, 0))
+    ERC1155_Enumerable_all_tokens_len.write(new_supply)
+
+    let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
+    let (local new_supply_token: Uint256) = uint256_sub(supply, Uint256(1, 0))
+    ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
+    return ()
 end
