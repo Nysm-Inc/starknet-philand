@@ -129,7 +129,7 @@ async def test_craft_soilAndSeed_2_wood(craft_factory):
     execution_info = await dairyMaterial.balance_of_batch(accounts, token_ids).call()
     assert execution_info.result.res == [1,1]
 
-    await signer.send_transaction(account, craft.contract_address, 'stake_soilAndSeed_2_wood', [])
+    await signer.send_transaction(account, craft.contract_address, 'forge_soilAndSeed_2_wood', [])
     execution_info = await dairyMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 0
 
@@ -184,10 +184,11 @@ async def test_craft_iron_2_steel(craft_factory):
     execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
     assert execution_info.result.res == 3
 
-    await signer.send_transaction(account, craft.contract_address, 'stake_iron_2_steel', [])
+    await signer.send_transaction(account, craft.contract_address, 'forge_iron_2_steel', [])
     execution_info = await dairyMaterial.balance_of(account.contract_address, (3, 0)).call()
     assert execution_info.result.res == 2
 
+    
     await signer.send_transaction(account, craft.contract_address, 'craft_iron_2_steel', [])
     execution_info = await craftMaterial.balance_of(account.contract_address, (4, 0)).call()
     assert execution_info.result.res == 0
@@ -204,7 +205,7 @@ async def test_craft_oil_2_plastic(craft_factory):
     execution_info = await dairyMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 1
 
-    await signer.send_transaction(account, craft.contract_address, 'stake_oil_2_plastic', [])
+    await signer.send_transaction(account, craft.contract_address, 'forge_oil_2_plastic', [])
     
     execution_info = await dairyMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 0

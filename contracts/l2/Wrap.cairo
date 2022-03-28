@@ -108,13 +108,15 @@ func batch_wrap_daily_material{
     let (daily_material_address) = _daily_material_address.read()
     let (wrap_material_address) = _wrap_material_address.read()
 
-    IDailyMaterial._burn_batch(daily_material_address,_from = owner, 
+    IDailyMaterial._burn_batch(daily_material_address,
+        _from = owner, 
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
         amounts=amounts)
         
-    IWrapMaterial._mint_batch(wrap_material_address,to=owner, 
+    IWrapMaterial._mint_batch(wrap_material_address,
+        to=owner, 
         tokens_id_len =tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,

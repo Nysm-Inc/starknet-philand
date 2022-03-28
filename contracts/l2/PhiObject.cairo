@@ -280,7 +280,6 @@ end
 #
 # Burn
 #
-
 @external
 func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
         _from : felt, token_id : Uint256, amount : felt):
@@ -334,21 +333,33 @@ func tokenURI{
     return (token_uri_len=token_uri_len, token_uri=token_uri)
 end
 
-@view
-func get_name(token_id : Uint256) -> (name : felt):
-    let (l) = get_label_location(name)
-    let arr = cast(l, felt*)
-    return (arr[token_id.low])
 
-    name:
-    dw 'Brick'
-    dw 'Brick House'
-    dw 'Wood'
-    dw 'Iron Sword'
-    dw 'Steel'
-    dw 'Plastic'
-    dw 'Computer'
-    dw 'Electronics Store'
+struct ObjectSize:
+    member x : felt
+    member y : felt
+    member z : felt
+end
+
+@storage_var
+func _size(token_id : Uint256) -> (res: ObjectSize):
+end
+
+@view
+func get_size{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(token_id : Uint256)->(res: ObjectSize):
+    let (l) = _size.read(token_id)
+    return (l)
+end
+
+@view
+func set_size{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(token_id : Uint256, objectSize : ObjectSize):
+    alloc_locals
+    let size = ObjectSize(
+                        x = objectSize.x,
+                        y = objectSize.y,
+                        z = objectSize.z
+                        )
+     _size.write(token_id=token_id,value=size)
+    return ()
 end
 
 #
