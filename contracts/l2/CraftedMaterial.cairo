@@ -290,6 +290,7 @@ func _burn{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
     assert_le(amount, from_balance)
     balances.write(_from, token_id, from_balance - amount)
     _remove_token_enumeration(token_id,amount)
+    _add_token_burn_enumeration(token_id,amount)
     return ()
 end
 
@@ -382,6 +383,8 @@ func ERC1155_Enumerable_token_totalSupply{
     return (tokenSupply)
 end
 
+
+
 func _add_token_enumeration{
         pedersen_ptr: HashBuiltin*, 
         syscall_ptr: felt*, 
@@ -393,7 +396,7 @@ func _add_token_enumeration{
     ERC1155_Enumerable_all_tokens_len.write(new_supply)
 
     let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
-    let (local new_supply_token: Uint256, _) = uint256_add(supply, Uint256(amount, 0))
+    let (local new_supply_token: Uint256, _) = uint256_add(supply_token, Uint256(amount, 0))
     ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
     return ()
 end
@@ -410,7 +413,35 @@ func _remove_token_enumeration{
     ERC1155_Enumerable_all_tokens_len.write(new_supply)
 
     let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
-    let (local new_supply_token: Uint256) = uint256_sub(supply, Uint256(amount, 0))
+    let (local new_supply_token: Uint256) = uint256_sub(supply_token, Uint256(amount, 0))
     ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
+    return ()
+end
+
+
+@storage_var
+func ERC1155_Enumerable_token_burn_len(token_id: Uint256) -> (res: Uint256):
+end
+
+@view
+func ERC1155_Enumerable_token_burnCounter{
+        syscall_ptr: felt*, 
+        pedersen_ptr: HashBuiltin*, 
+        range_check_ptr
+    }(token_id: Uint256) -> (tokenBurn: Uint256):
+    let (tokenBurn) = ERC1155_Enumerable_token_burn_len.read(token_id=token_id)
+    return (tokenBurn)
+end
+
+func _add_token_burn_enumeration{
+        pedersen_ptr: HashBuiltin*, 
+        syscall_ptr: felt*, 
+        range_check_ptr
+    }(token_id: Uint256, amount: felt):
+    alloc_locals
+
+    let (burn_token: Uint256) = ERC1155_Enumerable_token_burn_len.read(token_id)    
+    let (local new_burn_token: Uint256, _) = uint256_add(burn_token, Uint256(amount, 0))
+    ERC1155_Enumerable_token_burn_len.write(token_id=token_id,value=new_burn_token)
     return ()
 end

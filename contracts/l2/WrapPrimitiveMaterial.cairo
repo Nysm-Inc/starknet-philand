@@ -393,7 +393,7 @@ func _add_token_enumeration{
     ERC1155_Enumerable_all_tokens_len.write(new_supply)
 
     let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
-    let (local new_supply_token: Uint256, _) = uint256_add(supply, Uint256(amount, 0))
+    let (local new_supply_token: Uint256, _) = uint256_add(supply_token, Uint256(amount, 0))
     ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
     return ()
 end
@@ -410,7 +410,7 @@ func _remove_token_enumeration{
     ERC1155_Enumerable_all_tokens_len.write(new_supply)
 
     let (supply_token: Uint256) = ERC1155_Enumerable_token_len.read(token_id)    
-    let (local new_supply_token: Uint256) = uint256_sub(supply, Uint256(amount, 0))
+    let (local new_supply_token: Uint256) = uint256_sub(supply_token, Uint256(amount, 0))
     ERC1155_Enumerable_token_len.write(token_id=token_id,value=new_supply_token)
     return ()
 end

@@ -66,16 +66,16 @@ struct Coordinates:
     member z : felt
 end
 
-struct PhilandObjectInfo:
-    member contract_address : felt
-    member token_id : Uint256
-    member x_start : felt
-    member x_size : felt
-    member y_start : felt
-    member y_size : felt
-    member z_start : felt
-    member z_size : felt
-end
+# struct PhilandObjectInfo:
+#     member contract_address : felt
+#     member token_id : Uint256
+#     member x_start : felt
+#     member x_size : felt
+#     member y_start : felt
+#     member y_size : felt
+#     member z_start : felt
+#     member z_size : felt
+# end
 
 struct ObjectSize:
     member x : felt
