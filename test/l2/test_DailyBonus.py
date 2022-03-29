@@ -37,8 +37,8 @@ async def bonus_factory():
         constructor_calldata=[161803398]
     )
 
-    dailyMaterial = await starknet.deploy(
-        "contracts/l2/DailyMaterial.cairo",
+    primitiveMaterial = await starknet.deploy(
+        "contracts/l2/PrimitiveMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -67,7 +67,7 @@ async def bonus_factory():
         "contracts/l2/DailyBonus.cairo",
         constructor_calldata=[
             xoroshiro128.contract_address,
-            dailyMaterial.contract_address,
+            primitiveMaterial.contract_address,
             erc20.contract_address,
             treasury.contract_address
         ]
@@ -79,12 +79,12 @@ async def bonus_factory():
         calldata=[bonus.contract_address, *STARTING_PRICE]
     )
 
-    return starknet, dailyMaterial, bonus, account, treasury
+    return starknet, primitiveMaterial, bonus, account, treasury
 
 
 @pytest.mark.asyncio
 async def test_get_login_time(bonus_factory):
-    _, dailyMaterial, bonus, account, _ = bonus_factory
+    _, primitiveMaterial, bonus, account, _ = bonus_factory
 
     await signer.send_transaction(account, bonus.contract_address, 'regist_owner', [account.contract_address])
 
@@ -94,7 +94,7 @@ async def test_get_login_time(bonus_factory):
 
 @pytest.mark.asyncio
 async def test_check_elapsed_time(bonus_factory):
-    _, dailyMaterial, bonus, account, _ = bonus_factory
+    _, primitiveMaterial, bonus, account, _ = bonus_factory
    
     execution_info = await bonus.check_elapsed_time(account.contract_address).call()
     print(execution_info.result.elapsed_time)
@@ -105,16 +105,16 @@ async def test_check_elapsed_time(bonus_factory):
 
 @pytest.mark.asyncio
 async def test_get_reward(bonus_factory):
-    _, dailyMaterial, bonus, account, _ = bonus_factory
+    _, primitiveMaterial, bonus, account, _ = bonus_factory
     
     accounts = [account.contract_address, account.contract_address, account.contract_address,
                 account.contract_address]
     token_ids = [(0, 0), (1, 0), (2, 0), (3, 0)]
-    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
     assert execution_info.result.res == [0,0,0,0]
 
     await signer.send_transaction(account, bonus.contract_address, 'get_reward', [account.contract_address])
-    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
 
     print("balance")
     print(execution_info.result.res)
@@ -124,16 +124,16 @@ async def test_get_reward(bonus_factory):
 
 @pytest.mark.asyncio
 async def test_get_reward2(bonus_factory):
-    _, dailyMaterial, bonus, account, _ = bonus_factory
+    _, primitiveMaterial, bonus, account, _ = bonus_factory
 
     accounts = [account.contract_address, account.contract_address, account.contract_address,
                 account.contract_address]
     token_ids = [(0, 0), (5, 0), (6, 0), (7, 0)]
-    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
     assert execution_info.result.res == [0, 0, 0, 0]
 
-    await signer.send_transaction(account, bonus.contract_address, 'get_reward2', [account.contract_address])
-    execution_info = await dailyMaterial.balance_of_batch(accounts, token_ids).call()
+    await signer.send_transaction(account, bonus.contract_address, 'get_reward2', [])
+    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
 
     print("balance")
     print(execution_info.result.res)

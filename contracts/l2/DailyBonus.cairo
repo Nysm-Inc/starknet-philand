@@ -24,7 +24,7 @@ from contracts.l2.utils.safemath import (
     uint256_checked_div_rem
 ) 
 
-from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial 
+from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
 from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
 
 
@@ -69,7 +69,7 @@ func _IXoroshiro_address() -> (res : felt):
 end
 
 @storage_var
-func _daily_material_address() -> (res : felt):
+func _primitive_material_address() -> (res : felt):
 end
 
 @storage_var
@@ -91,13 +91,13 @@ func constructor{
         range_check_ptr
     }(
     IXoroshiro_address : felt,
-    daily_material_address : felt,
+    primitive_material_address : felt,
     erc20Address : felt,
     treasury_address : felt
     ):
 
     _IXoroshiro_address.write(IXoroshiro_address)
-    _daily_material_address.write(daily_material_address)
+    _primitive_material_address.write(primitive_material_address)
     _erc20Address.write(erc20Address)
     _treasurey_address.write(treasury_address)
 
@@ -150,7 +150,7 @@ func get_reward{
     let (check) = check_reward(owner)
     if check == 1:
         let (update_time) = get_block_timestamp()
-        let (daily_material_address) =  _daily_material_address.read()
+        let (primitive_material_address) =  _primitive_material_address.read()
 
         get_last_login_time.write(owner,update_time)
         let (rnd)=get_next_rnd()
@@ -158,25 +158,25 @@ func get_reward{
 
         # soil
         if rem.low == 0:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(0,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
             return ()
         end
 
         # oil
         if rem.low == 1:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(1,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
             return ()
         end
 
         # seed
         if rem.low == 2:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(2,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
             return ()
         end
 
         #  iron
         if rem.low == 3:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(3,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
             return ()
         end
         return ()
@@ -208,7 +208,7 @@ func get_reward_with_fee{
     )
     if check == 1:
         let (update_time) = get_block_timestamp()
-        let (daily_material_address) =  _daily_material_address.read()
+        let (primitive_material_address) =  _primitive_material_address.read()
 
         get_last_login_time.write(owner,update_time)
         let (rnd)=get_next_rnd()
@@ -216,25 +216,25 @@ func get_reward_with_fee{
 
         # soil
         if rem.low == 0:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(0,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
             return ()
         end
 
         # oil
         if rem.low == 1:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(1,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
             return ()
         end
 
         # seed
         if rem.low == 2:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(2,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
             return ()
         end
 
         #  iron
         if rem.low == 3:
-            IDailyMaterial._mint(daily_material_address,owner,Uint256(3,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
             return ()
         end
         return ()
@@ -251,7 +251,7 @@ func get_reward2{
     }():
     alloc_locals
 
-    let (daily_material_address) =  _daily_material_address.read()
+    let (primitive_material_address) =  _primitive_material_address.read()
     let (local currentBlock) = get_block_number()
     
     let (count_gold) = _actual_result_gold.read(currentBlock)
@@ -278,7 +278,7 @@ func get_reward2{
         let (new_parcent : Uint256) = _recalc_crystal_parcent(last_block_number,last_crystal_parcent)      
         _crystal_parcent.write(currentBlock,new_parcent)
 
-        IDailyMaterial._mint(daily_material_address,to=user,token_id=Uint256(6,0),amount=1)
+        IPrimitiveMaterial._mint(primitive_material_address,to=user,token_id=Uint256(6,0),amount=1)
         let new_count = count_crystal + 1
         _actual_result_crystal.write(currentBlock,new_count)
         return ()
@@ -290,7 +290,7 @@ func get_reward2{
         let (new_parcent : Uint256) = _recalc_gold_parcent(last_block_number,last_gold_parcent)      
         _gold_parcent.write(currentBlock,new_parcent)
 
-        IDailyMaterial._mint(daily_material_address,to=user,token_id=Uint256(5,0),amount=1)
+        IPrimitiveMaterial._mint(primitive_material_address,to=user,token_id=Uint256(5,0),amount=1)
         let new_count = count_gold + 1
         _actual_result_gold.write(currentBlock,new_count)
         return ()
@@ -305,7 +305,7 @@ func get_reward2{
 
     let (flg_crystal) = is_in_range(rem.low, 0,crystal_parcent.low)
     if flg_crystal == 1:
-        IDailyMaterial._mint(daily_material_address,to=user,token_id=Uint256(6,0),amount=1)
+        IPrimitiveMaterial._mint(primitive_material_address,to=user,token_id=Uint256(6,0),amount=1)
         let new_count = count_crystal + 1
         _actual_result_crystal.write(currentBlock,new_count)
         return ()
@@ -313,13 +313,13 @@ func get_reward2{
 
     let (flg_gold) = is_in_range(rem.low, gold_parcent.low, 100)
     if flg_gold == 1:
-        IDailyMaterial._mint(daily_material_address,to=user,token_id=Uint256(5,0),amount=1)
+        IPrimitiveMaterial._mint(primitive_material_address,to=user,token_id=Uint256(5,0),amount=1)
         let new_count = count_gold + 1
         _actual_result_gold.write(currentBlock,new_count)
         return ()
     end
 
-    IDailyMaterial._mint(daily_material_address,to=user,token_id=Uint256(0,0),amount=1)
+    IPrimitiveMaterial._mint(primitive_material_address,to=user,token_id=Uint256(0,0),amount=1)
     return ()
     
 end
@@ -580,12 +580,12 @@ func _recalc_crystal_parcent{
 end 
 
 @view
-func daily_material_address{
+func primitive_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) =  _daily_material_address.read()
+    let (res) =  _primitive_material_address.read()
     return (res)
 end
 

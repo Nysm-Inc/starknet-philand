@@ -19,25 +19,25 @@ from contracts.l2.utils.safemath import (
     uint256_checked_div_rem
 ) 
 
-from contracts.l2.interfaces.ICraftMaterial import ICraftMaterial 
-from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial 
-from contracts.l2.interfaces.IWrapMaterial import IWrapMaterial
-from contracts.l2.interfaces.IWrapCraftMaterial import IWrapCraftMaterial
+from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
+from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
+from contracts.l2.interfaces.IWrapPrimitiveMaterial import IWrapPrimitiveMaterial
+from contracts.l2.interfaces.IWrapCraftedMaterial import IWrapCraftedMaterial
 
 @storage_var
-func _wrap_material_address() -> (res : felt):
+func _wrap_primitive_material_address() -> (res : felt):
 end
 
 @storage_var
-func _wrap_craft_material_address() -> (res : felt):
+func _wrap_crafted_material_address() -> (res : felt):
 end
 
 @storage_var
-func _daily_material_address() -> (res : felt):
+func _primitive_material_address() -> (res : felt):
 end
 
 @storage_var
-func _craft_material_address() -> (res : felt):
+func _crafted_material_address() -> (res : felt):
 end
 
 ##### Constants #####
@@ -49,16 +49,16 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    daily_material_address : felt,
-    craft_material_address : felt,
-    wrap_material_address : felt,
-    wrap_craft_material_address : felt
+    primitive_material_address : felt,
+    crafted_material_address : felt,
+    wrap_primitive_material_address : felt,
+    wrap_crafted_material_address : felt
     ):
 
-    _daily_material_address.write(daily_material_address)
-    _craft_material_address.write(craft_material_address)
-    _wrap_material_address.write(wrap_material_address)
-    _wrap_craft_material_address.write(wrap_craft_material_address)
+    _primitive_material_address.write(primitive_material_address)
+    _crafted_material_address.write(crafted_material_address)
+    _wrap_primitive_material_address.write(wrap_primitive_material_address)
+    _wrap_crafted_material_address.write(wrap_crafted_material_address)
     
     return ()
 end
@@ -67,7 +67,7 @@ end
 ##### Public functions #####
 
 @external
-func wrap_daily_material{
+func wrap_primitive_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -78,21 +78,21 @@ func wrap_daily_material{
     ):
     alloc_locals
 
-    let (daily_material_address) = _daily_material_address.read()
-    let (wrap_material_address) = _wrap_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (wrap_primitive_material_address) = _wrap_primitive_material_address.read()
 
-    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=owner, token_id=token_id)
     assert_nn_le(amount,account_from_balance)
 
-    IDailyMaterial._burn(daily_material_address,_from =owner, token_id = token_id, amount=amount)
-    IWrapMaterial._mint(wrap_material_address,to=owner, token_id = token_id, amount=amount)
+    IPrimitiveMaterial._burn(primitive_material_address,_from =owner, token_id = token_id, amount=amount)
+    IWrapPrimitiveMaterial._mint(wrap_primitive_material_address,to=owner, token_id = token_id, amount=amount)
 
     return ()
 end
 
 @external
-func batch_wrap_daily_material{
+func batch_wrap_primitive_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -105,17 +105,17 @@ func batch_wrap_daily_material{
     ):
     alloc_locals
 
-    let (daily_material_address) = _daily_material_address.read()
-    let (wrap_material_address) = _wrap_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (wrap_primitive_material_address) = _wrap_primitive_material_address.read()
 
-    IDailyMaterial._burn_batch(daily_material_address,
+    IPrimitiveMaterial._burn_batch(primitive_material_address,
         _from = owner, 
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
         amounts=amounts)
         
-    IWrapMaterial._mint_batch(wrap_material_address,
+    IWrapPrimitiveMaterial._mint_batch(wrap_primitive_material_address,
         to=owner, 
         tokens_id_len =tokens_id_len,
         tokens_id=tokens_id,
@@ -126,7 +126,7 @@ func batch_wrap_daily_material{
 end
 
 @external
-func unwrap_daily_material{
+func unwrap_primitive_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -136,21 +136,21 @@ func unwrap_daily_material{
     amount : felt
     ):
     alloc_locals
-    let (wrap_material_address) = _wrap_material_address.read()
-    let (daily_material_address) = _daily_material_address.read()
+    let (wrap_primitive_material_address) = _wrap_primitive_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
 
-    let (account_from_balance) = IWrapMaterial.balance_of(wrap_material_address,
+    let (account_from_balance) = IWrapPrimitiveMaterial.balance_of(wrap_primitive_material_address,
         owner=owner, token_id=token_id)
     assert_nn_le(amount,account_from_balance)
 
-    IWrapMaterial._burn(wrap_material_address,_from = owner, token_id = token_id, amount=amount)
-    IDailyMaterial._mint(daily_material_address,to=owner, token_id = token_id, amount=amount)
+    IWrapPrimitiveMaterial._burn(wrap_primitive_material_address,_from = owner, token_id = token_id, amount=amount)
+    IPrimitiveMaterial._mint(primitive_material_address,to=owner, token_id = token_id, amount=amount)
 
     return ()
 end
 
 @external
-func batch_unwrap_daily_material{
+func batch_unwrap_primitive_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -162,15 +162,15 @@ func batch_unwrap_daily_material{
     amounts : felt*
     ):
     alloc_locals
-    let (wrap_material_address) = _wrap_material_address.read()
-    let (daily_material_address) = _daily_material_address.read()
+    let (wrap_primitive_material_address) = _wrap_primitive_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
 
-    IWrapMaterial._burn_batch(wrap_material_address,_from = owner,
+    IWrapPrimitiveMaterial._burn_batch(wrap_primitive_material_address,_from = owner,
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
         amounts=amounts)
-    IDailyMaterial._mint_batch(daily_material_address,to=owner,
+    IPrimitiveMaterial._mint_batch(primitive_material_address,to=owner,
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
@@ -179,7 +179,7 @@ func batch_unwrap_daily_material{
 end
 
 @external
-func wrap_craft_material{
+func wrap_crafted_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -190,21 +190,21 @@ func wrap_craft_material{
     ):
     alloc_locals
     
-    let (craft_material_address) = _craft_material_address.read()
-    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (wrap_crafted_material_address) = _wrap_crafted_material_address.read()
 
-    let (account_from_balance) = ICraftMaterial.balance_of(craft_material_address,
+    let (account_from_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=owner, token_id=token_id)
     assert_nn_le(amount,account_from_balance)
 
-    ICraftMaterial._burn(craft_material_address,_from =owner, token_id = token_id, amount=amount)
-    IWrapCraftMaterial._mint(wrap_craft_material_address,to=owner, token_id=token_id, amount=amount)
+    ICraftedMaterial._burn(crafted_material_address,_from =owner, token_id = token_id, amount=amount)
+    IWrapCraftedMaterial._mint(wrap_crafted_material_address,to=owner, token_id=token_id, amount=amount)
 
     return ()
 end
 
 @external
-func batch_wrap_craft_material{
+func batch_wrap_crafted_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -217,15 +217,15 @@ func batch_wrap_craft_material{
     ):
     alloc_locals
     
-    let (craft_material_address) = _craft_material_address.read()
-    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (wrap_crafted_material_address) = _wrap_crafted_material_address.read()
 
-    ICraftMaterial._burn_batch(craft_material_address,_from =owner, 
+    ICraftedMaterial._burn_batch(crafted_material_address,_from =owner, 
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
         amounts=amounts)
-    IWrapCraftMaterial._mint_batch(wrap_craft_material_address,to=owner, 
+    IWrapCraftedMaterial._mint_batch(wrap_crafted_material_address,to=owner, 
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
@@ -234,7 +234,7 @@ func batch_wrap_craft_material{
 end
 
 @external
-func unwrap_craft_material{
+func unwrap_crafted_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -244,21 +244,21 @@ func unwrap_craft_material{
     amount : felt
     ):
     alloc_locals
-    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
-    let (craft_material_address) = _craft_material_address.read()
+    let (wrap_crafted_material_address) = _wrap_crafted_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
 
-    let (account_from_balance) = IWrapCraftMaterial.balance_of(wrap_craft_material_address,
+    let (account_from_balance) = IWrapCraftedMaterial.balance_of(wrap_crafted_material_address,
         owner=owner, token_id=token_id)
     assert_nn_le(amount,account_from_balance)
 
-    IWrapCraftMaterial._burn(wrap_craft_material_address,_from =owner, token_id = token_id, amount=amount)
-    ICraftMaterial._mint(craft_material_address,to=owner, token_id=token_id, amount=amount)
+    IWrapCraftedMaterial._burn(wrap_crafted_material_address,_from =owner, token_id = token_id, amount=amount)
+    ICraftedMaterial._mint(crafted_material_address,to=owner, token_id=token_id, amount=amount)
 
     return ()
 end
 
 @external
-func batch_unwrap_craft_material{
+func batch_unwrap_crafted_material{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -270,15 +270,15 @@ func batch_unwrap_craft_material{
     amounts : felt*
     ):
     alloc_locals
-    let (wrap_craft_material_address) = _wrap_craft_material_address.read()
-    let (craft_material_address) = _craft_material_address.read()
+    let (wrap_crafted_material_address) = _wrap_crafted_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
 
-    IWrapCraftMaterial._burn_batch(wrap_craft_material_address,_from =owner, 
+    IWrapCraftedMaterial._burn_batch(wrap_crafted_material_address,_from =owner, 
         tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
         amounts=amounts)
-    ICraftMaterial._mint_batch(craft_material_address,to=owner, 
+    ICraftedMaterial._mint_batch(crafted_material_address,to=owner, 
     tokens_id_len=tokens_id_len,
         tokens_id=tokens_id,
         amounts_len=amounts_len,
@@ -288,41 +288,41 @@ func batch_unwrap_craft_material{
 end
 
 @view
-func wrap_material_address{
+func wrap_primitive_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) =  _wrap_material_address.read()
+    let (res) =  _wrap_primitive_material_address.read()
     return (res)
 end
 
 @view
-func wrap_craft_material_address{
+func wrap_crafted_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) =  _wrap_craft_material_address.read()
+    let (res) =  _wrap_crafted_material_address.read()
     return (res)
 end
 
 @view
-func daily_material_address{
+func primitive_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) =  _daily_material_address.read()
+    let (res) =  _primitive_material_address.read()
     return (res)
 end
 
 @view
-func craft_material_address{
+func crafted_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _craft_material_address.read()
+    let (res) = _crafted_material_address.read()
     return (res)
 end

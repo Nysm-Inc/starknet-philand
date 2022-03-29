@@ -132,8 +132,9 @@ export async function deployBridge(): Promise<void> {
     "ERC20_Mintable",
     BLOCK_NUMBER,
     {
-      name: stringToFeltArray("Mintable Token"),
-      symbol: stringToFeltArray("MTKN"),
+      // name: ("Meta Mintable Token"), symbol: "phi"
+      name: parseFixed("1725995323023367784961866765022190509016966510"),
+      symbol: parseFixed("5066068"),
       decimals: 18,
       initial_supply: {low:500,high:0},
       recipient: asDec(deployer.address),
@@ -141,9 +142,9 @@ export async function deployBridge(): Promise<void> {
     }
   );
   
-  const l2DailyMaterial:StarknetContract = await deployL2(
+  const l2PrimitiveMaterial:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "DailyMaterial",
+    "PrimitiveMaterial",
     BLOCK_NUMBER,
     {
       token_id : 1,
@@ -151,27 +152,27 @@ export async function deployBridge(): Promise<void> {
     }
   );
   
-  const l2CraftMaterial:StarknetContract = await deployL2(
+  const l2CraftedMaterial:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "CraftMaterial",
+    "CraftedMaterial",
     BLOCK_NUMBER,
     {
       token_id : 1,
      token_uri:token_uri
     }
   );
-  const l2WrapMaterial:StarknetContract = await deployL2(
+  const l2WrapPrimitiveMaterial:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "WrapMaterial",
+    "WrapPrimitiveMaterial",
     BLOCK_NUMBER,
     {
       token_id : 1,
      token_uri:token_uri
     }
   );
-  const l2WrapCraftMaterial:StarknetContract = await deployL2(
+  const l2WrapCraftedMaterial:StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "WrapCraftMaterial",
+    "WrapCraftedMaterial",
     BLOCK_NUMBER,
     {
       token_id : 1,
@@ -185,10 +186,10 @@ export async function deployBridge(): Promise<void> {
     "Wrap",
     BLOCK_NUMBER,
     {
-     daily_material_address : asDec(l2DailyMaterial.address),
-     craft_material_address : asDec(l2CraftMaterial.address),
-     wrap_material_address : asDec(l2WrapMaterial.address),
-     wrap_craft_material_address : asDec(l2WrapCraftMaterial.address),
+     primitive_material_address : asDec(l2PrimitiveMaterial.address),
+     crafted_material_address : asDec(l2CraftedMaterial.address),
+     wrap_primitive_material_address : asDec(l2WrapPrimitiveMaterial.address),
+     wrap_crafted_material_address : asDec(l2WrapCraftedMaterial.address),
     }
   );
 
@@ -210,7 +211,7 @@ export async function deployBridge(): Promise<void> {
     BLOCK_NUMBER,
     {
     IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
-    daily_material_address : asDec(l2DailyMaterial.address),
+    primitive_material_address : asDec(l2PrimitiveMaterial.address),
     erc20Address : asDec(l2ERC20.address),
     treasury_address : asDec(deployer.address),
     }
@@ -220,8 +221,8 @@ export async function deployBridge(): Promise<void> {
     "Craft",
     BLOCK_NUMBER,
     {
-     daily_material_address : asDec(l2DailyMaterial.address),
-     craft_material_address : asDec(l2CraftMaterial.address),
+     primitive_material_address : asDec(l2PrimitiveMaterial.address),
+     crafted_material_address : asDec(l2CraftedMaterial.address),
     }
   );
   const l2PHILAND = await deployL2(
@@ -254,10 +255,10 @@ export function printAddresses() {
     "account-deployer",
     "MessageENS",
     "ERC20_Mintable",
-    "CraftMaterial",
-    "DailyMaterial",
-    "WrapMaterial",
-    "WrapCraftMaterial",
+    "CraftedMaterial",
+    "PrimitiveMaterial",
+    "WrapPrimitiveMaterial",
+    "WrapCraftedMaterial",
     "Object",
     "Craft",
     "DailyBonus",

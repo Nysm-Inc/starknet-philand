@@ -338,7 +338,7 @@ func write_object_to_land{
         token_id : Uint256
     ):
     let size : ObjectSize = IPhiObject.get_size(contract_address,token_id)
-    let philandObjectInfo = PhilandObjectInfo(
+    let philandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  contract_address,
         token_id = token_id,
         x_start=x_start,
@@ -348,16 +348,16 @@ func write_object_to_land{
         z_start=z_start,
         z_size =size.z
     )
-    use_block.write(user=user,x=x_start,y=y_start,value=1)
-
     let (idx)=_user_philand_object_idx.read(user=user)
     _user_philand_object.write(user=user, idx=idx + 1, value = philandObjectInfo)
+    
+    block_write(user=user,x_len=size.x,x=x_start,y_len=size.y,y=y_start)
     return ()
 end
 
 # Write object id to parcel (batch operation)
 @external
-func batch_block_write{
+func block_write{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -374,14 +374,14 @@ func batch_block_write{
         return ()
     end
     use_block.write(user, [x], [y], value=1)
-    batch_block_xwrite(
+    block_xwrite(
         user = user,
         x_len = x_len - 1,
         x = x + 1,
         y_len = y_len,
         y = y,
         )
-    return batch_block_write(
+    return block_write(
         user = user,
         x_len = x_len,
         x = x,
@@ -391,7 +391,7 @@ func batch_block_write{
 end
 
 @external
-func batch_block_xwrite{
+func block_xwrite{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
@@ -408,14 +408,13 @@ func batch_block_xwrite{
     end
 
     use_block.write(user, [x], [y], value=1)
-    return batch_block_xwrite(
+    return block_xwrite(
         user = user,
         x_len = x_len - 1,
         x = x + 1,
         y_len = y_len,
         y = y,
         )
-    
 end
 
 # Returns a list of objects for the specified generation.

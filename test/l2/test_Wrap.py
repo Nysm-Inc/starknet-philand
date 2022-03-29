@@ -32,8 +32,8 @@ async def wrap_factory():
         constructor_calldata=[other.public_key]
     )
 
-    dailyMaterial = await starknet.deploy(
-        "contracts/l2/DailyMaterial.cairo",
+    primitiveMaterial = await starknet.deploy(
+        "contracts/l2/PrimitiveMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -43,8 +43,8 @@ async def wrap_factory():
             7565166,
         ]
     )
-    craftMaterial = await starknet.deploy(
-        "contracts/l2/CraftMaterial.cairo",
+    craftedMaterial = await starknet.deploy(
+        "contracts/l2/CraftedMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -54,8 +54,8 @@ async def wrap_factory():
             7565166,
         ]
     )
-    wrapMaterial = await starknet.deploy(
-        "contracts/l2/WrapMaterial.cairo",
+    wrapPrimitiveMaterial = await starknet.deploy(
+        "contracts/l2/WrapPrimitiveMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -65,8 +65,8 @@ async def wrap_factory():
             7565166,
         ]
     )
-    wrapCraftMaterial = await starknet.deploy(
-        "contracts/l2/WrapCraftMaterial.cairo",
+    wrapCraftedMaterial = await starknet.deploy(
+        "contracts/l2/WrapCraftedMaterial.cairo",
         constructor_calldata=[
             1,
             4,
@@ -79,192 +79,192 @@ async def wrap_factory():
     wrap = await starknet.deploy(
         "contracts/l2/Wrap.cairo",
         constructor_calldata=[
-            dailyMaterial.contract_address,
-            craftMaterial.contract_address,
-            wrapMaterial.contract_address,
-            wrapCraftMaterial.contract_address
+            primitiveMaterial.contract_address,
+            craftedMaterial.contract_address,
+            wrapPrimitiveMaterial.contract_address,
+            wrapCraftedMaterial.contract_address
         ]
     )
-    return starknet, dailyMaterial, craftMaterial, wrapMaterial, wrapCraftMaterial,wrap, account, operator
+    return starknet, primitiveMaterial, craftedMaterial, wrapPrimitiveMaterial, wrapCraftedMaterial,wrap, account, operator
 
 
 @pytest.mark.asyncio
-async def test_wrap_daily_material(wrap_factory):
-    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
+async def test_wrap_primitive_material(wrap_factory):
+    _, primitiveMaterial, _, wrapPrimitiveMaterial, _, wrap, account, _ = wrap_factory
 
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 0
 
-    await signer.send_transaction(account, dailyMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 4])
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 4])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
-    await signer.send_transaction(account, wrap.contract_address, 'wrap_daily_material', [account.contract_address, 0, 0,4])
+    await signer.send_transaction(account, wrap.contract_address, 'wrap_primitive_material', [account.contract_address, 0, 0,4])
 
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 4
-
-
-@pytest.mark.asyncio
-async def test_unwrap_daily_material(wrap_factory):
-    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 4
-
-    await signer.send_transaction(account, wrap.contract_address, 'unwrap_daily_material', [account.contract_address, 0, 0, 4])
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
 
 @pytest.mark.asyncio
-async def test_batch_wrap_daily_material(wrap_factory):
-    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
+async def test_unwrap_primitive_material(wrap_factory):
+    _, primitiveMaterial, _, wrapPrimitiveMaterial, _, wrap, account, _ = wrap_factory
 
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 0
-
-    await signer.send_transaction(account, dailyMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 1
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
-
-    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_daily_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 1
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
-
-
-@pytest.mark.asyncio
-async def test_batch_unwrap_daily_material(wrap_factory):
-    _, dailyMaterial, _, wrapMaterial, _, wrap, account, _ = wrap_factory
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 1
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
-
-    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_daily_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
-
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 0
-    execution_info = await wrapMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (1, 0)).call()
-    assert execution_info.result.res == 1
-
-    execution_info = await dailyMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 1
-
-@pytest.mark.asyncio
-async def test_wrap_craft_material(wrap_factory):
-    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
-
-    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 0
-
-    await signer.send_transaction(account, craftMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 4])
-    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
-    await signer.send_transaction(account, wrap.contract_address, 'wrap_craft_material', [account.contract_address, 0, 0, 4])
+    await signer.send_transaction(account, wrap.contract_address, 'unwrap_primitive_material', [account.contract_address, 0, 0, 4])
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
     assert execution_info.result.res == 4
 
 
 @pytest.mark.asyncio
-async def test_unwrap_craft_material(wrap_factory):
-    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
+async def test_batch_wrap_primitive_material(wrap_factory):
+    _, primitiveMaterial, _, wrapPrimitiveMaterial, _, wrap, account, _ = wrap_factory
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 4
-
-    await signer.send_transaction(account, wrap.contract_address, 'unwrap_craft_material', [account.contract_address, 0, 0, 4])
-
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (0, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (0, 0)).call()
-    assert execution_info.result.res == 4
-
-
-@pytest.mark.asyncio
-async def test_batch_wrap_craft_material(wrap_factory):
-    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
-
-    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 0
-
-    await signer.send_transaction(account, craftMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
-    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 1
-    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 1
 
-    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_craft_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_primitive_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 1
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 1
 
 
 @pytest.mark.asyncio
-async def test_batch_unwrap_craft_material(wrap_factory):
-    _, _, craftMaterial, _, wrapCraftMaterial, wrap, account, _ = wrap_factory
+async def test_batch_unwrap_primitive_material(wrap_factory):
+    _, primitiveMaterial, _, wrapPrimitiveMaterial, _, wrap, account, _ = wrap_factory
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 1
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 1
 
-    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_craft_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_primitive_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+    execution_info = await wrapPrimitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 0
 
-    execution_info = await wrapCraftMaterial.balance_of(account.contract_address, (2, 0)).call()
-    assert execution_info.result.res == 0
-
-    execution_info = await craftMaterial.balance_of(account.contract_address, (1, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 1
 
-    execution_info = await craftMaterial.balance_of(account.contract_address, (2, 0)).call()
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+@pytest.mark.asyncio
+async def test_wrap_crafted_material(wrap_factory):
+    _, _, craftedMaterial, _, wrapCraftedMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, craftedMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 4])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 4
+
+    await signer.send_transaction(account, wrap.contract_address, 'wrap_crafted_material', [account.contract_address, 0, 0, 4])
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 4
+
+
+@pytest.mark.asyncio
+async def test_unwrap_crafted_material(wrap_factory):
+    _, _, craftedMaterial, _, wrapCraftedMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 4
+
+    await signer.send_transaction(account, wrap.contract_address, 'unwrap_crafted_material', [account.contract_address, 0, 0, 4])
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 4
+
+
+@pytest.mark.asyncio
+async def test_batch_wrap_crafted_material(wrap_factory):
+    _, _, craftedMaterial, _, wrapCraftedMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, craftedMaterial.contract_address, '_mint_batch', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_wrap_crafted_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+
+@pytest.mark.asyncio
+async def test_batch_unwrap_crafted_material(wrap_factory):
+    _, _, craftedMaterial, _, wrapCraftedMaterial, wrap, account, _ = wrap_factory
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, wrap.contract_address, 'batch_unwrap_crafted_material', [account.contract_address, 2, 1, 0, 2, 0, 2, 1, 1])
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await wrapCraftedMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (2, 0)).call()
     assert execution_info.result.res == 1

@@ -15,8 +15,8 @@ from starkware.cairo.common.math import (unsigned_div_rem, assert_nn,
 from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
 from starkware.cairo.common.uint256 import Uint256
 
-from contracts.l2.interfaces.ICraftMaterial import ICraftMaterial 
-from contracts.l2.interfaces.IDailyMaterial import IDailyMaterial
+from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
+from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial
 
 @storage_var
 func get_forge_start_time_for_soilAndSeed_2_wood(
@@ -43,11 +43,11 @@ func get_forge_start_time_for_oil_2_plastic(
 end
 
 @storage_var
-func _daily_material_address() -> (res : felt):
+func _primitive_material_address() -> (res : felt):
 end
 
 @storage_var
-func _craft_material_address() -> (res : felt):
+func _crafted_material_address() -> (res : felt):
 end
 
 ##### Constants #####
@@ -59,12 +59,12 @@ func constructor{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    daily_material_address : felt,
-    craft_material_address : felt
+    primitive_material_address : felt,
+    crafted_material_address : felt
     ):
     
-    _daily_material_address.write(daily_material_address)
-    _craft_material_address.write(craft_material_address)
+    _primitive_material_address.write(primitive_material_address)
+    _crafted_material_address.write(crafted_material_address)
 
     return ()
 end
@@ -81,14 +81,14 @@ func craft_soil_2_brick{
     alloc_locals
     # Check user has enough funds.
     let (local sender_address) = get_caller_address()
-    let (daily_material_address) = _daily_material_address.read()
-    let (craft_material_address) = _craft_material_address.read()
-    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(4,account_from_balance)
 
-    IDailyMaterial._burn(daily_material_address,_from = sender_address, token_id = Uint256(0,0), amount=4)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(0,0), amount=1)
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=4)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(0,0), amount=1)
     return ()
 end
 
@@ -101,14 +101,14 @@ func craft_brick_2_brickHouse{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
 
-    let (account_from_balance) = ICraftMaterial.balance_of(craft_material_address,
+    let (account_from_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(4,account_from_balance)
 
-    ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(0,0), amount=4)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(1,0), amount=1)
+    ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(0,0), amount=4)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(1,0), amount=1)
     return ()
 end
 
@@ -121,8 +121,8 @@ func forge_soilAndSeed_2_wood{
     alloc_locals
     # Check user has enough funds.
     let (local sender_address) = get_caller_address()
-    let (daily_material_address) = _daily_material_address.read()
-    let (craft_material_address) = _craft_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
     let (update_time) = get_block_timestamp()
 
     let (sender_array : felt*) = alloc()
@@ -133,7 +133,7 @@ func forge_soilAndSeed_2_wood{
     assert [uint256_array] = Uint256(0,0)
     assert [uint256_array + 2] = Uint256(2,0)
     
-    let (_,account_from_balances) = IDailyMaterial.balance_of_batch(daily_material_address,
+    let (_,account_from_balances) = IPrimitiveMaterial.balance_of_batch(primitive_material_address,
         owners_len=2,owners=sender_array, tokens_id_len=2,tokens_id=uint256_array)
     assert_nn_le(1,account_from_balances[0])
     assert_nn_le(1,account_from_balances[1])
@@ -142,7 +142,7 @@ func forge_soilAndSeed_2_wood{
     assert [felt_array] = 1
     assert [felt_array + 1] = 1
     
-    IDailyMaterial._burn_batch(daily_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
+    IPrimitiveMaterial._burn_batch(primitive_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
     get_forge_start_time_for_soilAndSeed_2_wood.write(owner=sender_address,value=update_time)
     
     return ()
@@ -157,7 +157,7 @@ func craft_soilAndSeed_2_wood{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
     let (local current_time) = get_block_timestamp()
     let (local last_forge_time) = get_forge_start_time_for_soilAndSeed_2_wood.read(sender_address)
     if last_forge_time == 0:
@@ -167,7 +167,7 @@ func craft_soilAndSeed_2_wood{
     let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
-        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
+        ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
         get_forge_start_time_for_soilAndSeed_2_wood.write(owner=sender_address,value=0)
         return()
     else:
@@ -184,19 +184,19 @@ func craft_ironAndWood_2_ironSword{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (daily_material_address) = _daily_material_address.read()
-    let (account_from_daily_balance) = IDailyMaterial.balance_of(daily_material_address,
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (account_from_primitive_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(3,0))
-    assert_nn_le(1,account_from_daily_balance)
+    assert_nn_le(1,account_from_primitive_balance)
 
-    let (craft_material_address) = _craft_material_address.read()
-    let (account_from_craft_balance) = ICraftMaterial.balance_of(craft_material_address,
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_crafted_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(2,0))
-    assert_nn_le(1,account_from_craft_balance)
+    assert_nn_le(1,account_from_crafted_balance)
 
-    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
-    ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(2,0), amount=1)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(3,0), amount=1)
+    IPrimitiveMaterial._burn(primitive_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
+    ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(2,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(3,0), amount=1)
     return ()
 end
 
@@ -210,13 +210,13 @@ func forge_iron_2_steel{
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
-    let (daily_material_address) = _daily_material_address.read()
+    let (primitive_material_address) = _primitive_material_address.read()
 
-    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(3,0))
     assert_nn_le(1,account_from_balance)
 
-    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
+    IPrimitiveMaterial._burn(primitive_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
     get_forge_start_time_for_iron_2_steel.write(owner=sender_address,value=update_time)
     return ()
 end
@@ -230,7 +230,7 @@ func craft_iron_2_steel{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
     let (local current_time) = get_block_timestamp()
     let (local last_forge_time) = get_forge_start_time_for_iron_2_steel.read(sender_address)
     if last_forge_time == 0:
@@ -240,7 +240,7 @@ func craft_iron_2_steel{
     let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
-        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
+        ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
         get_forge_start_time_for_iron_2_steel.write(owner=sender_address,value=0)
         return()
     else:
@@ -258,13 +258,13 @@ func forge_oil_2_plastic{
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
     let (update_time) = get_block_timestamp()
-    let (daily_material_address) = _daily_material_address.read()
-    let (craft_material_address) = _craft_material_address.read()
-    let (account_from_balance) = IDailyMaterial.balance_of(daily_material_address,
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(1,0))
     assert_nn_le(1,account_from_balance)
 
-    IDailyMaterial._burn(daily_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
+    IPrimitiveMaterial._burn(primitive_material_address,_from =sender_address, token_id = Uint256(1,0), amount=1)
     get_forge_start_time_for_oil_2_plastic.write(owner=sender_address,value=update_time)
     
     return ()
@@ -279,7 +279,7 @@ func craft_oil_2_plastic{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
     let (local current_time) = get_block_timestamp()
     let (local last_forge_time) = get_forge_start_time_for_oil_2_plastic.read(sender_address)
     if last_forge_time == 0:
@@ -289,7 +289,7 @@ func craft_oil_2_plastic{
     let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
-        ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
+        ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
         get_forge_start_time_for_oil_2_plastic.write(owner=sender_address,value=0)
         return()
     else:
@@ -306,7 +306,7 @@ func craft_plasticAndSteel_2_computer{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
 
     let (sender_array : felt*) = alloc()
     assert [sender_array] = sender_address
@@ -316,7 +316,7 @@ func craft_plasticAndSteel_2_computer{
     assert [uint256_array] = Uint256(5,0)
     assert [uint256_array + 2] = Uint256(4,0)
     
-    let (_,account_from_balances) = ICraftMaterial.balance_of_batch(craft_material_address,
+    let (_,account_from_balances) = ICraftedMaterial.balance_of_batch(crafted_material_address,
         owners_len=2,owners=sender_array, tokens_id_len=2,tokens_id=uint256_array)
     assert_nn_le(2,account_from_balances[0])
     assert_nn_le(1,account_from_balances[1])
@@ -325,8 +325,8 @@ func craft_plasticAndSteel_2_computer{
     assert [felt_array] = 2
     assert [felt_array + 1] = 1
     
-    ICraftMaterial._burn_batch(craft_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(6,0), amount=1)
+    ICraftedMaterial._burn_batch(crafted_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(6,0), amount=1)
     return ()
 end
 
@@ -339,14 +339,14 @@ func craft_computer_2_electronicsStore{
     alloc_locals
     let (local sender_address) = get_caller_address()
     # Check user has enough funds.
-    let (craft_material_address) = _craft_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
 
-    let (account_from_balance) = ICraftMaterial.balance_of(craft_material_address,
+    let (account_from_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(6,0))
     assert_nn_le(4,account_from_balance)
 
-    ICraftMaterial._burn(craft_material_address,_from =sender_address, token_id = Uint256(6,0), amount=4)
-    ICraftMaterial._mint(craft_material_address,to=sender_address, token_id=Uint256(7,0), amount=1)
+    ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(6,0), amount=4)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(7,0), amount=1)
     return ()
 end
 
@@ -413,21 +413,21 @@ func check_elapsed_forge_time_oil_2_plastic{
 end 
 
 @view
-func daily_material_address{
+func primitive_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _daily_material_address.read()
+    let (res) = _primitive_material_address.read()
     return (res)
 end
 
 @view
-func craft_material_address{
+func crafted_material_address{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
     range_check_ptr
   }() -> (res : felt):
-    let (res) = _craft_material_address.read()
+    let (res) = _crafted_material_address.read()
     return (res)
 end
