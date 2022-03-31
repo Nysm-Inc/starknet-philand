@@ -1,5 +1,4 @@
 %lang starknet
-%builtins pedersen range_check bitwise
 
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import (HashBuiltin,
@@ -8,6 +7,7 @@ from starkware.cairo.common.math import (
     assert_le,
     assert_not_equal,
     split_felt,
+    unsigned_div_rem
 )
 from starkware.cairo.common.hash_state import (hash_init,
     hash_update, HashState)
@@ -15,18 +15,25 @@ from starkware.starknet.common.syscalls import (call_contract,get_block_number,
     get_caller_address,get_block_timestamp,get_contract_address)
 
 from starkware.cairo.common.math_cmp import (is_nn_le,is_nn,is_le, is_in_range)
-from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.uint256 import (Uint256, uint256_add, uint256_sub, uint256_shl, uint256_lt, uint256_unsigned_div_rem)
 
 from contracts.l2.token.IERC20 import IERC20
 from contracts.l2.utils.safemath import (
     uint256_checked_add,
     uint256_checked_sub_le,
-    uint256_checked_div_rem
+    uint256_checked_div_rem,
+    uint256_checked_mul
 ) 
+from starkware.cairo.common.bitwise import bitwise_and
 
 from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
 from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
 
+from contracts.l2.lib.keccak import keccak256
+from contracts.l2.lib.swap_endianness import swap_endianness_64
+
+const TOP = 0xffffffffffffffff0000000000000000
+const BOTTOM = 0xffffffffffffffff
 
 @storage_var
 func _last_rnd()  -> (res : felt):
@@ -81,6 +88,8 @@ func _treasury_address()  -> (res : felt):
 end
 
 
+
+
 ##### Constants #####
 # Width of the simulation grid.
 
@@ -121,37 +130,23 @@ func get_next_rnd{syscall_ptr : felt*,
     _last_rnd.write(rnd)
     return (rnd)
 end
-# 
-# @external
-# func regist_owner{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#     owner : felt
-#     ):
-#     alloc_locals
-#     let (local update_time) = get_block_timestamp()
-
-#     get_last_login_time.write(owner,update_time)
-#     return ()
-# end
-
 
 func _start_mint{
     syscall_ptr : felt*,
     pedersen_ptr : HashBuiltin*,
+    bitwise_ptr : BitwiseBuiltin*,
     range_check_ptr}(
     primitive_material_address: felt, owner : felt, len : felt):
-    
+    alloc_locals
     if len == 0:
         return ()
     end
     let (rnd)=get_next_rnd()
-    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
     
+    let (flg_soil) = is_in_range(rem.low, 0,30)
     # soil
-    if rem.low == 0:
+    if flg_soil == 1:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -159,9 +154,12 @@ func _start_mint{
         len=len - 1,
         )
     end
-
-    # oil
-    if rem.low == 1:
+    let (local currentBlock) = get_block_number()
+    let (cb) = felt_to_uint256(currentBlock)
+    let (oil_random) = random(cb,Uint256(30,0),Uint256(60,0))
+        # oil
+    let (flg_oil) = is_in_range(rem.low, 30,oil_random.low)
+    if flg_oil == 1:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -170,8 +168,10 @@ func _start_mint{
         )
     end
 
+    let (seed_random) = random(cb,oil_random,Uint256(90,0))
+    let (flg_seed) = is_in_range(rem.low, oil_random.low,seed_random.low)
     # seed
-    if rem.low == 2:
+    if flg_seed == 1:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -180,8 +180,9 @@ func _start_mint{
         )
     end
 
+    let (flg_iron) = is_in_range(rem.low, seed_random.low,100)
     #  iron
-    if rem.low == 3:
+    if flg_iron == 1:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -200,6 +201,7 @@ end
 func get_start_reward{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr
     }(
     owner : felt,
@@ -221,6 +223,7 @@ end
 func get_reward_with_fee{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
+        bitwise_ptr : BitwiseBuiltin*,
         range_check_ptr
     }(
     owner : felt,
@@ -238,38 +241,47 @@ func get_reward_with_fee{
         treasurey_address,
         fee,
     )
+    let (local primitive_material_address) =  _primitive_material_address.read()
     if check == 1:
         let (update_time) = get_block_timestamp()
-        let (local primitive_material_address) =  _primitive_material_address.read()
         get_last_login_time.write(owner,update_time)
-        let (rnd)=get_next_rnd()
-        let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
 
+        let (rnd)=get_next_rnd()
+        let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
+        let (local currentBlock) = get_block_number()
+        let (flg_soil) = is_in_range(rem.low, 0,30)
         # soil
-        if rem.low == 0:
+        if flg_soil == 1:
             IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
             return ()
         end
-
+        
+        let (cb) = felt_to_uint256(currentBlock)
+        let (oil_random) = random(cb,Uint256(30,0),Uint256(60,0))
         # oil
-        if rem.low == 1:
+        let (flg_oil) = is_in_range(rem.low, 30,oil_random.low)
+        if flg_oil == 1:
             IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
             return ()
         end
 
+        let (seed_random) = random(cb,oil_random,Uint256(90,0))
+        let (flg_seed) = is_in_range(rem.low, oil_random.low,seed_random.low)
         # seed
-        if rem.low == 2:
+        if flg_seed == 1:
             IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
             return ()
         end
 
+        let (flg_iron) = is_in_range(rem.low, seed_random.low,100)
         #  iron
-        if rem.low == 3:
+        if flg_iron == 1:
             IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
             return ()
         end
         return ()
     else:
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
         return ()
     end
 end
@@ -609,6 +621,75 @@ func _recalc_crystal_parcent{
         return (new_parcent)
     end
 end 
+
+func random_seed_shift_min_max{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        seed : Uint256, shift : felt, min : felt, max : felt) -> (low : felt):
+    let (shifted_seed) = uint256_shl(seed, Uint256(low=shift, high=0))
+    let min_t = Uint256(low=min, high=0)
+    let max_t = Uint256(low=max, high=0)
+    let (rnd) = random(shifted_seed, min_t, max_t)
+    return (rnd.low)
+end
+
+func hash_uint256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(input : Uint256) -> (
+        out : Uint256):
+    alloc_locals
+
+    # TODO: test
+
+    # the input array for keccak256 has to be data split into 64 bit words
+    # so here we build the those parts from two 128 bit words that make up
+    # the Uint256 input; it's just some bit shifting using the stdlib
+
+    let (t0) = bitwise_and(input.high, TOP)
+    let (w0, _) = unsigned_div_rem(t0, BOTTOM)
+    let (w1) = bitwise_and(input.high, BOTTOM)
+
+    let (t2) = bitwise_and(input.low, TOP)
+    let (w2, _) = unsigned_div_rem(t2, BOTTOM)
+    let (w3) = bitwise_and(input.low, BOTTOM)
+
+    let hash_data : felt* = alloc()
+    assert hash_data[0] = w0
+    assert hash_data[1] = w1
+    assert hash_data[2] = w2
+    assert hash_data[3] = w3
+
+    let (keccak_ptr : felt*) = alloc()
+    # four 64-bit words == 256 bits == 32 bytes
+    let (hash) = keccak256{keccak_ptr=keccak_ptr}(hash_data, 32)
+
+    # the output of keccak256 is an array of four 64 bit words in
+    # little endian; to convert this to the return type fo Uint256
+    # we first need to swap the endianness of each word and then
+    # build the low 128 bit and high 128 bit parts of Uint256
+
+    let (p0) = swap_endianness_64(hash[0], 8)
+    let (p1) = swap_endianness_64(hash[1], 8)
+    let (p2) = swap_endianness_64(hash[2], 8)
+    let (p3) = swap_endianness_64(hash[3], 8)
+
+    # (p0 * (1 << 64)) + p1
+    let high = (p0 * 0x10000000000000000) + p1
+    # (p2 * (1 << 64)) + p3
+    let low = (p2 * 0x10000000000000000) + p3
+
+    let rnd : Uint256 = Uint256(low=low, high=high)
+    return (rnd)
+end
+
+@view
+func random{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        input : Uint256, min : Uint256, max : Uint256) -> (out : Uint256):
+    alloc_locals
+
+    let (out) = hash_uint256(input)
+    let (m) = uint256_sub(max, min)
+    let (_, r) = uint256_unsigned_div_rem(out, m)
+    let (out, _) = uint256_add(r, min)
+
+    return (out)
+end
 
 @view
 func primitive_material_address{

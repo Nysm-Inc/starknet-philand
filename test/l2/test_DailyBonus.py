@@ -39,13 +39,7 @@ async def bonus_factory():
 
     primitiveMaterial = await starknet.deploy(
         "contracts/l2/PrimitiveMaterial.cairo",
-        constructor_calldata=[
-            1,
-            4,
-            184555836509371486644019136839411173249852705485729074225653387927518275942,
-            210616560794178717850935920065495060911188822037429046327979330294206130042,
-            187985923959723853589968256655376306670773667376910287781628159691950468714,
-            7565166,
+        constructor_calldata=[account.contract_address
             # int.from_bytes("object".encode("ascii"), 'big'),
             # 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599,
             # int.from_bytes("{id}".encode("ascii"), 'big')
@@ -128,7 +122,7 @@ async def test_get_reward(bonus_factory):
     print("balance")
     print(execution_info.result.res)
 
-    assert sum(execution_info.result.res) == 10
+    assert sum(execution_info.result.res) == 11
 
 
 @pytest.mark.asyncio

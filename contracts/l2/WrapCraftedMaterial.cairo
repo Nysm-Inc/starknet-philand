@@ -44,31 +44,6 @@ end
 func initialized() -> (res : felt):
 end
 
-# struct AssetNamespace:
-#     member a : felt
-# end
-
-# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-# struct AssetReference:
-#     member a : felt
-# end
-
-# ERC1155 returns the same URI for all token types.
-# TokenId will be represented by the substring '{id}' and so stored in a felt
-# Client calling the function must replace the '{id}' substring with the actual token type ID
-# struct TokenId:
-#     member a : felt
-# end
-
-# struct TokenUri:
-#     member asset_namespace : AssetNamespace
-#     member asset_reference : AssetReference
-#     member token_id : TokenId
-# end
-
-# @storage_var
-# func _uri() -> (res: TokenUri):
-# end
 
 #
 # Constructor
@@ -76,37 +51,12 @@ end
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        token_id : felt,
-        token_uri_len : felt,
-        token_uri : felt*):
-
-   # Set uri
-    setTokenURI(token_uri_len, token_uri, Uint256(token_id,0))
-
+        owner : felt):
+    Ownable_initializer(owner)
     return ()
 end
 
-# func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
-#     _uri.write(uri_)
-#     return()
-# end
 
-#
-# Initializer
-#
-
-# @external
-# func initialize_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-#         tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt, amounts : felt*, uri_ : TokenUri):
-#     let (_initialized) = initialized.read()
-#     assert _initialized = 0
-#     initialized.write(1)
-#     let (sender) = get_caller_address()
-#     _mint_batch(sender, tokens_id_len, tokens_id, amounts_len, amounts)
-#     # Set uri
-#     _set_uri(uri_)
-#     return ()
-# end
 
 @external
 func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
@@ -349,6 +299,23 @@ func get_name(token_id : Uint256) -> (name : felt):
     dw 'Plastic'
     dw 'Computer'
     dw 'Electronics Store'
+end
+
+
+#
+# Ownable Externals
+#
+@view
+func getOwner{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}() -> (owner : felt):
+    let (o) = Ownable_get_owner()
+    return (owner=o)
+end
+
+@external
+func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        next_owner : felt):
+    Ownable_transfer_ownership(next_owner)
+    return()
 end
 
 #

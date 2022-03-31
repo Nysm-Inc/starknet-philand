@@ -44,45 +44,14 @@ end
 func initialized() -> (res : felt):
 end
 
-# struct AssetNamespace:
-#     member a : felt
-# end
-
-# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-# struct AssetReference:
-#     member a : felt
-# end
-
-# ERC1155 returns the same URI for all token types.
-# TokenId will be represented by the substring '{id}' and so stored in a felt
-# Client calling the function must replace the '{id}' substring with the actual token type ID
-# struct TokenId:
-#     member a : felt
-# end
-
-# struct TokenUri:
-#     member asset_namespace : AssetNamespace
-#     member asset_reference : AssetReference
-#     member token_id : TokenId
-# end
-
-# @storage_var
-# func _uri() -> (res: TokenUri):
-# end
-
 #
 # Constructor
 #
 
 @constructor
 func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-        token_id : felt,
-        token_uri_len : felt,
-        token_uri : felt*):
-
-   # Set uri
-    setTokenURI(token_uri_len, token_uri, Uint256(token_id,0))
-
+        owner : felt):
+    Ownable_initializer(owner)
     return ()
 end
 
@@ -140,14 +109,6 @@ end
 #
 # Getters
 #
-
-# Returns the same URI for all tokens type ID
-# Client calling the function must replace the {id} substring with the actual token type ID
-# @view
-# func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
-#     let (res) = _uri.read()
-#     return (res)
-# end
 
 @view
 func balance_of{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
@@ -351,6 +312,23 @@ func get_name(token_id : Uint256) -> (name : felt):
     dw 'Crystal'
 end
 
+
+#
+# Ownable Externals
+#
+@view
+func getOwner{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}() -> (owner : felt):
+    let (o) = Ownable_get_owner()
+    return (owner=o)
+end
+
+@external
+func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        next_owner : felt):
+    Ownable_transfer_ownership(next_owner)
+    return()
+end
+
 #
 # Internals
 #
@@ -381,6 +359,32 @@ func ERC1155_Enumerable_token_totalSupply{
     let (tokenSupply) = ERC1155_Enumerable_token_len.read(token_id=token_id)
     return (tokenSupply)
 end
+
+@view
+func ERC1155_Enumerable_token_totalSupply_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        tokens_id_len : felt, tokens_id : Uint256*) -> (
+        res_len : felt, res : felt*):
+    alloc_locals
+    local max = tokens_id_len
+    let (local ret_array : felt*) = alloc()
+    local ret_index = 0
+    ERC1155_Enumerable_token_totalSupply_populate_batch(tokens_id, ret_array, ret_index, max)
+    return (max *2 , ret_array)
+end
+
+func ERC1155_Enumerable_token_totalSupply_populate_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+       tokens_id : Uint256*, rett : felt*, ret_index : felt, max : felt):
+    alloc_locals
+    if ret_index == max:
+        return ()
+    end
+    let (local retval0: Uint256) = ERC1155_Enumerable_token_len.read(token_id=tokens_id[0])
+    rett[0] = retval0.low
+    rett[1] = retval0.high
+    ERC1155_Enumerable_token_totalSupply_populate_batch(tokens_id + 2, rett + 2, ret_index + 1, max)
+    return ()
+end
+
 
 func _add_token_enumeration{
         pedersen_ptr: HashBuiltin*, 
@@ -439,5 +443,30 @@ func _add_token_burn_enumeration{
     let (burn_token: Uint256) = ERC1155_Enumerable_token_burn_len.read(token_id)    
     let (local new_burn_token: Uint256, _) = uint256_add(burn_token, Uint256(amount, 0))
     ERC1155_Enumerable_token_burn_len.write(token_id=token_id,value=new_burn_token)
+    return ()
+end
+
+@view
+func ERC1155_Enumerable_token_burnCounter_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        tokens_id_len : felt, tokens_id : Uint256*) -> (
+        res_len : felt, res : felt*):
+    alloc_locals
+    local max = tokens_id_len
+    let (local ret_array : felt*) = alloc()
+    local ret_index = 0
+    ERC1155_Enumerable_token_burn_populate_batch(tokens_id, ret_array, ret_index, max)
+    return (max *2, ret_array)
+end
+
+func ERC1155_Enumerable_token_burn_populate_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+       tokens_id : Uint256*, rett : felt*, ret_index : felt, max : felt):
+    alloc_locals
+    if ret_index == max:
+        return ()
+    end
+    let (local retval0: Uint256) = ERC1155_Enumerable_token_burn_len.read(token_id=tokens_id[0])
+    rett[0] = retval0.low
+    rett[1] = retval0.high
+    ERC1155_Enumerable_token_burn_populate_batch(tokens_id + 2, rett + 2, ret_index + 1, max)
     return ()
 end

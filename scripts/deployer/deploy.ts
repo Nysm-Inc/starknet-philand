@@ -147,8 +147,7 @@ export async function deployBridge(): Promise<void> {
     "PrimitiveMaterial",
     BLOCK_NUMBER,
     {
-      token_id : 1,
-      token_uri:token_uri
+      owner: asDec(deployer.address)
     }
   );
   
@@ -157,8 +156,7 @@ export async function deployBridge(): Promise<void> {
     "CraftedMaterial",
     BLOCK_NUMBER,
     {
-      token_id : 1,
-     token_uri:token_uri
+      owner: asDec(deployer.address)
     }
   );
   const l2WrapPrimitiveMaterial:StarknetContract = await deployL2(
@@ -166,8 +164,7 @@ export async function deployBridge(): Promise<void> {
     "WrapPrimitiveMaterial",
     BLOCK_NUMBER,
     {
-      token_id : 1,
-     token_uri:token_uri
+      owner: asDec(deployer.address)
     }
   );
   const l2WrapCraftedMaterial:StarknetContract = await deployL2(
@@ -175,8 +172,7 @@ export async function deployBridge(): Promise<void> {
     "WrapCraftedMaterial",
     BLOCK_NUMBER,
     {
-      token_id : 1,
-     token_uri:token_uri
+      owner: asDec(deployer.address)
     }
   );
   
@@ -200,7 +196,7 @@ export async function deployBridge(): Promise<void> {
     "Object",
     BLOCK_NUMBER,
     {
-     uri_:tokenUri
+    owner: asDec(deployer.address)
     }
   );
   

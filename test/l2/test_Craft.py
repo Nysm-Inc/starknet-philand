@@ -34,26 +34,12 @@ async def craft_factory():
 
     primitiveMaterial = await starknet.deploy(
         "contracts/l2/PrimitiveMaterial.cairo",
-        constructor_calldata=[
-            1,
-            4,
-            184555836509371486644019136839411173249852705485729074225653387927518275942,
-            210616560794178717850935920065495060911188822037429046327979330294206130042,
-            187985923959723853589968256655376306670773667376910287781628159691950468714,
-            7565166,
-        ]
+        constructor_calldata=[account.contract_address]
     )
 
     craftedMaterial = await starknet.deploy(
         "contracts/l2/craftedMaterial.cairo",
-        constructor_calldata=[
-            1,
-            4,
-            184555836509371486644019136839411173249852705485729074225653387927518275942,
-            210616560794178717850935920065495060911188822037429046327979330294206130042,
-            187985923959723853589968256655376306670773667376910287781628159691950468714,
-            7565166,
-        ]
+        constructor_calldata=[account.contract_address]
     )
 
     craft = await starknet.deploy(

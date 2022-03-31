@@ -21,7 +21,7 @@ from contracts.l2.utils.constants import FALSE, TRUE
 #######################
 
 
-##### Interfacess #####
+##### Interfaces #####
 from contracts.l2.interfaces.IObject import IObject 
 
 

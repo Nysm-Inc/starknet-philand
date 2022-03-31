@@ -75,11 +75,8 @@ end
 #
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-
-   # Set uri
-    # setTokenURI(token_uri_len, token_uri, Uint256(token_id,0))
-
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr} (owner : felt):
+    Ownable_initializer(owner)
     return ()
 end
 
@@ -357,6 +354,22 @@ func set_size{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}
                         )
      _size.write(token_id=token_id,value=size)
     return ()
+end
+
+#
+# Ownable Externals
+#
+@view
+func getOwner{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}() -> (owner : felt):
+    let (o) = Ownable_get_owner()
+    return (owner=o)
+end
+
+@external
+func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        next_owner : felt):
+    Ownable_transfer_ownership(next_owner)
+    return()
 end
 
 #

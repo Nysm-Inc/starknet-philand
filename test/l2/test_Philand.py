@@ -61,10 +61,7 @@ async def object_factory(account_factory):
     # Deploy
     print(f'Deploying object...')
     object = await starknet.deploy(source=OBJECT_FILE,
-                                   constructor_calldata=[
-                                       int.from_bytes("object".encode(
-                                           "ascii"), 'big'), 0x056bfe4139dd88d0a9ff44e3166cb781e002f052b4884e6f56e51b11bebee599, int.from_bytes("{id}".encode("ascii"), 'big')
-                                   ])
+                                   constructor_calldata=[accounts[0].contract_address])
     print(f'object is: {hex(object.contract_address)}')
     return starknet, object, accounts
 

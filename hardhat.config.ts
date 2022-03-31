@@ -92,6 +92,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
     starknetSources: "./contracts",
     starknetArtifacts: "./starknet-artifacts",
+    cairoPaths: ["./node_modules/@influenceth/cairo-math-64x61"]
   },
   solidity: {
     compilers: [
