@@ -88,7 +88,11 @@ func _treasury_address()  -> (res : felt):
 end
 
 
-
+##### Event #####
+@event
+func meta_mint_event(
+        owner : felt, last_login_time : felt):
+end
 
 ##### Constants #####
 # Width of the simulation grid.
@@ -141,12 +145,12 @@ func _start_mint{
     if len == 0:
         return ()
     end
-    let (rnd)=get_next_rnd()
-    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(100,0))
     
-    let (flg_soil) = is_in_range(rem.low, 0,30)
+    let (rnd)=get_next_rnd()
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
+    
     # soil
-    if flg_soil == 1:
+    if rem.low == 0:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -154,12 +158,9 @@ func _start_mint{
         len=len - 1,
         )
     end
-    let (local currentBlock) = get_block_number()
-    let (cb) = felt_to_uint256(currentBlock)
-    let (oil_random) = random(cb,Uint256(30,0),Uint256(60,0))
-        # oil
-    let (flg_oil) = is_in_range(rem.low, 30,oil_random.low)
-    if flg_oil == 1:
+
+    # oil
+    if rem.low == 1:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -168,10 +169,8 @@ func _start_mint{
         )
     end
 
-    let (seed_random) = random(cb,oil_random,Uint256(90,0))
-    let (flg_seed) = is_in_range(rem.low, oil_random.low,seed_random.low)
     # seed
-    if flg_seed == 1:
+    if rem.low == 2:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -180,9 +179,8 @@ func _start_mint{
         )
     end
 
-    let (flg_iron) = is_in_range(rem.low, seed_random.low,100)
     #  iron
-    if flg_iron == 1:
+    if rem.low == 3:
         IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
         return _start_mint(
         primitive_material_address=primitive_material_address,
@@ -195,6 +193,7 @@ func _start_mint{
         owner=owner,
         len=len - 1,
         )
+
 end
 
 @external
@@ -209,6 +208,7 @@ func get_start_reward{
     alloc_locals
     let (local last_login_time) = get_last_login_time.read(owner)
     let (local primitive_material_address) =  _primitive_material_address.read()
+    meta_mint_event.emit(owner=owner,last_login_time=last_login_time)
     if last_login_time == 0:
         let (local update_time) = get_block_timestamp()
         get_last_login_time.write(owner,update_time)
