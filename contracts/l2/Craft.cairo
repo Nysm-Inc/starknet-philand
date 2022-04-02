@@ -164,7 +164,7 @@ func craft_soilAndSeed_2_wood{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 100)
+    let (local flg) = is_nn(elapsed_time - 86400)
     
     if flg ==1:
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
@@ -237,7 +237,7 @@ func craft_iron_2_steel{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 100)
+    let (local flg) = is_nn(elapsed_time - 86400)
     
     if flg ==1:
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
@@ -286,7 +286,7 @@ func craft_oil_2_plastic{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 100)
+    let (local flg) = is_nn(elapsed_time - 86400)
     
     if flg ==1:
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)

@@ -18,7 +18,6 @@ ENS_NAME_INT = 53542915602822616802051402289344365889699039367545482056111727106
 def event_loop():
     return asyncio.new_event_loop()
 
-
 @pytest.fixture(scope='module')
 async def craft_factory():
     starknet = await Starknet.empty()

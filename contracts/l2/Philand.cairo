@@ -444,9 +444,6 @@ func claim_l1_object{
     return ()
 end
 
-
-
-
 @l1_handler
 func claim_l2_object{
         syscall_ptr : felt*,
