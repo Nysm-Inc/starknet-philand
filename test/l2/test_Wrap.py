@@ -24,11 +24,11 @@ def event_loop():
 async def wrap_factory():
     starknet = await Starknet.empty()
     account = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/openzeppelin/account/Account.cairo",
         constructor_calldata=[signer.public_key]
     )
     operator = await starknet.deploy(
-        "contracts/l2/Account.cairo",
+        "contracts/openzeppelin/account/Account.cairo",
         constructor_calldata=[other.public_key]
     )
 

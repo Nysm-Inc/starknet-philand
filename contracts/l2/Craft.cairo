@@ -18,6 +18,12 @@ from starkware.cairo.common.uint256 import Uint256
 from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
 from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial
 
+##### Description #####
+#
+# Craft contract
+#
+#######################
+
 @storage_var
 func get_forge_start_time_for_soilAndSeed_2_wood(
         owner : felt,

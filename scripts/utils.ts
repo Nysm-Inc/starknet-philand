@@ -3,7 +3,7 @@ import fs from "fs";
 import { StarknetContract } from "hardhat/types/runtime";
 import { ec, hash } from "starknet";
 const { getKeyPair, getStarkKey, sign, verify } = ec;
-const { hashMessage } = hash;
+const { hashMessage } : any= hash;
 import { InvokeOptions } from "@shardlabs/starknet-hardhat-plugin/dist/types";
 import type { KeyPair, Signature } from "starknet";
 

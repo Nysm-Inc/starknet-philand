@@ -20,7 +20,7 @@ TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
 L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 
-ACCOUNT_FILE = os.path.join(L2_CONTRACTS_DIR, "Account.cairo")
+ACCOUNT_FILE = "contracts/openzeppelin/account/Account.cairo"
 OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
 PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
 ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032

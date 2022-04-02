@@ -6,17 +6,17 @@ from starkware.cairo.common.signature import verify_ecdsa_signature
 from starkware.cairo.common.cairo_builtins import HashBuiltin, SignatureBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.memcpy import memcpy
-from starkware.starknet.common.syscalls import call_contract, get_caller_address, get_tx_info
+from starkware.starknet.common.syscalls import (call_contract, get_caller_address, get_tx_info)
 from starkware.cairo.common.hash_state import (
     hash_init, hash_finalize, hash_update, hash_update_single
 )
 
-from contracts.l2.openzeppelin.introspection.ERC165 import (
+from contracts.openzeppelin.introspection.ERC165 import (
     ERC165_supports_interface, 
     ERC165_register_interface
 )
 
-from contracts.l2.utils.constants import PREFIX_TRANSACTION 
+from contracts.openzeppelin.utils.constants import PREFIX_TRANSACTION 
 
 #
 # Structs

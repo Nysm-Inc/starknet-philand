@@ -62,12 +62,12 @@ export async function deployDeployer() {
 
   const keyPair:any = await genAndSaveKeyPair();
   const publicKey = BigInt(getStarkKey(keyPair));
-
+  // const publicKey = getStarkKey(keyPair);
   const deployer = await deployL2(
     STARKNET_NETWORK,
     "Account",
     BLOCK_NUMBER,
-    { _public_key: publicKey },
+    { public_key: publicKey },
     "account-deployer"
   );
 

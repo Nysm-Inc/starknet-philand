@@ -2,14 +2,16 @@
 This is starknet Metamaterial/Phi test drepository
 
 ## What is MetaMaterial
+A protocol that allows game players to transfer any items between games.
+We made many kinds NFTs with string data, which works ad a material, avatar, weapon,...
+game players can convert these NFTs to use in various game.
 
 ## What is Phi
 
-What is Phi?
 Phi is a protocol for creating an open and fair Metaverse. While Sandbox adopted the concept of NFT into the metaverse, it hasn't adopted Blockchain's fairness, openness, and network effects.
 So we are trying to adopt these blockchain features into Metaverse. Phi is a completely new bottom-up Metaverse that everyone can participate in, extend, connect, and edit. Phi adopts Internet mechanisms to the Metaverse, creating a standard of value that is independent of the size and location of the land and stimulating user creativity.
-
 ## Demo link
+We have two Demo
 ### Metamaterial
 <https://meta-material-frontend.vercel.app/>
 

@@ -13,6 +13,7 @@
     "lint:fix": "yarn lint --fix",
     "compile:l1": "hardhat compile",
     "compile:l2": "hardhat starknet-compile",
+    "compile:l2_account": "hardhat starknet-compile 'contracts/openzeppelin/account' --account-contract",
     "compile": "yarn compile:l1 && yarn compile:l2",
     "chain:l1": "hardhat node",
     "chain:l2": "starknet-devnet",
@@ -47,6 +48,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.6",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@shardlabs/starknet-hardhat-plugin": "^0.5.2",
     "@types/chai": "^4.2.21",
     "@types/elliptic": "^6.4.14",
     "@types/fs-extra": "^9.0.12",
@@ -90,7 +92,6 @@
     "@nomiclabs/ethereumjs-vm": "^4.2.2",
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.5.0",
-    "@shardlabs/starknet-hardhat-plugin": "^0.4.1",
     "@types/yargs": "^17.0.7",
     "eslint-config-typestrict": "^1.0.2",
     "eslint-plugin-no-only-tests": "^2.6.0",
@@ -100,7 +101,7 @@
     "ethereumjs-utils": "^5.2.5",
     "lodash": "^4.17.21",
     "nft.storage": "^6.0.0",
-    "starknet": "^3.1.0",
+    "starknet": "^3.5.1",
     "web3": "^1.7.0",
     "yargs": "^17.3.0"
   }
