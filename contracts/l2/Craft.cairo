@@ -350,6 +350,127 @@ func craft_computer_2_electronicsStore{
     return ()
 end
 
+
+@external
+func craft_soil_2_redtile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(0,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(8,0), amount=1)
+    return ()
+end
+
+@external
+func craft_oil_2_bluetile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(1,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(1,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(9,0), amount=1)
+    return ()
+end
+
+@external
+func craft_seed_2_greentile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(2,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(2,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(10,0), amount=1)
+    return ()
+end
+
+@external
+func craft_iron_2_yeloowtile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(3,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(3,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(11,0), amount=1)
+    return ()
+end
+
+@external
+func craft_soil_2_blacktile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(0,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(12,0), amount=1)
+    return ()
+end
+
+@external
+func craft_oil_2_whitetile{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }():
+    alloc_locals
+    # Check user has enough funds.
+    let (local sender_address) = get_caller_address()
+    let (primitive_material_address) = _primitive_material_address.read()
+    let (crafted_material_address) = _crafted_material_address.read()
+    let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
+        owner=sender_address, token_id=Uint256(1,0))
+    assert_nn_le(1,account_from_balance)
+
+    IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(1,0), amount=1)
+    ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(13,0), amount=1)
+    return ()
+end
+
 @view
 func check_elapsed_forge_time_soilAndSeed_2_wood{
         syscall_ptr : felt*,

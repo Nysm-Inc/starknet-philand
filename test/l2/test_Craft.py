@@ -246,3 +246,135 @@ async def test_craft_computer_2_electronicsStore(craft_factory):
 
     execution_info = await craftedMaterial.balance_of(account.contract_address, (6, 0)).call()
     assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_soil_2_redtile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (8, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_soil_2_redtile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (8, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_oil_2_bluetile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (9, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 1, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_oil_2_bluetile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (9, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_seed_2_greentile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (10, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 2, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_seed_2_greentile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (10, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (2, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_iron_2_yeloowtile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 2
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (11, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 3, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 3
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_iron_2_yeloowtile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (11, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (3, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_soil_2_blacktile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (12, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 0, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_soil_2_blacktile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (12, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (0, 0)).call()
+    assert execution_info.result.res == 0
+
+
+@pytest.mark.asyncio
+async def test_craft_oil_2_whitetile(craft_factory):
+    _, primitiveMaterial, craftedMaterial, craft, account, _ = craft_factory
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
+
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (13, 0)).call()
+    assert execution_info.result.res == 0
+
+    await signer.send_transaction(account, primitiveMaterial.contract_address, '_mint', [account.contract_address, 1, 0, 1])
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 1
+
+    await signer.send_transaction(account, craft.contract_address, 'craft_oil_2_whitetile', [])
+    execution_info = await craftedMaterial.balance_of(account.contract_address, (13, 0)).call()
+    assert execution_info.result.res == 1
+
+    execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
+    assert execution_info.result.res == 0
