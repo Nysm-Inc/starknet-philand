@@ -125,20 +125,3 @@ async def test_get_reward(bonus_factory):
     assert sum(execution_info.result.res) == 11
 
 
-@pytest.mark.asyncio
-async def test_get_reward2(bonus_factory):
-    _, primitiveMaterial, bonus, account, _ = bonus_factory
-
-    accounts = [account.contract_address, account.contract_address, account.contract_address,
-                account.contract_address]
-    token_ids = [(0, 0), (5, 0), (6, 0), (7, 0)]
-    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
-    # assert execution_info.result.res == [0, 0, 0, 0]
-
-    await signer.send_transaction(account, bonus.contract_address, 'get_reward2', [])
-    execution_info = await primitiveMaterial.balance_of_batch(accounts, token_ids).call()
-
-    print("balance")
-    print(execution_info.result.res)
-
-    # assert sum(execution_info.result.res) == 1

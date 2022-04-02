@@ -44,32 +44,13 @@ end
 func initialized() -> (res : felt):
 end
 
-# struct AssetNamespace:
-#     member a : felt
-# end
+@storage_var
+func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
+end
 
-# Contract Address on L1. An address is represented using 20 bytes. Those bytes are written in the `felt`.
-# struct AssetReference:
-#     member a : felt
-# end
-
-# ERC1155 returns the same URI for all token types.
-# TokenId will be represented by the substring '{id}' and so stored in a felt
-# Client calling the function must replace the '{id}' substring with the actual token type ID
-# struct TokenId:
-#     member a : felt
-# end
-
-# struct TokenUri:
-#     member asset_namespace : AssetNamespace
-#     member asset_reference : AssetReference
-#     member token_id : TokenId
-# end
-
-# @storage_var
-# func _uri() -> (res: TokenUri):
-# end
-
+@storage_var
+func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
+end
 #
 # Constructor
 #
@@ -341,16 +322,8 @@ func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_c
     return()
 end
 
-#
-# Internals
-#
-@storage_var
-func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
-end
 
-@storage_var
-func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
-end
+
 
 @view
 func ERC1155_Enumerable_totalSupply{
@@ -371,6 +344,10 @@ func ERC1155_Enumerable_token_totalSupply{
     let (tokenSupply) = ERC1155_Enumerable_token_len.read(token_id=token_id)
     return (tokenSupply)
 end
+
+#
+# Internals
+#
 
 func _add_token_enumeration{
         pedersen_ptr: HashBuiltin*, 

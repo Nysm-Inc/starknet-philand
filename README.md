@@ -11,10 +11,20 @@ game players can convert these NFTs to use in various game.
 Phi is a protocol for creating an open and fair Metaverse. While Sandbox adopted the concept of NFT into the metaverse, it hasn't adopted Blockchain's fairness, openness, and network effects.
 So we are trying to adopt these blockchain features into Metaverse. Phi is a completely new bottom-up Metaverse that everyone can participate in, extend, connect, and edit. Phi adopts Internet mechanisms to the Metaverse, creating a standard of value that is independent of the size and location of the land and stimulating user creativity.
 ## Demo link
-We have two Demo
+We have two Demo App
 ### Metamaterial
 <https://meta-material-frontend.vercel.app/>
 
+    - Create ERC1155
+        -  player can mint/burn 10 material at 1 time
+        -  static data for token supply and burn
+    - Random minting (token_id 0,1,2,3)with pseudorandom number
+    - Allow players to mint 1 Material 1Day with checking block timestamp
+    - Metadata is uploaded on arwearve
+    - Defi-like NFT usages with ERC1155
+        NFT swap/wrap
+    - Export wrapped NFTs to Other Dapps
+        => Case study is Phi
 ### Phi
 <https://next-sandbox-nine.vercel.app/>
 

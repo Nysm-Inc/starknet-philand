@@ -14,6 +14,7 @@ from starkware.starknet.common.syscalls import (call_contract,
 from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 from contracts.l2.utils.constants import FALSE, TRUE
+
 ##### Description #####
 #
 # Management of philand's map contract
@@ -26,7 +27,6 @@ from contracts.l2.interfaces.IPhiObject import IPhiObject
 
 
 ##### Constants #####
-# Width of the simulation grid.
 
 
 ##### Event #####

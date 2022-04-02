@@ -14,6 +14,7 @@ from starkware.starknet.common.syscalls import (call_contract,
 from starkware.cairo.common.uint256 import (Uint256, uint256_le)
 
 from contracts.l2.utils.constants import FALSE, TRUE
+
 ##### Description #####
 #
 # Management of philand's map contract
@@ -25,8 +26,6 @@ from contracts.l2.utils.constants import FALSE, TRUE
 from contracts.l2.interfaces.IObject import IObject 
 
 
-##### Constants #####
-# Width of the simulation grid.
 
 
 ##### Event #####
@@ -61,7 +60,7 @@ struct SettingEnum:
 end
 
 ##### Storage #####
-# For a given game at a given state.
+
 @storage_var
 func parcel(
         user : Uint256,
@@ -138,7 +137,10 @@ func l1_philand_address{
     return (res)
 end
 
-##################
+#
+# Constructor
+#
+
 @constructor
 func constructor{
         syscall_ptr : felt*,
@@ -147,8 +149,6 @@ func constructor{
     }(
     object_address : felt,
     l1_philand_address : felt,
-    token_uri_len : felt,
-    token_uri : felt*
     ):
     alloc_locals
 
@@ -157,7 +157,6 @@ func constructor{
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
-    create_l2_object(contract_address=object_address,token_id=Uint256(1,0),token_uri_len=token_uri_len, token_uri=token_uri,)
     return ()
 end
 
@@ -390,21 +389,6 @@ func claim_starter_object{
         user : Uint256,
         receive_address : felt
     ):
-    # check valid recipient
-    # with_attr error_message("Object/invalid-recipient"):
-    # #   assert_not_zero(account)
-    #   let (caller_address) = get_caller_address()
-    #   assert_not_zero(caller_address)
-    # end
-
-    # # todo already claimed
-    # with_attr error_message("Object/invalid-nft"):
-    # #   assert_not_zero(num)
-    # end
-
-    # with_attr error_message("Object/invalid-token_id"):
-    #   let (nftuser) = IObject.ownerOf(token_id)
-    # end
     alloc_locals
     let (local object) = _object_address.read()
     let (felt_array : felt*) = alloc()
@@ -459,7 +443,6 @@ func claim_l2_object{
     ):
     alloc_locals
 
-    # todo setuser=>L2addresss
 
     let (object_address) = _object_address.read()
     let newTokendata = Tokendata(
@@ -786,7 +769,6 @@ func view_number_of_philand{
     return (res)
 end
 
-# should change view =>external
 
 #############################
 ##### Private functions #####

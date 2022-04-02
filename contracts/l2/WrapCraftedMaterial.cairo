@@ -44,7 +44,13 @@ end
 func initialized() -> (res : felt):
 end
 
+@storage_var
+func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
+end
 
+@storage_var
+func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
+end
 #
 # Constructor
 #
@@ -90,14 +96,6 @@ end
 #
 # Getters
 #
-
-# Returns the same URI for all tokens type ID
-# Client calling the function must replace the {id} substring with the actual token type ID
-# @view
-# func uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (res : TokenUri):
-#     let (res) = _uri.read()
-#     return (res)
-# end
 
 @view
 func balance_of{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
@@ -318,16 +316,8 @@ func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_c
     return()
 end
 
-#
-# Internals
-#
-@storage_var
-func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
-end
 
-@storage_var
-func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
-end
+
 
 @view
 func ERC1155_Enumerable_totalSupply{
@@ -349,6 +339,9 @@ func ERC1155_Enumerable_token_totalSupply{
     return (tokenSupply)
 end
 
+#
+# Internals
+#
 func _add_token_enumeration{
         pedersen_ptr: HashBuiltin*, 
         syscall_ptr: felt*, 

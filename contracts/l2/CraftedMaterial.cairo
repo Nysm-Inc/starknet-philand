@@ -44,6 +44,18 @@ end
 func initialized() -> (res : felt):
 end
 
+@storage_var
+func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
+end
+
+@storage_var
+func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
+end
+
+@storage_var
+func ERC1155_Enumerable_token_burn_len(token_id: Uint256) -> (res: Uint256):
+end
+
 #
 # Constructor
 #
@@ -292,6 +304,12 @@ func get_name(token_id : Uint256) -> (name : felt):
     dw 'Plastic'
     dw 'Computer'
     dw 'Electronics Store'
+    dw 'Red Tile'
+    dw 'Blue Tile'
+    dw 'Green Tile'
+    dw 'Yellow Tile'
+    dw 'Black Tile'
+    dw 'White Tile'
 end
 
 #
@@ -311,15 +329,9 @@ func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_c
 end
 
 #
-# Internals
+# Statistical methods
 #
-@storage_var
-func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
-end
 
-@storage_var
-func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
-end
 
 @view
 func ERC1155_Enumerable_totalSupply{
@@ -399,10 +411,6 @@ func _remove_token_enumeration{
     return ()
 end
 
-
-@storage_var
-func ERC1155_Enumerable_token_burn_len(token_id: Uint256) -> (res: Uint256):
-end
 
 @view
 func ERC1155_Enumerable_token_burnCounter{

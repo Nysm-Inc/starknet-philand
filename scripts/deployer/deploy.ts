@@ -14,27 +14,10 @@ import { writeFileSync } from "fs";
 import hre from "hardhat";
 import { isEmpty } from "lodash";
 import { ec, KeyPair } from "starknet";
-import web3 from "web3";
 const { genKeyPair, getStarkKey } = ec;
 
 import { getAddress, save, Signer } from "../utils";
 
-const tokenUri: any= {};
-console.log(BigInt(web3.utils.asciiToHex('object')))
-tokenUri.asset_namespace= parseFixed("122468482507636")
-console.log(BigInt(web3.utils.asciiToHex('philand')))
-tokenUri.asset_reference=parseFixed("1639999390772836")
-console.log(BigInt(web3.utils.asciiToHex("{id}")))
-tokenUri.token_id=parseFixed("2070504573")
-console.log(tokenUri)
-const token_uri=[parseFixed("184555836509371486644019136839411173249852705485729074225653387927518275942"), parseFixed("181049748096098777417068739115489273933273585381715238407159336295106703204"), parseFixed("209332782685246350879226324629480826682111707209325714458032651979985071722"), 7565166]
-// const token_uri=stringToFeltArray("184555836509371486644019136839411173249852705485729074225653387927518275942,181049748096098777417068739115489273933273585381715238407159336295106703204,209332782685246350879226324629480826682111707209325714458032651979985071722,7565166")
-
-// console.log(...token_uri)
-// console.log(token_uri.length)
-// console.log(
-//   `STARKNET_NETWORK="alpha-goerli" starknet deploy --inputs ${l2Object.address} ${Message.address} ${token_uri.length} ${token_uri[0]} ${token_uri[1]} ${token_uri[2]} ${token_uri[3]} --contract starknet-artifacts/contracts/l2/Philand.cairo/Philand.json`
-// );
 
 async function genAndSaveKeyPair(): Promise<KeyPair> {
   const keyPair:any = genKeyPair();
@@ -188,8 +171,6 @@ export async function deployBridge(): Promise<void> {
      wrap_crafted_material_address : asDec(l2WrapCraftedMaterial.address),
     }
   );
-
- 
  
   const l2Object:StarknetContract = await deployL2(
     STARKNET_NETWORK,
@@ -200,7 +181,6 @@ export async function deployBridge(): Promise<void> {
     }
   );
   
-
   const l2DailyBonus:StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "DailyBonus",
@@ -228,19 +208,10 @@ export async function deployBridge(): Promise<void> {
     {
      object_address : asDec(l2Object.address),
      l1_philand_address : asDec(Message.address),
-    //  token_uri_len : 4,
-     token_uri : token_uri,
+    // //  token_uri_len : 4,
+    //  token_uri : token_uri,
     }
   );
-
-  console.log(asDec(l2PHILAND.address))
-
-  // await l2Signer.sendTransaction(deployer, l2PHILAND, "create_l2_object", [
-  //   asDec(l2Object.address),
-  //   [2,0],
-  //   4,
-  //   token_uri2,
-  // ]);
 
 }
 

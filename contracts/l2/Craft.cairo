@@ -15,14 +15,18 @@ from starkware.cairo.common.math import (unsigned_div_rem, assert_nn,
 from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
 from starkware.cairo.common.uint256 import Uint256
 
-from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
-from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial
 
 ##### Description #####
 #
 # Craft contract
+# - Defi-like NFT usages with ERC1155
+#   NFT swap/wrap
 #
 #######################
+
+##### Interfaces #####
+from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
+from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial
 
 @storage_var
 func get_forge_start_time_for_soilAndSeed_2_wood(
@@ -48,6 +52,8 @@ func get_forge_start_time_for_oil_2_plastic(
     ):
 end
 
+##### Contract Address #####
+
 @storage_var
 func _primitive_material_address() -> (res : felt):
 end
@@ -57,7 +63,7 @@ func _crafted_material_address() -> (res : felt):
 end
 
 ##### Constants #####
-# Width of the simulation grid.
+
 
 @constructor
 func constructor{
@@ -477,6 +483,7 @@ func craft_oil_2_whitetile{
     return ()
 end
 
+##### Elapsed Time Manage Function #####
 @view
 func check_elapsed_forge_time_soilAndSeed_2_wood{
         syscall_ptr : felt*,
@@ -529,7 +536,7 @@ func check_elapsed_forge_time_oil_2_plastic{
     elapsed_time : felt
     ):
     alloc_locals
-    # let (local sender_address) = get_caller_address()
+  
     let (local last_forge_time)= get_forge_start_time_for_oil_2_plastic.read(sender_address)
     if last_forge_time == 0:
         return(0)
@@ -539,6 +546,7 @@ func check_elapsed_forge_time_oil_2_plastic{
     return (elapsed_time)
 end 
 
+##### Contract Address Function #####
 @view
 func primitive_material_address{
     syscall_ptr : felt*,

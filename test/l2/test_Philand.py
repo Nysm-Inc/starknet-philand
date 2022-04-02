@@ -16,7 +16,6 @@ signers = []
 ENS_NAME = "zak3939.eth"
 
 TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
-TOKENURI2 = "https://dweb.link/ipfs/bafyreifw4jmfjiouqtvhxvvaoxe7bbhfi5fkgzjeqt5tpvkrvszcx5n3zy/metadata.json"
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
 L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 
@@ -68,31 +67,23 @@ async def object_factory(account_factory):
 @pytest.fixture(scope='module')
 async def philand_factory(object_factory):
     starknet, object, accounts = object_factory
-    token_uri_felt_array = str_to_felt_array(TOKENURI)
+    # token_uri_felt_array = str_to_felt_array(TOKENURI)
     # Deploy
     print(f'Deploying philand...')
-    print(*token_uri_felt_array)
-    calldata=[
-        object.contract_address,
-        L1_ADDRESS,
-        len(token_uri_felt_array),
-        *token_uri_felt_array
-    ]
+    
     philand = await starknet.deploy(source=PHILAND_FILE,
     constructor_calldata=[
         object.contract_address,
-        L1_ADDRESS,
-        len(token_uri_felt_array), 
-        *token_uri_felt_array
+        L1_ADDRESS
     ])
-    print(calldata)
-    print(f'philand is: {hex(philand.contract_address)}')
-    token_id=1
-    execution_info = await object.tokenURI(to_split_uint(token_id)).call()
-    token_uri = ""
-    for tu in execution_info.result.token_uri:
-        token_uri += felt_to_str(tu)
-    print(token_uri)
+
+    # print(f'philand is: {hex(philand.contract_address)}')
+    # token_id=1
+    # execution_info = await object.tokenURI(to_split_uint(token_id)).call()
+    # token_uri = ""
+    # for tu in execution_info.result.token_uri:
+    #     token_uri += felt_to_str(tu)
+    # print(token_uri)
     return starknet, philand, object, accounts
 
 

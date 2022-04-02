@@ -44,6 +44,18 @@ end
 func initialized() -> (res : felt):
 end
 
+@storage_var
+func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
+end
+
+@storage_var
+func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
+end
+
+@storage_var
+func ERC1155_Enumerable_token_burn_len(token_id: Uint256) -> (res: Uint256):
+end
+
 #
 # Constructor
 #
@@ -55,27 +67,6 @@ func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
-# func _set_uri{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(uri_ : TokenUri):
-#     _uri.write(uri_)
-#     return()
-# end
-
-#
-# Initializer
-#
-
-# @external
-# func initialize_batch{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-#         tokens_id_len : felt, tokens_id : Uint256*, amounts_len : felt, amounts : felt*, uri_ : TokenUri):
-#     let (_initialized) = initialized.read()
-#     assert _initialized = 0
-#     initialized.write(1)
-#     let (sender) = get_caller_address()
-#     _mint_batch(sender, tokens_id_len, tokens_id, amounts_len, amounts)
-#     # Set uri
-#     _set_uri(uri_)
-#     return ()
-# end
 
 @external
 func _mint{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
@@ -332,13 +323,7 @@ end
 #
 # Internals
 #
-@storage_var
-func ERC1155_Enumerable_all_tokens_len() -> (res: Uint256):
-end
 
-@storage_var
-func ERC1155_Enumerable_token_len(token_id: Uint256) -> (res: Uint256):
-end
 
 @view
 func ERC1155_Enumerable_totalSupply{
@@ -419,9 +404,7 @@ func _remove_token_enumeration{
     return ()
 end
 
-@storage_var
-func ERC1155_Enumerable_token_burn_len(token_id: Uint256) -> (res: Uint256):
-end
+
 
 @view
 func ERC1155_Enumerable_token_burnCounter{

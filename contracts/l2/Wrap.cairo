@@ -19,11 +19,22 @@ from contracts.l2.utils.safemath import (
     uint256_checked_div_rem
 ) 
 
+##### Description #####
+#
+# Wrap contract
+# - Export wrapped NFTs to Other Dapps
+#         => Case study is Phi
+#
+#######################
+
+##### Interfaces #####
 from contracts.l2.interfaces.ICraftedMaterial import ICraftedMaterial 
 from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
 from contracts.l2.interfaces.IWrapPrimitiveMaterial import IWrapPrimitiveMaterial
 from contracts.l2.interfaces.IWrapCraftedMaterial import IWrapCraftedMaterial
 
+
+##### Contract Address #####
 @storage_var
 func _wrap_primitive_material_address() -> (res : felt):
 end
@@ -40,8 +51,9 @@ end
 func _crafted_material_address() -> (res : felt):
 end
 
-##### Constants #####
-# Width of the simulation grid.
+#
+# Constructor
+#
 
 @constructor
 func constructor{
@@ -287,6 +299,7 @@ func batch_unwrap_crafted_material{
     return ()
 end
 
+##### Contract Address Function #####
 @view
 func wrap_primitive_material_address{
     syscall_ptr : felt*,

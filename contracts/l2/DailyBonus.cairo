@@ -26,14 +26,31 @@ from contracts.l2.utils.safemath import (
 ) 
 from starkware.cairo.common.bitwise import bitwise_and
 
-from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
-from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
 
 from contracts.l2.lib.keccak import keccak256
 from contracts.l2.lib.swap_endianness import swap_endianness_64
 
+##### Description #####
+#
+# Daily Bunus contract
+# - Random minting (token_id 0,1,2,3) with pseudorandom number
+# - Allow players to mint 1 Material 1Day with checking block timestamp
+#
+#######################
+
+##### Interfaces #####
+from contracts.l2.interfaces.IPrimitiveMaterial import IPrimitiveMaterial 
+from contracts.l2.interfaces.IXoroshiro import IXoroshiro 
+
+##### Constants #####
 const TOP = 0xffffffffffffffff0000000000000000
 const BOTTOM = 0xffffffffffffffff
+
+
+
+#
+# Storage
+#
 
 @storage_var
 func _last_rnd()  -> (res : felt):
@@ -43,9 +60,6 @@ end
 func _fee()  -> (res : Uint256):
 end
 
-@storage_var
-func _treasurey_address()  -> (res : felt):
-end
 
 @storage_var
 func get_last_login_time(
@@ -55,22 +69,7 @@ func get_last_login_time(
     ):
 end
 
-@storage_var
-func _actual_result_gold(block_number : felt)  -> (res : felt):
-end
-
-@storage_var
-func _gold_parcent(block_number : felt)  -> (res : Uint256):
-end
-
-@storage_var
-func _actual_result_crystal(block_number : felt )  -> (res : felt):
-end
-
-@storage_var
-func _crystal_parcent(block_number : felt)  -> (res : Uint256):
-end
-
+##### Contract Address #####
 @storage_var
 func _IXoroshiro_address() -> (res : felt):
 end
@@ -94,8 +93,9 @@ func meta_mint_event(
         owner : felt, last_login_time : felt):
 end
 
-##### Constants #####
-# Width of the simulation grid.
+#
+# Constructor
+#
 
 @constructor
 func constructor{
@@ -112,17 +112,27 @@ func constructor{
     _IXoroshiro_address.write(IXoroshiro_address)
     _primitive_material_address.write(primitive_material_address)
     _erc20Address.write(erc20Address)
-    _treasurey_address.write(treasury_address)
+    _treasury_address.write(treasury_address)
 
     let (currentBlock) = get_block_number()
-    _gold_parcent.write(currentBlock,Uint256(50,0))
-    _crystal_parcent.write(currentBlock,Uint256(25,0))
+
     set_fee(Uint256(1,0))
     return ()
 end
 
 
 ##### Public functions #####
+@external
+func set_fee{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }(value : Uint256):
+    alloc_locals
+
+    _fee.write(value=value)
+    return ()
+end
 
 @external
 func get_next_rnd{syscall_ptr : felt*,
@@ -135,66 +145,6 @@ func get_next_rnd{syscall_ptr : felt*,
     return (rnd)
 end
 
-func _start_mint{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    bitwise_ptr : BitwiseBuiltin*,
-    range_check_ptr}(
-    primitive_material_address: felt, owner : felt, len : felt):
-    alloc_locals
-    if len == 0:
-        return ()
-    end
-    
-    let (rnd)=get_next_rnd()
-    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
-    
-    # soil
-    if rem.low == 0:
-        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
-        return _start_mint(
-        primitive_material_address=primitive_material_address,
-        owner=owner,
-        len=len - 1,
-        )
-    end
-
-    # oil
-    if rem.low == 1:
-        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
-        return _start_mint(
-        primitive_material_address=primitive_material_address,
-        owner=owner,
-        len=len - 1,
-        )
-    end
-
-    # seed
-    if rem.low == 2:
-        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
-        return _start_mint(
-        primitive_material_address=primitive_material_address,
-        owner=owner,
-        len=len - 1,
-        )
-    end
-
-    #  iron
-    if rem.low == 3:
-        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
-        return _start_mint(
-        primitive_material_address=primitive_material_address,
-        owner=owner,
-        len=len - 1,
-        )
-    end
-    return _start_mint(
-        primitive_material_address=primitive_material_address,
-        owner=owner,
-        len=len - 1,
-        )
-
-end
 
 @external
 func get_start_reward{
@@ -232,7 +182,7 @@ func get_reward_with_fee{
     
     let (fee) = get_fee()
     let (erc20Address) = _erc20Address.read()
-    let (treasurey_address) = _treasurey_address.read()
+    let (treasurey_address) = _treasury_address.read()
 
     let (check) = check_reward(owner)
     IERC20.transferFrom(
@@ -341,18 +291,6 @@ func check_reward{
 end 
 
 
-
-@external
-func set_fee{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr,
-    }(value : Uint256):
-    alloc_locals
-
-    _fee.write(value=value)
-    return ()
-end
 @view
 func get_fee{
         syscall_ptr : felt*,
@@ -365,6 +303,99 @@ func get_fee{
 
     let (res) = _fee.read()
     return (res)
+end
+
+func _start_mint{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    bitwise_ptr : BitwiseBuiltin*,
+    range_check_ptr}(
+    primitive_material_address: felt, owner : felt, len : felt):
+    alloc_locals
+    if len == 0:
+        return ()
+    end
+    
+    let (rnd)=get_next_rnd()
+    let (c: Uint256, rem: Uint256) = uint256_checked_div_rem(Uint256(rnd,0),Uint256(4,0))
+    
+    # soil
+    if rem.low == 0:
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
+        return _start_mint(
+        primitive_material_address=primitive_material_address,
+        owner=owner,
+        len=len - 1,
+        )
+    end
+
+    # oil
+    if rem.low == 1:
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
+        return _start_mint(
+        primitive_material_address=primitive_material_address,
+        owner=owner,
+        len=len - 1,
+        )
+    end
+
+    # seed
+    if rem.low == 2:
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
+        return _start_mint(
+        primitive_material_address=primitive_material_address,
+        owner=owner,
+        len=len - 1,
+        )
+    end
+
+    #  iron
+    if rem.low == 3:
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
+        return _start_mint(
+        primitive_material_address=primitive_material_address,
+        owner=owner,
+        len=len - 1,
+        )
+    end
+    return _start_mint(
+        primitive_material_address=primitive_material_address,
+        owner=owner,
+        len=len - 1,
+        )
+end
+
+
+
+@view
+func random{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
+        input : Uint256, min : Uint256, max : Uint256) -> (out : Uint256):
+    alloc_locals
+
+    let (out) = hash_uint256(input)
+    let (m) = uint256_sub(max, min)
+    let (_, r) = uint256_unsigned_div_rem(out, m)
+    let (out, _) = uint256_add(r, min)
+
+    return (out)
+end
+
+
+##### Contract Address Function #####
+@view
+func primitive_material_address{
+    syscall_ptr : felt*,
+    pedersen_ptr : HashBuiltin*,
+    range_check_ptr
+  }() -> (res : felt):
+    let (res) =  _primitive_material_address.read()
+    return (res)
+end
+
+##### Utility Function #####
+func felt_to_uint256{range_check_ptr}(x) -> (x_ : Uint256):
+    let split = split_felt(x)
+    return (Uint256(low=split.low, high=split.high))
 end
 
 func random_seed_shift_min_max{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
@@ -422,32 +453,3 @@ func hash_uint256{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(input : Uint25
     let rnd : Uint256 = Uint256(low=low, high=high)
     return (rnd)
 end
-
-@view
-func random{range_check_ptr, bitwise_ptr : BitwiseBuiltin*}(
-        input : Uint256, min : Uint256, max : Uint256) -> (out : Uint256):
-    alloc_locals
-
-    let (out) = hash_uint256(input)
-    let (m) = uint256_sub(max, min)
-    let (_, r) = uint256_unsigned_div_rem(out, m)
-    let (out, _) = uint256_add(r, min)
-
-    return (out)
-end
-
-func felt_to_uint256{range_check_ptr}(x) -> (x_ : Uint256):
-    let split = split_felt(x)
-    return (Uint256(low=split.low, high=split.high))
-end
-
-@view
-func primitive_material_address{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-  }() -> (res : felt):
-    let (res) =  _primitive_material_address.read()
-    return (res)
-end
-
