@@ -83,7 +83,6 @@ end
 
 
 ##### Public functions #####
-# 
 @external
 func craft_soil_2_brick{
         syscall_ptr : felt*,

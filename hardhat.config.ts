@@ -92,7 +92,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
     starknetSources: "./contracts",
     starknetArtifacts: "./starknet-artifacts",
-    cairoPaths: ["./node_modules/@influenceth/cairo-math-64x61"]
+    cairoPaths: ["./node_modules/@influenceth/cairo-math-64x61"],
   },
   solidity: {
     compilers: [
@@ -132,7 +132,7 @@ const config: HardhatUserConfig = {
   },
   starknet: {
     // The default in this version of the plugin
-    dockerizedVersion: "0.8.0"
+    dockerizedVersion: "0.8.0",
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

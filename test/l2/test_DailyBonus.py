@@ -7,13 +7,9 @@ from starkware.starknet.definitions.error_codes import StarknetErrorCode
 from utils import str_to_felt, felt_to_str, Signer, uint, str_to_felt_array, to_split_uint
 import time
 
-
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
 STARTING_PRICE = uint(500)
-
-# ENS_NAME = "zak3939.eth"
-# ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -75,6 +71,19 @@ async def bonus_factory():
 
     return starknet, primitiveMaterial, bonus, account, treasury
 
+
+@pytest.mark.asyncio
+async def test_set_fee(bonus_factory):
+    _, primitiveMaterial, bonus, account, _ = bonus_factory
+
+    execution_info = await bonus.get_fee().call()
+    assert execution_info.result.res == (1,0)
+
+    await signer.send_transaction(account, bonus.contract_address, 'set_fee', [100,0])
+    execution_info = await bonus.get_fee().call()
+    print(execution_info.result.res)
+
+    assert sum(execution_info.result.res) == 100
 
 @pytest.mark.asyncio
 async def test_get_start_reward(bonus_factory):

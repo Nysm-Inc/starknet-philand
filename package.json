@@ -2,7 +2,7 @@
   "name": "starknet-philand",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT",
+  "license": "CC0",
   "scripts": {
     "tsc": "tsc",
     "store-metadata": "run-s tsc store-metadata:run",

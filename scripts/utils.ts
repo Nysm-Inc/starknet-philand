@@ -3,7 +3,7 @@ import fs from "fs";
 import { StarknetContract } from "hardhat/types/runtime";
 import { ec, hash } from "starknet";
 const { getKeyPair, getStarkKey, sign, verify } = ec;
-const { hashMessage } : any= hash;
+const { hashMessage }: any = hash;
 import { InvokeOptions } from "@shardlabs/starknet-hardhat-plugin/dist/types";
 import type { KeyPair, Signature } from "starknet";
 
@@ -189,11 +189,11 @@ export class Signer {
       nonce.toString()
     );
 
-    const sig:any = this.sign(msgHash);
+    const sig: any = this.sign(msgHash);
     // const verified = this.verify(msgHash, sig);
-    const signa: InvokeOptions ={
-      signature: [sig.r, sig.s]
-    }
+    const signa: InvokeOptions = {
+      signature: [sig.r, sig.s],
+    };
     return caller.invoke(
       "execute",
       {

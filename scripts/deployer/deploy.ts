@@ -2,9 +2,7 @@
  * Full goerli deploy including any permissions that need to be set.
  */
 import { parseFixed } from "@ethersproject/bignumber";
-import {
-  getRequiredEnv,
-} from "@makerdao/hardhat-utils";
+import { getRequiredEnv } from "@makerdao/hardhat-utils";
 import {
   // CHECK_STATUS_TIMEOUT,
   DEFAULT_STARKNET_NETWORK,
@@ -18,9 +16,8 @@ const { genKeyPair, getStarkKey } = ec;
 
 import { getAddress, save, Signer } from "../utils";
 
-
 async function genAndSaveKeyPair(): Promise<KeyPair> {
-  const keyPair:any = genKeyPair();
+  const keyPair: any = genKeyPair();
   writeFileSync(
     ".env.deployer",
     `DEPLOYER_ECDSA_PRIVATE_KEY=${keyPair.priv.toString()}`
@@ -28,13 +25,11 @@ async function genAndSaveKeyPair(): Promise<KeyPair> {
   return keyPair;
 }
 
-
 export async function deployDeployer() {
-  
   const NETWORK = hre.network.name;
 
   const STARKNET_NETWORK = DEFAULT_STARKNET_NETWORK;
-    // hre.config.mocha.starknetNetwork || DEFAULT_STARKNET_NETWORK;
+  // hre.config.mocha.starknetNetwork || DEFAULT_STARKNET_NETWORK;
 
   const [l1Signer] = await hre.ethers.getSigners();
 
@@ -43,7 +38,7 @@ export async function deployDeployer() {
 
   console.log(`Deploying deployer on ${NETWORK}/${STARKNET_NETWORK}`);
 
-  const keyPair:any = await genAndSaveKeyPair();
+  const keyPair: any = await genAndSaveKeyPair();
   const publicKey = BigInt(getStarkKey(keyPair));
   // const publicKey = getStarkKey(keyPair);
   const deployer = await deployL2(
@@ -75,9 +70,7 @@ export async function deployBridge(): Promise<void> {
   }
   const STARKNET_NETWORK = hre.starknet.network || DEFAULT_STARKNET_NETWORK;
 
-  const ENS_ADDRESS = getRequiredEnv(
-    `${NETWORK.toUpperCase()}_ENS_ADDRESS`
-  );
+  const ENS_ADDRESS = getRequiredEnv(`${NETWORK.toUpperCase()}_ENS_ADDRESS`);
   const L1_STARKNET_ADDRESS = getRequiredEnv(
     `${NETWORK.toUpperCase()}_L1_STARKNET_ADDRESS`
   );
@@ -87,7 +80,7 @@ export async function deployBridge(): Promise<void> {
   );
   // @ts-ignore
   const BLOCK_NUMBER = await l1Signer.provider.getBlockNumber();
-  console.log(l1Signer.address)
+  console.log(l1Signer.address);
   console.log(`Deploying bridge on ${NETWORK}/${STARKNET_NETWORK}`);
 
   const DEPLOYER_KEY = getRequiredEnv(`DEPLOYER_ECDSA_PRIVATE_KEY`);
@@ -102,15 +95,13 @@ export async function deployBridge(): Promise<void> {
   console.log(`\tl1: ${(await l1Signer.getAddress()).toString()}`);
   console.log(`\tl2: ${deployer.address.toString()}`);
 
-
-  const Message = await deployL1(
-    NETWORK, "MessageENS", BLOCK_NUMBER, [
+  const Message = await deployL1(NETWORK, "MessageENS", BLOCK_NUMBER, [
     L1_STARKNET_ADDRESS,
     ENS_ADDRESS,
-    l1Signer.address,  
+    l1Signer.address,
   ]);
 
-  const l2ERC20:StarknetContract = await deployL2(
+  const l2ERC20: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "ERC20_Mintable",
     BLOCK_NUMBER,
@@ -119,100 +110,93 @@ export async function deployBridge(): Promise<void> {
       name: parseFixed("1725995323023367784961866765022190509016966510"),
       symbol: parseFixed("5066068"),
       decimals: 18,
-      initial_supply: {low:500,high:0},
+      initial_supply: { low: 500, high: 0 },
       recipient: asDec(deployer.address),
-      owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  
-  const l2PrimitiveMaterial:StarknetContract = await deployL2(
+
+  const l2PrimitiveMaterial: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "PrimitiveMaterial",
     BLOCK_NUMBER,
     {
-      owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  
-  const l2CraftedMaterial:StarknetContract = await deployL2(
+
+  const l2CraftedMaterial: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "CraftedMaterial",
     BLOCK_NUMBER,
     {
-      owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  const l2WrapPrimitiveMaterial:StarknetContract = await deployL2(
+  const l2WrapPrimitiveMaterial: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "WrapPrimitiveMaterial",
     BLOCK_NUMBER,
     {
-      owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  const l2WrapCraftedMaterial:StarknetContract = await deployL2(
+  const l2WrapCraftedMaterial: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "WrapCraftedMaterial",
     BLOCK_NUMBER,
     {
-      owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  
 
-  const l2Wrap:StarknetContract = await deployL2(
+  const l2Wrap: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Wrap",
     BLOCK_NUMBER,
     {
-     primitive_material_address : asDec(l2PrimitiveMaterial.address),
-     crafted_material_address : asDec(l2CraftedMaterial.address),
-     wrap_primitive_material_address : asDec(l2WrapPrimitiveMaterial.address),
-     wrap_crafted_material_address : asDec(l2WrapCraftedMaterial.address),
+      primitive_material_address: asDec(l2PrimitiveMaterial.address),
+      crafted_material_address: asDec(l2CraftedMaterial.address),
+      wrap_primitive_material_address: asDec(l2WrapPrimitiveMaterial.address),
+      wrap_crafted_material_address: asDec(l2WrapCraftedMaterial.address),
     }
   );
- 
-  const l2Object:StarknetContract = await deployL2(
+
+  const l2Object: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Object",
     BLOCK_NUMBER,
     {
-    owner: asDec(deployer.address)
+      owner: asDec(deployer.address),
     }
   );
-  
-  const l2DailyBonus:StarknetContract = await deployL2(
+
+  const l2DailyBonus: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "DailyBonus",
     BLOCK_NUMBER,
     {
-    IXoroshiro_address : asDec(XOROSHIRO_ADDRESS),
-    primitive_material_address : asDec(l2PrimitiveMaterial.address),
-    erc20Address : asDec(l2ERC20.address),
-    treasury_address : asDec(deployer.address),
+      IXoroshiro_address: asDec(XOROSHIRO_ADDRESS),
+      primitive_material_address: asDec(l2PrimitiveMaterial.address),
+      erc20Address: asDec(l2ERC20.address),
+      treasury_address: asDec(deployer.address),
     }
   );
-  const l2Craft:StarknetContract = await deployL2(
+  const l2Craft: StarknetContract = await deployL2(
     STARKNET_NETWORK,
     "Craft",
     BLOCK_NUMBER,
     {
-     primitive_material_address : asDec(l2PrimitiveMaterial.address),
-     crafted_material_address : asDec(l2CraftedMaterial.address),
+      primitive_material_address: asDec(l2PrimitiveMaterial.address),
+      crafted_material_address: asDec(l2CraftedMaterial.address),
     }
   );
-  const l2PHILAND = await deployL2(
-    STARKNET_NETWORK,
-    "Philand",
-    BLOCK_NUMBER,
-    {
-     object_address : asDec(l2Object.address),
-     l1_philand_address : asDec(Message.address),
+  const l2PHILAND = await deployL2(STARKNET_NETWORK, "Philand", BLOCK_NUMBER, {
+    object_address: asDec(l2Object.address),
+    l1_philand_address: asDec(Message.address),
     // //  token_uri_len : 4,
     //  token_uri : token_uri,
-    }
-  );
-
+  });
 }
 
 export function printAddresses() {
@@ -241,10 +225,6 @@ export function printAddresses() {
   console.log(addresses);
 }
 
-async function wards(authable: StarknetContract, ward: StarknetContract) {
-  return (await authable.call("wards", { user: asDec(ward.address) })).res;
-}
-
 function asDec(address: string): string {
   return BigInt(address).toString();
 }
@@ -264,10 +244,10 @@ async function deployL2(
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // CHECK_STATUS_TIMEOUT = 5000;
-// 
+  //
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.starknet.getContractFactory(name);
-  console.log(calldata)
+  console.log(calldata);
   const contract = await contractFactory.deploy(calldata);
   save(saveName || name, contract, hre.network.name, blockNumber);
 
@@ -287,7 +267,7 @@ async function deployL1(
 ) {
   console.log(`Deploying: ${name}${(saveName && "/" + saveName) || ""}...`);
   const contractFactory = await hre.ethers.getContractFactory(name);
-  console.log(calldata)
+  console.log(calldata);
   const contract = await contractFactory.deploy(...calldata);
   save(saveName || name, contract, hre.network.name, blockNumber);
 
@@ -309,7 +289,7 @@ async function deployL1(
  * @param {string} str - The string to convert
  * @returns {bigint[]} - The string converted as an array of numerical characters
  */
- export function stringToFeltArray(str: string): bigint[] {
-  const strArr = str.split(',');
-  return strArr.map(char => BigInt(Buffer.from(char)[0].toString(10)));
+export function stringToFeltArray(str: string): bigint[] {
+  const strArr = str.split(",");
+  return strArr.map((char) => BigInt(Buffer.from(char)[0].toString(10)));
 }
