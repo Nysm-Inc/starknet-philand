@@ -332,7 +332,7 @@ async def test_craft_iron_2_yeloowtile(craft_factory):
     assert execution_info.result.res == 1
 
     execution_info = await primitiveMaterial.balance_of(account.contract_address, (3, 0)).call()
-    assert execution_info.result.res == 0
+    assert execution_info.result.res == 2
 
 
 @pytest.mark.asyncio

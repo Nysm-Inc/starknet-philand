@@ -323,8 +323,6 @@ func transferOwnership{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_c
 end
 
 
-
-
 @view
 func ERC1155_Enumerable_totalSupply{
         syscall_ptr: felt*, 

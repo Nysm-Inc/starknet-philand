@@ -26,7 +26,7 @@ from contracts.l2.utils.constants import FALSE, TRUE
 from contracts.l2.interfaces.IPhiObject import IPhiObject 
 
 
-##### Constants #####
+
 
 
 ##### Event #####
@@ -92,7 +92,6 @@ end
 func _user_philand_object(user: Uint256, idx: felt) -> (res : PhilandObjectInfo):
 end
 
-# For a given game at a given state.
 @storage_var
 func _settings(user: Uint256, setting_index : felt) -> (res : felt):
 end
