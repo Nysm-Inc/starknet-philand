@@ -23,7 +23,7 @@ from contracts.l2.utils.constants import FALSE, TRUE
 
 
 ##### Interfaces #####
-from contracts.l2.interfaces.IObject import IObject 
+from contracts.l2.interfaces.IPhiObject import IPhiObject
 
 
 
@@ -405,7 +405,7 @@ func claim_starter_object{
     assert [uint256_array + 6] = Uint256(4,0)
     assert [uint256_array + 8] = Uint256(5,0)
 
-    IObject._mint_batch(object,receive_address, 5,uint256_array,5,felt_array)
+    IPhiObject._mint_batch(object,receive_address, 5,uint256_array,5,felt_array)
     
     return ()
 end
@@ -451,7 +451,7 @@ func claim_l2_object{
                         )
 
     
-    IObject._mint(object_address,receive_address,Uint256(token_id_low,token_id_high),1)
+    IPhiObject._mint(object_address,receive_address,Uint256(token_id_low,token_id_high),1)
     mint_object_event.emit(object_address=object_address,to=receive_address,token_id=Uint256(token_id_low,token_id_high),amount=1)
     return ()
 end
@@ -799,7 +799,7 @@ func create_l2_object{
     ):
     alloc_locals
     let (object) = _object_address.read()
-    IObject.setTokenURI(object,token_uri_len, token_uri, token_id)
+    IPhiObject.setTokenURI(object,token_uri_len, token_uri, token_id)
 
     return ()
 end

@@ -4,7 +4,7 @@ import asyncio
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
-from constants import ACCOUNT_FILE, DUMMY_ADDRESS, DUMMY_PRIVATE, ENS_NAME_INT, L1_ADDRESS, NUM_SIGNING_ACCOUNTS, PHILAND_FILE, PHIOBJECT_FILE
+from constants import ACCOUNT_FILE, DUMMY_ADDRESS, DUMMY_PRIVATE, ENS_NAME_INT, L1_ADDRESS, NUM_SIGNING_ACCOUNTS, PHI_FILE, PHIOBJECT_FILE
 from utils import str_to_felt, felt_to_str, Signer, uint, str_to_felt_array, to_split_uint
 
 signers = []
@@ -58,7 +58,7 @@ async def philand_factory(object_factory):
     starknet, object, accounts = object_factory
     # Deploy
     print(f'Deploying philand...')
-    philand = await starknet.deploy(source=PHILAND_FILE,
+    philand = await starknet.deploy(source=PHI_FILE,
     constructor_calldata=[
         object.contract_address,
         L1_ADDRESS,
@@ -158,7 +158,7 @@ async def test_write_object_check_collision(
 
     response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     print(response.result)
-    payload = [*to_split_uint(ENS_NAME_INT),0 ]
+    payload = [*to_split_uint(ENS_NAME_INT),0]
     await signers[0].send_transaction(
         account=accounts[0],
         to=philand.contract_address,
@@ -176,12 +176,16 @@ async def test_write_object_check_collision(
         to=philand.contract_address,
         selector_name='write_object_to_land',
         calldata=payload)
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
+    print(response.result)
+
 
 @pytest.mark.asyncio
 async def test_get_user_philand_object(
     philand_factory
 ):
     starknet, philand, object, accounts = philand_factory
+    print("test_get_user_philand_object")
     response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 0).call()
     print(response.result.res)
     response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 1).call()

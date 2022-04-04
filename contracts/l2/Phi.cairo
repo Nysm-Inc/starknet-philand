@@ -268,9 +268,10 @@ func remove_object_from_land{
         idx : felt
     ):
     alloc_locals
-    let (object_len)= user_philand_object_idx.read(user=user)
-    let (local temp0 : PhilandObjectInfo) = user_philand_object.read(user=user, idx=object_len)
-    user_philand_object.write(user=user, idx=idx, value =temp0)
+    let (local object_len)= user_philand_object_idx.read(user=user)
+    let (temp0 : PhilandObjectInfo) = user_philand_object.read(user=user, idx=object_len-1)
+    user_philand_object.write(user=user, idx=idx, value = temp0)
+
     let emptyPhilandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  0,
         token_id = Uint256(0,0),
@@ -279,32 +280,13 @@ func remove_object_from_land{
         x_end = 0,
         y_end = 0,
     )
-    user_philand_object.write(user=user, idx=object_len, value = emptyPhilandObjectInfo)
+    user_philand_object.write(user=user, idx=object_len - 1, value = emptyPhilandObjectInfo)
     if object_len == 0:
         return()
     end
     user_philand_object_idx.write(user=user,value=object_len-1)
     return ()
 end
-
-# func populate_remove_object_from_land{
-#         syscall_ptr : felt*,
-#         pedersen_ptr : HashBuiltin*,
-#         range_check_ptr
-#     }(
-#         user : Uint256,
-#         idx : felt,
-#         ret_index : felt
-#         max : felt
-#     ):
-#     alloc_locals
-#     if ret_index == max:
-#         return ()
-#     end
-#     let (local retval0 : PhilandObjectInfo) = user_philand_object.read(user=user, idx=idx)
-#     user_philand_object.write(user=user, idx=idx, value =0)
-#     return ()
-# end
 
 @view
 func view_philand{
@@ -314,37 +296,35 @@ func view_philand{
     }(
         user : Uint256
     ) -> (
-        object_num : felt, token_len : felt, token : felt*, ret_array_len : felt, ret_array : felt*
+        object_len : felt, object : felt*
     ):
     alloc_locals
     let (local max) = user_philand_object_idx.read(user=user)
-    let (local token_array : felt*) = alloc()
-    let (local position_array : felt*) = alloc()
+    let (local object_array : PhilandObjectInfo*) = alloc()
     local ret_index = 0
 
-    populate_view_philand(user,token_array,position_array,ret_index, max)
-    return (max, max * 3, token_array, max * 4,position_array)
+    populate_view_philand(user,object_array,ret_index, max)
+    return (max * 7, object_array)
 end
 
 func populate_view_philand{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
-    user : Uint256,  token_array : felt*, position_array : felt*, ret_index : felt, max : felt):
+    user : Uint256,  object_array : PhilandObjectInfo*, ret_index : felt, max : felt):
     alloc_locals
     if ret_index == max:
         return ()
     end
 
     let (local val0: PhilandObjectInfo) = user_philand_object.read(user=user, idx=ret_index)
+    assert object_array[0] = PhilandObjectInfo(
+        contract_address= val0.contract_address, 
+        token_id=val0.token_id,
+        x_start=val0.x_start,
+        y_start=val0.y_start,
+        x_end=val0.x_end,
+        y_end=val0.y_end
+        ) 
 
-    token_array[0] = val0.contract_address
-    token_array[1] = val0.token_id.low
-    token_array[2] = val0.token_id.high
-
-    position_array[0] = val0.x_start
-    position_array[1] = val0.y_start
-    position_array[2] = val0.x_end
-    position_array[3] = val0.y_end
-
-    populate_view_philand(user, token_array + 3,position_array + 4,ret_index + 1, max)
+    populate_view_philand(user, object_array+7,ret_index + 1, max)
     return ()
 end
 

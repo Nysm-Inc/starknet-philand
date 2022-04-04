@@ -29,7 +29,7 @@ async def object_factory():
 
 
     object = await starknet.deploy(
-        "contracts/l2/Object.cairo",
+        "contracts/l2/PhiObject.cairo",
         constructor_calldata=[account.contract_address]
     )
     return starknet, object, account, operator

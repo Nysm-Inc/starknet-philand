@@ -5,25 +5,16 @@ import pytest
 import asyncio
 from starkware.starknet.testing.starknet import Starknet
 from utils import str_to_felt, felt_to_str, Signer, uint, str_to_felt_array, to_split_uint
+from constants import ACCOUNT_FILE, DUMMY_ADDRESS, DUMMY_PRIVATE, ENS_NAME_INT, L1_ADDRESS, NUM_SIGNING_ACCOUNTS, PHILAND_FILE, PHIOBJECT_FILE, DUMMY_ENS_NAME_INT
 
-# constants
-NUM_SIGNING_ACCOUNTS = 2
-DUMMY_PRIVATE = 12345678987654321
-L1_ADDRESS = 0x1
-DUMMY_ADDRESS =0x2
+
 
 signers = []
-ENS_NAME = "zak3939.eth"
 
 TOKENURI = "https://dweb.link/ipfs/bafyreiffxtdf5bobkwevesevvnevvug4i4qeodvzhseknoepbafhx7yn3e/metadata.json"
 TOKENURI3 = "https://dweb.link/ipfs/bafyreidw5fl2izaqblqisq6wsmynaezf3rdaq3ctf5iqylkjfaftsc5tey/metadata.json"
-L2_CONTRACTS_DIR = os.path.join(os.getcwd(), "contracts/l2")
 
-ACCOUNT_FILE = "contracts/openzeppelin/account/Account.cairo"
-OBJECT_FILE = os.path.join(L2_CONTRACTS_DIR, "Object.cairo")
-PHILAND_FILE = os.path.join(L2_CONTRACTS_DIR, "Philand.cairo")
-ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
-DUMMY_ENS_NAME_INT = 3333333
+
 ###########
 # HELPERS #
 ###########
@@ -59,7 +50,7 @@ async def object_factory(account_factory):
     starknet, accounts = account_factory
     # Deploy
     print(f'Deploying object...')
-    object = await starknet.deploy(source=OBJECT_FILE,
+    object = await starknet.deploy(source=PHIOBJECT_FILE,
                                    constructor_calldata=[accounts[0].contract_address])
     print(f'object is: {hex(object.contract_address)}')
     return starknet, object, accounts

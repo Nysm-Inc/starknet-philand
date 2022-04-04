@@ -37,4 +37,8 @@ namespace IPhiObject:
 
     func get_size(token_id : Uint256) -> (objectSize : ObjectSize):
     end
+
+    func setTokenURI(token_uri_len : felt, token_uri : felt*, token_id : Uint256):
+    end
+
 end
