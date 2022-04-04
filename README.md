@@ -1,7 +1,9 @@
 ## About
+
 This is starknet Metamaterial/Phi test repository
 
 ## What is MetaMaterial
+
 A protocol that allows game players to transfer any items between games.
 We made many kinds NFTs with string data, which works ad a material, avatar, weapon,...
 game players can convert these NFTs to use in various game.
@@ -12,11 +14,13 @@ Phi is a protocol for creating an open and fair Metaverse. While Sandbox adopted
 So we are trying to adopt these blockchain features into Metaverse. Phi is a completely new bottom-up Metaverse that everyone can participate in, extend, connect, and edit. Phi adopts Internet mechanisms to the Metaverse, creating a standard of value that is independent of the size and location of the land and stimulating user creativity.
 
 ## Sub-folders
+
 `/contracts` - Solidity/Cairo contracts as deployed on-chain
 
 ## Demo
 
 ### Metamaterial 
+
 <https://meta-material-frontend.vercel.app/>
 
     - Create ERC1155
@@ -31,6 +35,7 @@ So we are trying to adopt these blockchain features into Metaverse. Phi is a com
     - Export wrapped NFTs to Other Dapps
         => Case study is Phi
 ### Phi(Usecase)
+
 <https://next-sandbox-nine.vercel.app/>
 
     - L1 contract on Ethereum(Goerli Testnet)
@@ -47,6 +52,7 @@ Learn more
 There is a long document about the project on the [Phi](https://medium.com/@phi.xyz/introducing-phi-a-blockchain-native-metaverse-with-ens-and-on-chain-activities-1f5bb1a02eed). Start there and we'll add to this guide as questions come up.
 
 ### Off-Chain Solution: 
+
 in phi, we use this offchain validation for object claim
 On-chain activity history validation system by using AWS (<https://github.com/Nysm-Inc/philand-cdk>).
 

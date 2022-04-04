@@ -8,6 +8,7 @@ build
 
 node_modules
 .env
+.env.deployer
 scripts/.env
 test/l1/.env
 #Hardhat files
