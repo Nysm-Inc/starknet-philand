@@ -172,6 +172,8 @@ contract MessageENS is MultiOwner{
         IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CLAIM_L2_OBJECT_SELECTOR, payload);
     }
 
+    // Todo chenge l2 user method
+
     /// @dev check that the user has already claimed Philand
     function OwnerOfPhiland(string memory name) external view returns (bool){
         if (owner_lists[name]!=address(0))

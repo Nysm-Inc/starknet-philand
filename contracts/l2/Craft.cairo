@@ -11,9 +11,10 @@ from starkware.starknet.common.syscalls import (call_contract,
 from starkware.cairo.common.math import (unsigned_div_rem, assert_nn,
     assert_not_zero, assert_nn_le, assert_le, assert_not_equal,
     split_int)
-    
+from starkware.cairo.common.uint256 import (
+    Uint256, uint256_add, uint256_sub, uint256_lt, uint256_eq, uint256_check
+)
 from starkware.cairo.common.math_cmp import (is_nn_le,is_nn)
-from starkware.cairo.common.uint256 import Uint256
 
 
 ##### Description #####
@@ -97,7 +98,7 @@ func craft_soil_2_brick{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(4,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=4)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(0,0), amount=1)
     return ()
@@ -117,7 +118,7 @@ func craft_brick_2_brickHouse{
     let (account_from_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(4,account_from_balance)
-
+    _add_craft_enumeration()
     ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(0,0), amount=4)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(1,0), amount=1)
     return ()
@@ -175,9 +176,10 @@ func craft_soilAndSeed_2_wood{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 86400)
+    let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
+        _add_craft_enumeration()
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(2,0), amount=1)
         get_forge_start_time_for_soilAndSeed_2_wood.write(owner=sender_address,value=0)
         return()
@@ -204,7 +206,7 @@ func craft_ironAndWood_2_ironSword{
     let (account_from_crafted_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(2,0))
     assert_nn_le(1,account_from_crafted_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
     ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(2,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(3,0), amount=1)
@@ -226,7 +228,7 @@ func forge_iron_2_steel{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(3,0))
     assert_nn_le(1,account_from_balance)
-
+    
     IPrimitiveMaterial._burn(primitive_material_address,_from =sender_address, token_id = Uint256(3,0), amount=1)
     get_forge_start_time_for_iron_2_steel.write(owner=sender_address,value=update_time)
     return ()
@@ -248,9 +250,10 @@ func craft_iron_2_steel{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 86400)
+    let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
+        _add_craft_enumeration()
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(4,0), amount=1)
         get_forge_start_time_for_iron_2_steel.write(owner=sender_address,value=0)
         return()
@@ -297,9 +300,10 @@ func craft_oil_2_plastic{
         return()
     end
     let elapsed_time = current_time - last_forge_time
-    let (local flg) = is_nn(elapsed_time - 86400)
+    let (local flg) = is_nn(elapsed_time - 100)
     
     if flg ==1:
+        _add_craft_enumeration()
         ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(5,0), amount=1)
         get_forge_start_time_for_oil_2_plastic.write(owner=sender_address,value=0)
         return()
@@ -335,7 +339,7 @@ func craft_plasticAndSteel_2_computer{
     let (felt_array : felt*) = alloc()
     assert [felt_array] = 2
     assert [felt_array + 1] = 1
-    
+    _add_craft_enumeration()
     ICraftedMaterial._burn_batch(crafted_material_address,_from = sender_address, tokens_id_len=2, tokens_id=uint256_array, amounts_len=2, amounts=felt_array)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(6,0), amount=1)
     return ()
@@ -355,7 +359,7 @@ func craft_computer_2_electronicsStore{
     let (account_from_balance) = ICraftedMaterial.balance_of(crafted_material_address,
         owner=sender_address, token_id=Uint256(6,0))
     assert_nn_le(4,account_from_balance)
-
+    _add_craft_enumeration()
     ICraftedMaterial._burn(crafted_material_address,_from =sender_address, token_id = Uint256(6,0), amount=4)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(7,0), amount=1)
     return ()
@@ -376,7 +380,7 @@ func craft_soil_2_redtile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(8,0), amount=1)
     return ()
@@ -396,7 +400,7 @@ func craft_oil_2_bluetile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(1,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(1,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(9,0), amount=1)
     return ()
@@ -416,7 +420,7 @@ func craft_seed_2_greentile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(2,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(2,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(10,0), amount=1)
     return ()
@@ -436,7 +440,7 @@ func craft_iron_2_yeloowtile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(3,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(3,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(11,0), amount=1)
     return ()
@@ -456,7 +460,7 @@ func craft_soil_2_blacktile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(0,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(0,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(12,0), amount=1)
     return ()
@@ -476,7 +480,7 @@ func craft_oil_2_whitetile{
     let (account_from_balance) = IPrimitiveMaterial.balance_of(primitive_material_address,
         owner=sender_address, token_id=Uint256(1,0))
     assert_nn_le(1,account_from_balance)
-
+    _add_craft_enumeration()
     IPrimitiveMaterial._burn(primitive_material_address,_from = sender_address, token_id = Uint256(1,0), amount=1)
     ICraftedMaterial._mint(crafted_material_address,to=sender_address, token_id=Uint256(13,0), amount=1)
     return ()
@@ -545,6 +549,31 @@ func check_elapsed_forge_time_oil_2_plastic{
     return (elapsed_time)
 end 
 
+@storage_var
+func Craft_Enumerable_len() -> (res: Uint256):
+end
+
+@view
+func Craft_Enumerable_Counter{
+        syscall_ptr: felt*, 
+        pedersen_ptr: HashBuiltin*, 
+        range_check_ptr
+    }() -> (total: Uint256):
+    let (total) = Craft_Enumerable_len.read()
+    return (total)
+end
+
+func _add_craft_enumeration{
+        pedersen_ptr: HashBuiltin*, 
+        syscall_ptr: felt*, 
+        range_check_ptr
+    }():
+    alloc_locals
+    let (supply: Uint256) = Craft_Enumerable_len.read()    
+    let (local new_supply: Uint256, _) = uint256_add(supply, Uint256(1, 0))
+    Craft_Enumerable_len.write(new_supply)
+    return ()
+end
 ##### Contract Address Function #####
 @view
 func primitive_material_address{

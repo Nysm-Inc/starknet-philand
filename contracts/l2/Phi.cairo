@@ -15,7 +15,12 @@ from starkware.cairo.common.math_cmp import (
 from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address,get_block_timestamp,get_contract_address)
 from starkware.cairo.common.uint256 import (Uint256, uint256_le)
-
+from contracts.l2.utils.Ownable_base import (
+    Ownable_initializer,
+    Ownable_only_owner,
+    Ownable_transfer_ownership,
+    Ownable_get_owner
+)
 ##### Description #####
 #
 # Management of philand's map contract
@@ -32,23 +37,12 @@ const DIM_Y = 10
 
 
 ##### Event #####
-
+@event
+func create_philan_event(user : Uint256, l2user : felt):
+end
 
 
 ##### Struct #####
-struct Tokendata:
-    member contract_address : felt
-    member token_id : Uint256
-end
-
-
-
-struct Coordinates:
-    member x : felt
-    member y : felt
-    member z : felt
-end
-
 struct PhilandObjectInfo:
     member contract_address : felt
     member token_id : Uint256
@@ -73,18 +67,28 @@ end
 func user_philand_object(user: Uint256, idx: felt) -> (res : PhilandObjectInfo):
 end
 
-
 @storage_var
-func use_block(
+func claimed_user(
         user : Uint256,
-        x : felt,
-        y : felt,
-        
     ) -> (
         res : felt
     ):
 end
 
+@storage_var
+func mapping_ens_l2account(
+        user : Uint256,
+    ) -> (
+        res : felt
+    ):
+end
+
+@storage_var
+func number_of_philand(
+    ) -> (
+         res : felt
+    ):
+end
 
 ##### Contract Address #####
 
@@ -126,16 +130,21 @@ func constructor{
     object_address : felt,
     l1_philand_address : felt,
     ):
-    alloc_locals
 
     let (caller) = get_caller_address()
+    Ownable_initializer(caller)
+
+    number_of_philand.write(0)
     _object_address.write(object_address)
     _l1_philand_address.write(l1_philand_address)
 
     return ()
 end
 
-##### Public functions #####
+
+#############################
+##### Map functions #####
+#############################
 # Receive an L1 message. The Sequencer actions this function.
 # Sets the initial state of a philand.
 @l1_handler
@@ -147,18 +156,18 @@ func create_philand{
     }(  
         from_address : felt, 
         user_low : felt,
-        user_high : felt
+        user_high : felt,
+        l2account : felt
     ):
-    # Accepts a 64 element list representing the objects.
     alloc_locals
     let user : Uint256 = Uint256(user_low,user_high)
+    create_philan_event.emit(user,l2account)
+    claimed_user.write(user,TRUE)
+    mapping_ens_l2account.write(user,l2account)
     # assert_not_zero(user)
-
-    let token_data = Tokendata(
-        contract_address =  0,
-        token_id = Uint256(0,0)
-    )
-
+    let (res) = number_of_philand.read()
+    let index = res +1
+    number_of_philand.write(index)
     return ()
 end
 
@@ -299,6 +308,10 @@ func view_philand{
         object_len : felt, object : felt*
     ):
     alloc_locals
+    with_attr error_message("philand dose not exist"):
+        let (user_flg) = claimed_user.read(user)
+        assert  user_flg=TRUE 
+    end
     let (local max) = user_philand_object_idx.read(user=user)
     let (local object_array : PhilandObjectInfo*) = alloc()
     local ret_index = 0
@@ -338,6 +351,38 @@ func get_user_philand_object{
     return (res)
 end
 
+#############################
+##### Other functions #####
+#############################
+@external
+func claim_starter_object{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        user : Uint256,
+        receive_address : felt
+    ):
+    alloc_locals
+    let (local object) = _object_address.read()
+    let (felt_array : felt*) = alloc()
+    assert [felt_array] = 1
+    assert [felt_array + 1] = 1
+    assert [felt_array + 2] = 1
+    assert [felt_array + 3] = 1
+    assert [felt_array + 4] = 1
+
+    let (uint256_array : Uint256*) = alloc()
+    assert [uint256_array] = Uint256(1,0)
+    assert [uint256_array + 2] = Uint256(2,0)
+    assert [uint256_array + 4] = Uint256(3,0)
+    assert [uint256_array + 6] = Uint256(4,0)
+    assert [uint256_array + 8] = Uint256(5,0)
+
+    IPhiObject._mint_batch(object,receive_address, 5,uint256_array,5,felt_array)
+    
+    return ()
+end
 
 #############################
 ##### Private functions #####
