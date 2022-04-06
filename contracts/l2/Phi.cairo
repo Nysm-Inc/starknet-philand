@@ -171,15 +171,85 @@ func create_philand{
     return ()
 end
 
+func check_collision{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    user : Uint256,
+    writeObject : PhilandObjectInfo
+    ) -> ():
+    alloc_locals
+    let (object_len)= user_philand_object_idx.read(user=user)
+    populate_check_collision(user,object_len,writeObject)
+    return ()
+end
+
+func populate_check_collision{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+    user : Uint256,
+    object_len : felt,
+    writeObject : PhilandObjectInfo
+    ) -> ():
+    alloc_locals
+    
+    let check = 1
+
+    assert_in_range(writeObject.x_start, 0, DIM_X + 1 )
+    assert_in_range(writeObject.x_end, 0, DIM_X + 1 )
+    assert_in_range(writeObject.y_start, 0, DIM_Y+ 1 )
+    assert_in_range(writeObject.y_end, 0, DIM_Y+ 1 )
+    let (object)= user_philand_object.read(user=user,idx=object_len)
+   
+    let (local a) = is_le(writeObject.x_end,object.x_start)
+    if a ==1:
+        if object_len == 0:
+            return ()
+        end
+        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
+        return()
+    end
+    let (local b) = is_le(object.x_end,writeObject.x_start)
+    if b ==1:
+        if object_len == 0:
+            return ()
+        end
+        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
+        return()
+    end
+    let (local c) = is_le(writeObject.y_end,object.y_start)
+    if c ==1:
+        if object_len == 0:
+            return ()
+        end
+        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
+        return()
+    end
+    let (local d) = is_le(object.y_end,writeObject.y_start)
+    if d ==1:
+        if object_len == 0:
+            return ()
+        end
+        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
+        return()
+    end
+    assert check = 0
+    
+    return ()
+end
+
 @external
 func write_object_to_land{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
-    }(
+    }(  
+        user : Uint256,
         x_start : felt,
         y_start : felt,
-        user : Uint256,
         contract_address : felt,
         token_id : Uint256
     ):
@@ -207,64 +277,36 @@ func write_object_to_land{
     return ()
 end
 
-func check_collision{
+@external
+func batch_write_object_to_land{
         syscall_ptr : felt*,
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-    user : Uint256,
-    writeObject : PhilandObjectInfo
-    ) -> ():
-    alloc_locals
-    let (object_len)= user_philand_object_idx.read(user=user)
-    populate_check_collision(user,object_len,writeObject)
-    return ()
-end
-
-func populate_check_collision{
-        syscall_ptr : felt*,
-        pedersen_ptr : HashBuiltin*,
-        range_check_ptr
-    }(
-    user : Uint256,
-    object_len : felt,
-    writeObject : PhilandObjectInfo
-    ) -> ():
-    alloc_locals
-    if object_len == -1:
-        return ()
-    end
-    let check = 1
-
-    assert_in_range(writeObject.x_start, 0, DIM_X + 1 )
-    assert_in_range(writeObject.x_end, 0, DIM_X + 1 )
-    assert_in_range(writeObject.y_start, 0, DIM_Y+ 1 )
-    assert_in_range(writeObject.y_end, 0, DIM_Y+ 1 )
-    let (object)= user_philand_object.read(user=user,idx=object_len)
-   
-    let (local a) = is_le(writeObject.x_end,object.x_start)
-    if a ==1:
-        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
-        return()
-    end
-    let (local b) = is_le(object.x_end,writeObject.x_start)
-    if b ==1:
-        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
-        return()
-    end
-    let (local c) = is_le(writeObject.y_end,object.y_start)
-    if c ==1:
-        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
-        return()
-    end
-    let (local d) = is_le(object.y_end,writeObject.y_start)
-    if d ==1:
-        populate_check_collision(user=user, object_len=object_len - 1,writeObject=writeObject)
-        return()
-    end
-    assert check = 0
+        user : Uint256,
+        x_start_len : felt,
+        x_start : felt*,
+        y_start_len : felt,
+        y_start : felt*,
+        contract_address_len : felt,
+        contract_address : felt*,
+        token_id_len : felt,
+        token_id : Uint256*
+    ):
+    assert x_start_len = y_start_len
     
-    return ()
+    write_object_to_land(user, [x_start], [y_start],[contract_address],[token_id])
+    return batch_write_object_to_land(
+        user = user,
+        x_start_len = x_start_len - 1,
+        x_start = x_start + 1,
+        y_start_len = y_start_len - 1,
+        y_start = y_start + 1,
+        contract_address_len = contract_address_len - 1,
+        contract_address = contract_address + 1,
+        token_id_len = token_id_len - 1,
+        token_id = token_id + 2
+        )
 end
 
 @external
@@ -277,24 +319,68 @@ func remove_object_from_land{
         idx : felt
     ):
     alloc_locals
-    let (local object_len)= user_philand_object_idx.read(user=user)
-    let (temp0 : PhilandObjectInfo) = user_philand_object.read(user=user, idx=object_len-1)
-    user_philand_object.write(user=user, idx=idx, value = temp0)
 
     let emptyPhilandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  0,
-        token_id = Uint256(0,0),
-        x_start=0,
-        y_start=0,
-        x_end = 0,
-        y_end = 0,
+        token_id = Uint256(0, 0),
+        x_start = 0,
+        y_start = 0,
+        x_end =  0,
+        y_end =  0,
     )
-    user_philand_object.write(user=user, idx=object_len - 1, value = emptyPhilandObjectInfo)
-    if object_len == 0:
+    user_philand_object.write(user=user, idx=idx, value = emptyPhilandObjectInfo)
+    return ()
+end
+
+@external
+func batch_remove_object_from_land{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        user : Uint256,
+        idx_len : felt,
+        idx : felt*
+    ):
+    alloc_locals
+    local max = idx_len
+    local ret_index = 0
+    populate_remove_object_from_land(user, idx_len,idx,ret_index, max)
+    return ()
+end
+
+func populate_remove_object_from_land{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(
+        user : Uint256,
+        idx_len : felt,
+        idx : felt*,
+        ret_index : felt, 
+        max : felt
+    ):
+    alloc_locals
+    if ret_index == max:
         return()
     end
-    user_philand_object_idx.write(user=user,value=object_len-1)
-    return ()
+    let emptyPhilandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
+        contract_address =   0,
+        token_id = Uint256(0,0),
+        x_start= 0,
+        y_start= 0,
+        x_end =  0,
+        y_end =  0,
+    )
+    user_philand_object.write(user, [idx], value = emptyPhilandObjectInfo)
+    
+    return populate_remove_object_from_land(
+        user,
+        idx_len - 1,
+        idx + 1,
+        ret_index + 1, 
+        max
+        )
 end
 
 @view
@@ -315,8 +401,8 @@ func view_philand{
     let (local max) = user_philand_object_idx.read(user=user)
     let (local object_array : PhilandObjectInfo*) = alloc()
     local ret_index = 0
-
     populate_view_philand(user,object_array,ret_index, max)
+
     return (max * 7, object_array)
 end
 
@@ -336,10 +422,25 @@ func populate_view_philand{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, ran
         x_end=val0.x_end,
         y_end=val0.y_end
         ) 
-
     populate_view_philand(user, object_array+7,ret_index + 1, max)
     return ()
+    
 end
+
+# func remove_zero_contract(array : felt*, length : felt) -> (sum : felt):
+#     if length == 0:
+#         # Start with sum=0.
+#         return (sum=0)
+#     end
+
+#     # let (current_sum) = get_sum(array=array + 1, length=length - 1)
+#     # # This part of the function is first reached when length=0.
+#     # # The sum begins. This is the sequence: 1, 1+23 then 24+2
+#     # let sum = [array] + current_sum
+#     # # The return function targets the body of this function
+#     # # 3 times before returning to the body of read_sum().
+#     return (sum)
+# end
 
 @view
 func get_user_philand_object{

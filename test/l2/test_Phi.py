@@ -70,13 +70,13 @@ async def philand_factory(object_factory):
 async def test_create_philand(
     philand_factory
 ):
-    starknet, philand,_, _ = philand_factory
+    starknet, philand, _, accounts = philand_factory
     await starknet.send_message_to_l2(
         from_address=L1_ADDRESS,
         to_address=philand.contract_address,
         selector="create_philand",
         payload=[
-            *to_split_uint(ENS_NAME_INT)
+            *to_split_uint(ENS_NAME_INT), accounts[1].contract_address
         ],
     )
     response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
@@ -90,7 +90,7 @@ async def test_write_object(
 ):
     starknet, philand, object, accounts = philand_factory
     token_id=0
-    payload = [2, 2, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 2, 2,
                object.contract_address, *to_split_uint(token_id)]
 
     await signers[0].send_transaction(
@@ -108,7 +108,7 @@ async def test_write_object2(
     starknet, philand, object, accounts = philand_factory
 
     token_id = 1
-    payload = [4, 4, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 4, 4,
                object.contract_address, *to_split_uint(token_id)]
     await signers[0].send_transaction(
         account=accounts[0],
@@ -123,7 +123,7 @@ async def test_write_object_check_collision(
     starknet, philand, object, accounts = philand_factory
 
     token_id = 2
-    payload = [1, 1, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 1, 1,
                object.contract_address, *to_split_uint(token_id)]
     try:
         await signers[0].send_transaction(
@@ -136,7 +136,7 @@ async def test_write_object_check_collision(
         assert error['code'] == StarknetErrorCode.TRANSACTION_FAILED
     
     token_id = 3
-    payload = [9, 9, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 9, 9,
                object.contract_address, *to_split_uint(token_id)]
     await signers[0].send_transaction(
         account=accounts[0],
@@ -144,7 +144,7 @@ async def test_write_object_check_collision(
         selector_name='write_object_to_land',
         calldata=payload)
 
-    payload = [10, 10, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 10, 10,
                object.contract_address, *to_split_uint(token_id)]
     try:
         await signers[0].send_transaction(
@@ -169,7 +169,7 @@ async def test_write_object_check_collision(
     print(response.result)
 
     token_id = 2
-    payload = [1, 1, *to_split_uint(ENS_NAME_INT),
+    payload = [*to_split_uint(ENS_NAME_INT), 1, 1,
                object.contract_address, *to_split_uint(token_id)]
     await signers[0].send_transaction(
         account=accounts[0],

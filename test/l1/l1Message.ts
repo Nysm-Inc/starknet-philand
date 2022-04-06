@@ -22,9 +22,9 @@ const createPhiland = parseFixed(
   "617099311689109934115201364618365113888900634692095419483864089403220532029"
 );
 
-// const claimL1Object = parseFixed(
-//   "1426524085905910661260502794228018787518743932072178038305015687841949115798"
-// );
+const changePhilandOwner = parseFixed(
+  "1547349698156869926873752658245410930569032840199247840259341853669173150612"
+);
 
 const claimL2Object = parseFixed(
   "725729645710710348624275617047258825327720453914706103365608274738200251740"
@@ -66,13 +66,14 @@ beforeEach("checkens", function () {
 });
 
 describe("createPhiland", function () {
-  it("sends a message to l2, emits event", async () => {
+  it("sends a message to l2, emits event and create", async () => {
     const {
       admin,
       l1Alice,
       starkNetFake,
       l1Philand,
       l2PhilandAddress,
+      l2UserAddress,
       ens,
       resolver,
     } = await setupTest();
@@ -87,48 +88,56 @@ describe("createPhiland", function () {
     await resolver.setAddr(namehash.hash("zak3939.eth"), l1Alice.address);
     await ens.resolver(namehash.hash("zak3939.eth"));
     await expect(
-      l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939")
+      l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939",l2UserAddress)
     )
       .to.emit(l1Philand, "LogCreatePhiland")
-      .withArgs(l1Alice.address, "zak3939");
+      .withArgs(l1Alice.address, "zak3939",l2UserAddress);
 
     expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
     expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
       l2PhilandAddress,
       createPhiland,
-      [name_int[0], name_int[1]]
+      [name_int[0], name_int[1],l2UserAddress]
     );
   });
 });
 
-// describe("createPhilandwithsubdomain", function () {
-//     it("sends a message to l2, emits event", async () => {
-//       const { admin,l1Alice, starkNetFake, l1Philand, l2PhilandAddress,ens,resolver, } =
-//         await setupTest();
+describe("changePhilandwOwner", function () {
+    it("sends a message to l2, emits event and change", async () => {
+     const {
+      admin,
+      l1Bob,
+      starkNetFake,
+      l1Philand,
+      l2PhilandAddress,
+      l2UserAddress2,
+      ens,
+      resolver,
+    } = await setupTest();
 
-//       await ens.setSubnodeOwner(namehash.hash(""), sha3('eth'), admin.address);
-//       await ens.connect(admin).setSubnodeOwner(namehash.hash('eth'), sha3('zak3939'),l1Alice.address)
-//       await ens.connect(l1Alice).setSubnodeOwner(namehash.hash('zak3939.eth'), sha3('test'),l1Alice.address)
-//       // await ens.connect(l1Alice).setResolver(namehash.hash('zak3939.eth'),resolver.address)
-//       // await resolver.setAddr(namehash.hash('zak3939.eth'), l1Alice.address);
-//       // await ens.resolver(namehash.hash('zak3939.eth'))
+    await ens.setSubnodeOwner(namehash.hash(""), sha3("eth"), admin.address);
+    await ens
+      .connect(admin)
+      .setSubnodeOwner(namehash.hash("eth"), sha3("zak3939"), l1Bob.address);
+    await ens
+      .connect(l1Bob)
+      .setResolver(namehash.hash("zak3939.eth"), resolver.address);
+    await resolver.setAddr(namehash.hash("zak3939.eth"), l1Bob.address);
+    await ens.resolver(namehash.hash("zak3939.eth"));
+    await expect(
+      l1Philand.connect(l1Bob).changePhilandOwner(l2PhilandAddress, "zak3939",l2UserAddress2)
+    )
+      .to.emit(l1Philand, "LogChangePhilandOwner")
+      .withArgs(l1Bob.address, "zak3939",l2UserAddress2);
 
-//       await ens.connect(l1Alice).setResolver(namehash.hash('test.zak3939.eth'),resolver.address)
-//       await resolver.setAddr(namehash.hash('test.zak3939.eth'), l1Alice.address);
-//       await ens.resolver(namehash.hash('test.zak3939.eth'))
-
-//       await expect(l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, 'test.zak3939'))
-//         .to.emit(l1Philand, "LogCreatePhiland")
-//         .withArgs(l1Alice.address,'test.zak3939');
-
-//       expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
-//       expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
-//         l2PhilandAddress,
-//         createPhiland,
-//         [name_int[0],name_int[1]]
-//       );
-//     });
-// });
+    expect(starkNetFake.sendMessageToL2).to.have.been.calledOnce;
+    expect(starkNetFake.sendMessageToL2).to.have.been.calledWith(
+      l2PhilandAddress,
+      changePhilandOwner,
+      [name_int[0], name_int[1],l2UserAddress2]
+    );
+    });
+});
 // describe("claimL1NFT", function () {
 //     it("sends a message to l2, claim nft event", async () => {
 //       const { l1Alice, starkNetFake, l1Philand, l2PhilandAddress } =
@@ -198,9 +207,9 @@ describe("claiml2Object", function () {
   });
 });
 
-describe("ErrorcreatePhiland", function () {
-  it("sends a message to l2, emits event", async () => {
-    const { admin, l1Alice, l1Philand, l2PhilandAddress, ens, resolver } =
+describe("ErrorCreatePhiland", function () {
+  it("sends a message to l2, emits event and error (already claimed philand)", async () => {
+    const { admin, l1Alice, l1Philand, l2PhilandAddress,l2UserAddress, ens, resolver } =
       await setupTest();
 
     await ens.setSubnodeOwner(namehash.hash(""), sha3("eth"), admin.address);
@@ -212,9 +221,9 @@ describe("ErrorcreatePhiland", function () {
       .setResolver(namehash.hash("zak3939.eth"), resolver.address);
     await resolver.setAddr(namehash.hash("zak3939.eth"), l1Alice.address);
     await ens.resolver(namehash.hash("zak3939.eth"));
-    await l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939");
+    await l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939",l2UserAddress);
     await expect(
-      l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939")
+      l1Philand.connect(l1Alice).createPhiland(l2PhilandAddress, "zak3939",l2UserAddress)
     ).to.be.revertedWith("revert");
   });
 });
@@ -225,6 +234,7 @@ async function setupTest() {
   const starkNetFake = await smock.fake("IStarkNetLike");
   const L2_PHILAND_ADDRESS = 31415;
   const L2_USER_ADDRESS = 11111;
+  const L2_USER_ADDRESS2 = 22222;
 
   const ens = await simpleDeploy("ENSRegistry", []);
   const resolver = await simpleDeploy("TestResolver", []);
@@ -248,6 +258,7 @@ async function setupTest() {
     l1Philand: l1philand as any,
     l2PhilandAddress: L2_PHILAND_ADDRESS,
     l2UserAddress: L2_USER_ADDRESS,
+    l2UserAddress2: L2_USER_ADDRESS2,
     coupons: coupons as any,
     ens: ens as any,
     resolver: resolver as any,

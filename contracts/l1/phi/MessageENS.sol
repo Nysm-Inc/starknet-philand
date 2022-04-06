@@ -20,6 +20,8 @@ contract MessageENS is MultiOwner{
 
     uint256 private CREATE_PHILAND_SELECTOR =
         617099311689109934115201364618365113888900634692095419483864089403220532029;
+    uint256 private CHANGE_PHILAND_OWNER_SELECTOR =
+        1547349698156869926873752658245410930569032840199247840259341853669173150612;
     uint256 private CLAIM_L2_OBJECT_SELECTOR =
     725729645710710348624275617047258825327720453914706103365608274738200251740;
 
@@ -36,7 +38,8 @@ contract MessageENS is MultiOwner{
     error InvalidENS (address sender, string name,uint256 ensname_low,uint256 ensname_high ,bytes32 label,address owner, string node);
     error AllreadyClaimedPhiland (address sender, address owner,string name );
 
-    event LogCreatePhiland(address indexed l1Sender, string name);
+    event LogCreatePhiland(address indexed l1Sender, string name,uint256 l2user_address);
+    event LogChangePhilandOwner(address indexed l1Sender, string name,uint256 l2user_address);
     event LogClaimL1NFT(string name,uint256 contract_address,uint256 tokenid);
     event LogClaimL2Object(string name,uint256 l2user_address, uint256 tokenid);
     
@@ -64,6 +67,10 @@ contract MessageENS is MultiOwner{
         CREATE_PHILAND_SELECTOR = _createPhilandSelector;
     }
 
+    function setChangePhilandSelector(uint256 _changePhilandOwnerSelector) external onlyOwner {
+        CHANGE_PHILAND_OWNER_SELECTOR = _changePhilandOwnerSelector;
+    }
+
     function setClaimL2ObjectSelector(uint256 _claimL2ObjectSelector) external onlyOwner {
         CLAIM_L2_OBJECT_SELECTOR = _claimL2ObjectSelector;
     }
@@ -80,11 +87,13 @@ contract MessageENS is MultiOwner{
     * @notice Send philand create Message from L1 to Starknet
     * @param l2ContractAddress : starknet l2 phi contract
     * @param name : ENS name
+    * @param l2UserAddress : starknet account address
     * @dev include check ENS 
     */
     function createPhiland(
         uint256 l2ContractAddress,
-        string calldata name
+        string calldata name,
+        uint256 l2UserAddress
         ) external {
 
         label = createENSLable(name);
@@ -115,14 +124,60 @@ contract MessageENS is MultiOwner{
         }
 
         owner_lists[name]=msg.sender;
-        emit LogCreatePhiland(msg.sender, name);
+        emit LogCreatePhiland(msg.sender, name,l2UserAddress);
 
-        uint256[] memory payload = new uint256[](2);
+        uint256[] memory payload = new uint256[](3);
         payload[0] = ensname_low;
         payload[1] = ensname_high;
-
+        payload[2] = l2UserAddress;
         // Send the message to the StarkNet core contract.
         IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CREATE_PHILAND_SELECTOR, payload);
+    }
+
+    /*
+    * @title changePhilandOwner
+    * @notice Send philand owner change Message from L1 to Starknet
+    * @param l2ContractAddress : starknet l2 phi contract
+    * @param name : ENS name
+    * @param l2UserAddress : starknet account address
+    * @dev include check ENS 
+    */
+    function changePhilandOwner(
+        uint256 l2ContractAddress,
+        string calldata name,
+        uint256 l2UserAddress
+        ) external {
+
+        label = createENSLable(name);
+        uint256 ensname = uint256(label);
+        uint256 ensname_low;
+        uint256 ensname_high;
+        (ensname_low,ensname_high)=toSplitUint(ensname);
+        
+         // Check whether the user is ens owner or not
+        if (msg.sender != _ens.owner(label)){
+            revert InvalidENS({
+                sender: msg.sender,
+                name: name,
+                ensname_low: ensname_low,
+                ensname_high: ensname_high,
+                label: label,
+                owner: _ens.owner(label),
+                node: string(abi.encodePacked(ensname))
+            });
+        }
+        
+
+        owner_lists[name]=msg.sender;
+        emit LogChangePhilandOwner(msg.sender, name,l2UserAddress);
+
+        uint256[] memory payload = new uint256[](3);
+        payload[0] = ensname_low;
+        payload[1] = ensname_high;
+        payload[2] = l2UserAddress;
+
+        // Send the message to the StarkNet core contract.
+        IStarkNetLike(_starknet).sendMessageToL2(l2ContractAddress, CHANGE_PHILAND_OWNER_SELECTOR, payload);
     }
 
     /*

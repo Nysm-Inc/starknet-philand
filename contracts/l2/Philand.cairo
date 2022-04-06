@@ -100,6 +100,14 @@ func claimed_user(
 end
 
 @storage_var
+func mapping_ens_l2account(
+        user : Uint256,
+    ) -> (
+        res : felt
+    ):
+end
+
+@storage_var
 func number_of_philand(
     ) -> (
          res : felt
@@ -171,7 +179,8 @@ func create_philand{
     }(  
         from_address : felt, 
         user_low : felt,
-        user_high : felt
+        user_high : felt,
+        l2account : felt
     ):
     # Accepts a 64 element list representing the objects.
     alloc_locals
@@ -325,8 +334,10 @@ func create_philand{
     _settings.write(user, SettingEnum.created_at,block_timestamp)
     _settings.write(user, SettingEnum.updated_at,block_timestamp)
     _settings.write(user, SettingEnum.land_type,0)
-    claimed_user.write(user,TRUE)
 
+    claimed_user.write(user,TRUE)
+    mapping_ens_l2account.write(user,l2account)
+    
     local spawn_link : Spawnlink = Spawnlink(
         x =  0,
         y = 0
@@ -337,6 +348,28 @@ func create_philand{
     let (res) = number_of_philand.read()
     let index = res +1
     number_of_philand.write(index)
+    return ()
+end
+
+
+@l1_handler
+func change_philand_owner{
+        syscall_ptr : felt*,
+        bitwise_ptr : BitwiseBuiltin*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }(  
+        from_address : felt, 
+        user_low : felt,
+        user_high : felt,
+        l2account : felt
+    ):
+    alloc_locals
+    with_attr error_message("philand dose not exist"):
+        let (user_flg) = claimed_user.read(user)
+        assert  user_flg=TRUE 
+    end
+    mapping_ens_l2account.write(user,l2account)
     return ()
 end
 

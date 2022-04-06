@@ -32,8 +32,9 @@ def to_split_uint(a):
     return (a & ((1 << 128) - 1), a >> 128)
 
 
+
 print(get_selector_from_name('create_philand'))
-print(get_selector_from_name('claim_l1_object'))
+print(get_selector_from_name('change_philand_owner'))
 print(get_selector_from_name('claim_l2_object'))
 print(get_selector_from_name('handle_deposit'))
 print(to_split_uint(
