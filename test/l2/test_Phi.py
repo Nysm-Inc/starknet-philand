@@ -192,8 +192,24 @@ async def test_get_user_philand_object(
     print(response.result.res)
     response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 2).call()
     print(response.result.res)
-    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
-    print(response.result)
+    response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 3).call()
+    print(response.result.res)
+
+
+@pytest.mark.asyncio
+async def test_batch_remove_object_from_land(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+
+    payload = [*to_split_uint(ENS_NAME_INT), 3,1,2,3]
+    await signers[0].send_transaction(
+        account=accounts[0],
+        to=philand.contract_address,
+        selector_name='batch_remove_object_from_land',
+        calldata=payload)
+    response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 3).call()
+    print(response.result.res)
 
 ###########
 # HELPERS #

@@ -365,6 +365,7 @@ func change_philand_owner{
         l2account : felt
     ):
     alloc_locals
+    let user : Uint256 = Uint256(user_low,user_high)
     with_attr error_message("philand dose not exist"):
         let (user_flg) = claimed_user.read(user)
         assert  user_flg=TRUE 
@@ -503,6 +504,12 @@ func write_object_to_parcel{
         contract_address : felt,
         token_id : Uint256
     ):
+    with_attr error_message("philand owner dosent match"):
+        let (local sender_address) = get_caller_address()
+        let (l2user) = mapping_ens_l2account.read(user)
+        assert  l2user = sender_address
+    end
+
     let token_data = Tokendata(
         contract_address =  contract_address,
         token_id = token_id

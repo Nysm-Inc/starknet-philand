@@ -88,7 +88,7 @@ async def test_create_philand(
         to_address=philand.contract_address,
         selector="create_philand",
         payload=[
-            *to_split_uint(ENS_NAME_INT)
+            *to_split_uint(ENS_NAME_INT), accounts[0].contract_address
         ],
     )
     number_of_philand = await philand.view_number_of_philand().call()
@@ -212,14 +212,14 @@ async def test_write_object_to_parcel(
 ):
     starknet, philand, _, accounts = philand_factory
 
-    await starknet.send_message_to_l2(
-        from_address=L1_ADDRESS,
-        to_address=philand.contract_address,
-        selector="create_philand",
-        payload=[
-            *to_split_uint(ENS_NAME_INT)
-        ],
-    )
+    # await starknet.send_message_to_l2(
+    #     from_address=L1_ADDRESS,
+    #     to_address=philand.contract_address,
+    #     selector="create_philand",
+    #     payload=[
+    #         *to_split_uint(ENS_NAME_INT), accounts[0].contract_address
+    #     ],
+    # )
     
     print('New Object is Creating by L1...')
     lootContract = 0xFF9C1b15B16263C61d017ee9F65C50e4AE0113D7
@@ -259,14 +259,14 @@ async def test_batch_write_object_to_parcel(
 ):
     starknet, philand, object, accounts = philand_factory
 
-    await starknet.send_message_to_l2(
-        from_address=L1_ADDRESS,
-        to_address=philand.contract_address,
-        selector="create_philand",
-        payload=[
-            *to_split_uint(ENS_NAME_INT)
-        ],
-    )
+    # await starknet.send_message_to_l2(
+    #     from_address=L1_ADDRESS,
+    #     to_address=philand.contract_address,
+    #     selector="create_philand",
+    #     payload=[
+    #         *to_split_uint(ENS_NAME_INT), accounts[0].contract_address
+    #     ],
+    # )
 
     token_id = 1
     print('New Object is creating...')

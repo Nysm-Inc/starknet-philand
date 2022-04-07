@@ -11,8 +11,6 @@ import time
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
 
-ENS_NAME = "zak3939.eth"
-ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
 
 @pytest.fixture(scope='module')
 def event_loop():
@@ -377,3 +375,10 @@ async def test_craft_oil_2_whitetile(craft_factory):
 
     execution_info = await primitiveMaterial.balance_of(account.contract_address, (1, 0)).call()
     assert execution_info.result.res == 0
+
+@pytest.mark.asyncio
+async def test_Craft_Enumerable_Counter(craft_factory):
+    _, _, _, craft, _, _ = craft_factory
+
+    execution_info = await craft.Craft_Enumerable_Counter().call()
+    assert execution_info.result == 11

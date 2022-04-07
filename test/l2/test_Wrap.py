@@ -11,10 +11,6 @@ import time
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
 
-ENS_NAME = "zak3939.eth"
-ENS_NAME_INT = 5354291560282261680205140228934436588969903936754548205611172710617586860032
-
-
 @pytest.fixture(scope='module')
 def event_loop():
     return asyncio.new_event_loop()

@@ -46,8 +46,6 @@ from contracts.l2.interfaces.IXoroshiro import IXoroshiro
 const TOP = 0xffffffffffffffff0000000000000000
 const BOTTOM = 0xffffffffffffffff
 
-
-
 #
 # Storage
 #
@@ -60,6 +58,13 @@ end
 func _fee()  -> (res : Uint256):
 end
 
+@storage_var
+func _elapsed_time()  -> (res : felt):
+end
+
+@storage_var
+func _daily_mint_amount()  -> (res : felt):
+end
 
 @storage_var
 func get_last_login_time(
@@ -117,6 +122,8 @@ func constructor{
     let (currentBlock) = get_block_number()
 
     set_fee(Uint256(1,0))
+    set_elapsed_time(100)
+    set_daily_mint_amount(1)
     return ()
 end
 
@@ -132,6 +139,57 @@ func set_fee{
 
     _fee.write(value=value)
     return ()
+end
+
+@external
+func set_elapsed_time{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }(value : felt):
+    alloc_locals
+
+    _elapsed_time.write(value=value)
+    return ()
+end
+
+
+func get_elapsed_time{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }()-> (
+        res : felt
+    ):
+    alloc_locals
+    let (res) = _elapsed_time.read()
+    return (res)
+end
+
+@external
+func set_daily_mint_amount{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }(value : felt):
+    alloc_locals
+
+    _daily_mint_amount.write(value=value)
+    return ()
+end
+
+
+func get_daily_mint_amount{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr,
+    }()-> (
+        res : felt
+    ):
+    alloc_locals
+
+    let (res)=_daily_mint_amount.read()
+    return (res)
 end
 
 @external
@@ -181,6 +239,7 @@ func get_reward_with_fee{
     alloc_locals
     
     let (fee) = get_fee()
+    let (daily_mint_amount) = get_daily_mint_amount()
     let (erc20Address) = _erc20Address.read()
     let (treasurey_address) = _treasury_address.read()
 
@@ -202,7 +261,7 @@ func get_reward_with_fee{
         let (flg_soil) = is_in_range(rem.low, 0,30)
         # soil
         if flg_soil == 1:
-            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),daily_mint_amount)
             return ()
         end
         
@@ -211,7 +270,7 @@ func get_reward_with_fee{
         # oil
         let (flg_oil) = is_in_range(rem.low, 30,oil_random.low)
         if flg_oil == 1:
-            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(1,0),daily_mint_amount)
             return ()
         end
 
@@ -219,19 +278,19 @@ func get_reward_with_fee{
         let (flg_seed) = is_in_range(rem.low, oil_random.low,seed_random.low)
         # seed
         if flg_seed == 1:
-            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(2,0),daily_mint_amount)
             return ()
         end
 
         let (flg_iron) = is_in_range(rem.low, seed_random.low,100)
         #  iron
         if flg_iron == 1:
-            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),1)
+            IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(3,0),daily_mint_amount)
             return ()
         end
         return ()
     else:
-        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),1)
+        IPrimitiveMaterial._mint(primitive_material_address,owner,Uint256(0,0),daily_mint_amount)
         return ()
     end
 end
@@ -283,9 +342,10 @@ func check_reward{
     alloc_locals
     let (local last_login_time) = get_last_login_time.read(owner)
     let (local current_time) = get_block_timestamp()
+    let (check_time) = get_elapsed_time()
     let elapsed_time = current_time - last_login_time
     
-    let (local flg) = is_nn(elapsed_time - 86400)
+    let (local flg) = is_nn(elapsed_time - check_time)
     
     return (flg)
 end 
