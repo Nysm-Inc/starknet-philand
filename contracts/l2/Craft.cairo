@@ -1,6 +1,7 @@
 %lang starknet
 %builtins pedersen range_check bitwise
 
+# // SPDX-License-Identifier: GPL-2.0-or-later
 from starkware.cairo.common.alloc import alloc
 from starkware.cairo.common.cairo_builtins import (HashBuiltin,
     BitwiseBuiltin)
