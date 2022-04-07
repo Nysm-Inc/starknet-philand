@@ -4,7 +4,8 @@ import numpy
 from starkware.starknet.testing.starknet import Starknet
 from starkware.starkware_utils.error_handling import StarkException
 from starkware.starknet.definitions.error_codes import StarknetErrorCode
-from utils import Signer, to_split_uint
+from constants import TOKENURI
+from utils import Signer, to_split_uint, felt_to_str, str_to_felt_array
 
 signer = Signer(123456789987654321)
 other = Signer(123456789987654321)
@@ -221,3 +222,20 @@ async def test_ERC1155_Enumerable_token_totalSupply_batch(object_factory):
     print(tburn)
     burn_supply = (await object.ERC1155_Enumerable_token_burnCounter_batch([to_split_uint(1), to_split_uint(1), to_split_uint(2), to_split_uint(3), to_split_uint(3)]).call()).result
     print(burn_supply)
+
+
+@pytest.mark.asyncio
+async def test_setTokenURI(object_factory):
+
+    _, object, account, operator = object_factory
+
+    token_id = 1
+    token_uri_felt_array = str_to_felt_array(TOKENURI)
+    await signer.send_transaction(account, object.contract_address, 'setTokenURI', [len(token_uri_felt_array),*token_uri_felt_array, 1, 0])
+    execution_info = await object.tokenURI(to_split_uint(token_id)).call()
+    token_uri = ""
+    for tu in execution_info.result.token_uri:
+            token_uri += felt_to_str(tu)
+    
+    print(token_uri)
+    assert execution_info.result.token_uri == str_to_felt_array(TOKENURI)
