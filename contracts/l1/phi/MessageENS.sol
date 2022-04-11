@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: CC0-1.0
+// SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.8;
 
 import { IENS } from '../interfaces/IENS.sol';
@@ -14,8 +14,7 @@ contract MessageENS is MultiOwner{
 
     IStarkNetLike _starknetLike;
     IENS _ens;
-    address private _adminSigner;
-    address private _ensaddress;    
+    address private _adminSigner;    
     address private _starknet;
 
     uint256 private CREATE_PHILAND_SELECTOR =
@@ -81,6 +80,9 @@ contract MessageENS is MultiOwner{
     function setEnsBaseNode(bytes32 _basenode) external onlyOwner {
         baseNode = _basenode;
     }
+
+
+    
 
     /*
     * @title createPhiland

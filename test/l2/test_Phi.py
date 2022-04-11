@@ -93,8 +93,8 @@ async def test_write_object(
     payload = [*to_split_uint(ENS_NAME_INT), 2, 2,
                object.contract_address, *to_split_uint(token_id)]
 
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='write_object_to_land',
         calldata=payload)
@@ -110,8 +110,8 @@ async def test_write_object2(
     token_id = 1
     payload = [*to_split_uint(ENS_NAME_INT), 4, 4,
                object.contract_address, *to_split_uint(token_id)]
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='write_object_to_land',
         calldata=payload)
@@ -126,8 +126,8 @@ async def test_write_object_check_collision(
     payload = [*to_split_uint(ENS_NAME_INT), 1, 1,
                object.contract_address, *to_split_uint(token_id)]
     try:
-        await signers[0].send_transaction(
-            account=accounts[0],
+        await signers[1].send_transaction(
+            account=accounts[1],
             to=philand.contract_address,
             selector_name='write_object_to_land',
             calldata=payload)
@@ -138,8 +138,8 @@ async def test_write_object_check_collision(
     token_id = 3
     payload = [*to_split_uint(ENS_NAME_INT), 9, 9,
                object.contract_address, *to_split_uint(token_id)]
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='write_object_to_land',
         calldata=payload)
@@ -147,8 +147,8 @@ async def test_write_object_check_collision(
     payload = [*to_split_uint(ENS_NAME_INT), 10, 10,
                object.contract_address, *to_split_uint(token_id)]
     try:
-        await signers[0].send_transaction(
-            account=accounts[0],
+        await signers[1].send_transaction(
+            account=accounts[1],
             to=philand.contract_address,
             selector_name='write_object_to_land',
             calldata=payload)
@@ -159,8 +159,8 @@ async def test_write_object_check_collision(
     response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     print(response.result)
     payload = [*to_split_uint(ENS_NAME_INT),0]
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='remove_object_from_land',
         calldata=payload)
@@ -171,8 +171,8 @@ async def test_write_object_check_collision(
     token_id = 2
     payload = [*to_split_uint(ENS_NAME_INT), 1, 1,
                object.contract_address, *to_split_uint(token_id)]
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='write_object_to_land',
         calldata=payload)
@@ -203,13 +203,43 @@ async def test_batch_remove_object_from_land(
     starknet, philand, object, accounts = philand_factory
 
     payload = [*to_split_uint(ENS_NAME_INT), 3,1,2,3]
-    await signers[0].send_transaction(
-        account=accounts[0],
+    await signers[1].send_transaction(
+        account=accounts[1],
         to=philand.contract_address,
         selector_name='batch_remove_object_from_land',
         calldata=payload)
     response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 3).call()
     print(response.result.res)
+
+
+@pytest.mark.asyncio
+async def test_batch_write_object_to_land(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+    
+    payload = [*to_split_uint(ENS_NAME_INT), 
+               2, 2, 1,
+               2, 5, 7,
+               2,object.contract_address, object.contract_address, 
+               2,*to_split_uint(0), *to_split_uint(1)]
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=philand.contract_address,
+        selector_name='batch_write_object_to_land',
+        calldata=payload)
+    response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 3).call()
+    print(response.result.res)
+
+
+@pytest.mark.asyncio
+async def test_get_user_philand_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+    print("test_get_user_philand_object")
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
+    print(response.result)
 
 ###########
 # HELPERS #

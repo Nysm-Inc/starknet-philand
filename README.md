@@ -62,13 +62,16 @@ On-chain activity history validation system by using AWS (<https://github.com/Ny
 
 
 ## Check by this command
+(need docker install)
 
 ```
-(need docker install)
-yarn compile
-yarn test:l1 & yarn test:l2
-yarn deploy-deployer:goerli
-yarn deploy-bridge:goerli
+- `python3 -m venv .venv`: Create a virtualenv` on MacOS and Linux
+- `source .venv/bin/activate`: Activate your virtualenv
+- pip install -r requirements.txt
+- yarn compile
+- yarn test:l1 & yarn test:l2
+- yarn deploy-deployer:goerli
+- yarn deploy-bridge:goerli
 ```
 ## Acknowledgments
 

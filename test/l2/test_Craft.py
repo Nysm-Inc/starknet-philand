@@ -381,4 +381,4 @@ async def test_Craft_Enumerable_Counter(craft_factory):
     _, _, _, craft, _, _ = craft_factory
 
     execution_info = await craft.Craft_Enumerable_Counter().call()
-    assert execution_info.result == 11
+    assert execution_info.result.total == (11,0)

@@ -255,6 +255,11 @@ func write_object_to_land{
         token_id : Uint256
     ):
     alloc_locals
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
     let size : ObjectSize = IPhiObject.get_size(contract_address,token_id)
     let philandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  contract_address,
@@ -295,7 +300,14 @@ func batch_write_object_to_land{
         token_id : Uint256*
     ):
     assert x_start_len = y_start_len
-    
+    if x_start_len == 0:
+        return ()
+    end
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
     write_object_to_land(user, [x_start], [y_start],[contract_address],[token_id])
     return batch_write_object_to_land(
         user = user,
@@ -320,7 +332,11 @@ func remove_object_from_land{
         idx : felt
     ):
     alloc_locals
-
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
     let emptyPhilandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  0,
         token_id = Uint256(0, 0),
@@ -344,6 +360,11 @@ func batch_remove_object_from_land{
         idx : felt*
     ):
     alloc_locals
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
     local max = idx_len
     local ret_index = 0
     populate_remove_object_from_land(user, idx_len,idx,ret_index, max)
@@ -428,20 +449,6 @@ func populate_view_philand{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, ran
     
 end
 
-# func remove_zero_contract(array : felt*, length : felt) -> (sum : felt):
-#     if length == 0:
-#         # Start with sum=0.
-#         return (sum=0)
-#     end
-
-#     # let (current_sum) = get_sum(array=array + 1, length=length - 1)
-#     # # This part of the function is first reached when length=0.
-#     # # The sum begins. This is the sequence: 1, 1+23 then 24+2
-#     # let sum = [array] + current_sum
-#     # # The return function targets the body of this function
-#     # # 3 times before returning to the body of read_sum().
-#     return (sum)
-# end
 
 @view
 func get_user_philand_object{
