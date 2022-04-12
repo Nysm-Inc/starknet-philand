@@ -210,16 +210,16 @@ export function printAddresses() {
   const contracts = [
     "account-deployer",
     "MessageENS",
-    "ERC20_Mintable",
-    "CraftedMaterial",
-    "PrimitiveMaterial",
-    "WrapPrimitiveMaterial",
-    "WrapCraftedMaterial",
-    "Object",
-    "Craft",
-    "DailyBonus",
-    "Wrap",
-    "Philand",
+    // "ERC20_Mintable",
+    // "CraftedMaterial",
+    // "PrimitiveMaterial",
+    // "WrapPrimitiveMaterial",
+    // "WrapCraftedMaterial",
+    "PhiObject",
+    // "Craft",
+    // "DailyBonus",
+    // "Wrap",
+    // "Philand",
     "Phi"
   ];
 

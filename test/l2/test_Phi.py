@@ -43,12 +43,12 @@ async def object_factory(account_factory):
     print(f'Deploying phi object contract...')
     object = await starknet.deploy(source=PHIOBJECT_FILE,
                                    constructor_calldata=[accounts[0].contract_address])
-    await signers[0].send_transaction(accounts[0], object.contract_address, '_mint_batch', [accounts[0].contract_address, 4, 0, 0, 1, 0, 2, 0, 3,0,4, 1, 1, 1, 1])
     await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [0, 0, 1, 2, 1])
     await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [1, 0, 4, 2, 1])
     await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [2, 0, 3, 3, 1])
     await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [3, 0, 1, 1, 1])
-    
+    await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [4, 0, 2, 2, 2])
+    await signers[0].send_transaction(accounts[0], object.contract_address, 'set_size', [5, 0, 3, 1, 1])
     print(f'phi object is: {hex(object.contract_address)}')
     
     return starknet, object, accounts
@@ -135,7 +135,7 @@ async def test_write_object(
     philand_factory
 ):
     starknet, philand, object, accounts = philand_factory
-    token_id=0
+    token_id=1
     payload = [*to_split_uint(ENS_NAME_INT), 2, 2,
                object.contract_address, *to_split_uint(token_id)]
 
@@ -146,6 +146,43 @@ async def test_write_object(
         calldata=payload)
     
 
+@pytest.mark.asyncio
+async def test_undeposit_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+
+    token_id = 1
+    payload = [*to_split_uint(ENS_NAME_INT),
+               object.contract_address, *to_split_uint(token_id)]
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=philand.contract_address,
+        selector_name='undeposit_object',
+        calldata=payload)
+
+    response = await philand.check_deposit_state(to_split_uint(ENS_NAME_INT), object.contract_address, to_split_uint(token_id)).call()
+    assert response.result.current_state == 0
+
+
+@pytest.mark.asyncio
+async def test_batch_deposit_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+
+    token_id = 1
+    payload = [*to_split_uint(ENS_NAME_INT),
+               5, object.contract_address, object.contract_address, object.contract_address, object.contract_address, object.contract_address,
+               5, *to_split_uint(1),*to_split_uint(2),*to_split_uint(3),*to_split_uint(4),*to_split_uint(5)]
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=philand.contract_address,
+        selector_name='batch_deposit_object',
+        calldata=payload)
+
+    response = await philand.check_deposit_state(to_split_uint(ENS_NAME_INT), object.contract_address, to_split_uint(token_id)).call()
+    assert response.result.current_state == 1
 
 @pytest.mark.asyncio
 async def test_write_object2(
@@ -214,7 +251,7 @@ async def test_write_object_check_collision(
     response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
     print(response.result)
 
-    token_id = 2
+    token_id = 4
     payload = [*to_split_uint(ENS_NAME_INT), 1, 1,
                object.contract_address, *to_split_uint(token_id)]
     await signers[1].send_transaction(
@@ -256,7 +293,24 @@ async def test_batch_remove_object_from_land(
         calldata=payload)
     response = await philand.get_user_philand_object(to_split_uint(ENS_NAME_INT), 3).call()
     print(response.result.res)
+    response = await philand.view_philand(to_split_uint(ENS_NAME_INT)).call()
+    print(response.result)
 
+@pytest.mark.asyncio
+async def test_batch_check_deposit_state(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+    constract_address = [object.contract_address,
+                         object.contract_address, object.contract_address,
+                         object.contract_address, object.contract_address]
+    token_ids = [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]
+    response = await philand.batch_check_deposit_state(to_split_uint(ENS_NAME_INT),constract_address, token_ids).call()
+    print(response.result.res)
+    assert response.result.res == [1, 1, 1, 1, 1]
+    response = await philand.batch_check_deposit_used_state(to_split_uint(ENS_NAME_INT),constract_address, token_ids).call()
+    print(response.result.res)
+    assert response.result.res == [0, 0, 0, 0, 0]
 
 @pytest.mark.asyncio
 async def test_batch_write_object_to_land(
@@ -268,7 +322,7 @@ async def test_batch_write_object_to_land(
                2, 2, 1,
                2, 5, 7,
                2,object.contract_address, object.contract_address, 
-               2,*to_split_uint(0), *to_split_uint(1)]
+               2,*to_split_uint(1), *to_split_uint(2)]
     await signers[1].send_transaction(
         account=accounts[1],
         to=philand.contract_address,

@@ -64,6 +64,9 @@ end
 func user_deposit_object(user: Uint256,contract_address: felt,token_id:Uint256) -> (res : felt):
 end
 
+@storage_var
+func user_deposit_object_used(user: Uint256,contract_address: felt,token_id:Uint256) -> (res : felt):
+end
 
 @storage_var
 func user_philand_object_idx(user: Uint256) -> (res : felt):
@@ -265,6 +268,15 @@ func write_object_to_land{
         let (l2account) = mapping_ens_l2account.read(user)
         assert  caller=l2account
     end
+    with_attr error_message("caller dose not deposit object"):
+        let (current_state) = user_deposit_object.read(user=user,contract_address=contract_address,token_id=token_id)
+        assert current_state=TRUE
+    end
+    with_attr error_message("caller already used deposit object"):
+        let (current_state) = user_deposit_object_used.read(user=user,contract_address=contract_address,token_id=token_id)
+        assert current_state=FALSE
+    end
+
     let size : ObjectSize = IPhiObject.get_size(contract_address,token_id)
     let philandObjectInfo : PhilandObjectInfo = PhilandObjectInfo(
         contract_address =  contract_address,
@@ -285,6 +297,7 @@ func write_object_to_land{
     check_collision(user=user,writeObject=philandObjectInfo)
     user_philand_object.write(user=user, idx=idx, value = philandObjectInfo)
     user_philand_object_idx.write(user=user,value=idx + 1)
+    user_deposit_object_used.write(user=user,contract_address=contract_address,token_id=token_id,value=TRUE)
     return ()
 end
 
@@ -350,6 +363,8 @@ func remove_object_from_land{
         x_end =  0,
         y_end =  0,
     )
+    let object : PhilandObjectInfo = user_philand_object.read(user=user, idx=idx)
+    user_deposit_object_used.write(user=user,contract_address=object.contract_address,token_id=object.token_id,value=FALSE)
     user_philand_object.write(user=user, idx=idx, value = emptyPhilandObjectInfo)
     return ()
 end
@@ -399,8 +414,9 @@ func populate_remove_object_from_land{
         x_end =  0,
         y_end =  0,
     )
+    let object : PhilandObjectInfo = user_philand_object.read(user=user, idx=idx[0])
+    user_deposit_object_used.write(user=user,contract_address=object.contract_address,token_id=object.token_id,value=FALSE)
     user_philand_object.write(user, [idx], value = emptyPhilandObjectInfo)
-    
     return populate_remove_object_from_land(
         user,
         idx_len - 1,
@@ -444,8 +460,56 @@ func deposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
         amount=1)
 
     user_deposit_object.write(user=user,contract_address=contract_address,token_id=token_id,value=TRUE)
-
     return (TRUE)
+end
+
+@external
+func batch_deposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user : Uint256,
+        contract_address_len : felt,
+        contract_address : felt*,
+        token_id_len : felt,
+        token_id : Uint256*
+        ) 
+        -> (
+        success : felt):
+    alloc_locals
+    if token_id_len == 0:
+        return (TRUE)
+    end
+    let (caller_address) = get_caller_address()
+    assert_not_zero(caller_address)
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
+    let (phi_contract_address) = get_contract_address()
+    let (object_address) = _object_address.read()
+
+    # current stake has to be not deposit
+    let (current_state) = user_deposit_object.read(user=user,contract_address=[contract_address],token_id=[token_id])
+    assert (current_state) = FALSE
+
+    let (account_from_balance) = IPhiObject.balance_of(object_address,
+        owner=caller_address, token_id=[token_id])
+    assert_nn_le(1,account_from_balance)
+
+    IPhiObject.safe_transfer_from(
+        contract_address=object_address,
+        _from=caller_address,
+        to=phi_contract_address,
+        token_id=[token_id],
+        amount=1)
+
+    user_deposit_object.write(user=user,contract_address=[contract_address],token_id=[token_id],value=TRUE)
+    return batch_deposit_object(
+        user=user,
+        contract_address_len = contract_address_len - 1,
+        contract_address = contract_address + 1,
+        token_id_len = token_id_len - 1,
+        token_id = token_id + 2
+        )
 end
 
 @external
@@ -456,9 +520,17 @@ func undeposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         success : felt):
     alloc_locals
 
-   let (caller_address) = get_caller_address()
+    let (caller_address) = get_caller_address()
     assert_not_zero(caller_address)
-
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
+    with_attr error_message("object used by phi"):
+        let (current_state) = user_deposit_object_used.read(user=user,contract_address=contract_address,token_id=token_id)
+        assert  current_state=FALSE
+    end
     let (phi_contract_address) = get_contract_address()
     let (object_address) = _object_address.read()
 
@@ -478,6 +550,8 @@ func undeposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     return (TRUE)
 end
 
+
+
 @view 
 func check_deposit_state{
         syscall_ptr : felt*,
@@ -491,6 +565,74 @@ func check_deposit_state{
     alloc_locals
     let (current_state) = user_deposit_object.read(user=user,contract_address=contract_address,token_id=token_id)
     return (current_state)
+end
+
+@view 
+func batch_check_deposit_state{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }( user : Uint256,
+        contract_address_len : felt,
+        contract_address : felt*,
+        token_ids_len : felt,
+        token_ids : Uint256*
+        ) -> (
+        res_len : felt, res : felt*
+    ):
+    alloc_locals
+    assert contract_address_len = token_ids_len
+    local max = contract_address_len
+    let (local ret_array : felt*) = alloc()
+    local ret_index = 0
+    populate_batch_check_deposit_state(user, contract_address,token_ids, ret_array, ret_index, max)
+    return (max, ret_array)
+end
+
+func populate_batch_check_deposit_state{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        user : Uint256, contract_address :felt*, token_ids : Uint256*, rett : felt*, ret_index : felt, max : felt):
+    alloc_locals
+    if ret_index == max:
+        return ()
+    end
+    let (local retval0 : felt) = user_deposit_object.read(user=user,contract_address=contract_address[0],token_id=token_ids[0])
+    rett[0] = retval0
+    populate_batch_check_deposit_state(user, contract_address + 1,token_ids + 2, rett + 1, ret_index + 1, max)
+    return ()
+end
+
+@view 
+func batch_check_deposit_used_state{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }( user : Uint256,
+        contract_address_len : felt,
+        contract_address : felt*,
+        token_ids_len : felt,
+        token_ids : Uint256*
+        ) -> (
+        res_len : felt, res : felt*
+    ):
+    alloc_locals
+    assert contract_address_len = token_ids_len
+    local max = contract_address_len
+    let (local ret_array : felt*) = alloc()
+    local ret_index = 0
+    populate_batch_check_deposit_used_state(user, contract_address,token_ids, ret_array, ret_index, max)
+    return (max, ret_array)
+end
+
+func populate_batch_check_deposit_used_state{pedersen_ptr : HashBuiltin*, syscall_ptr : felt*, range_check_ptr}(
+        user : Uint256, contract_address :felt*, token_ids : Uint256*, rett : felt*, ret_index : felt, max : felt):
+    alloc_locals
+    if ret_index == max:
+        return ()
+    end
+    let (local retval0 : felt) = user_deposit_object_used.read(user=user,contract_address=contract_address[0],token_id=token_ids[0])
+    rett[0] = retval0
+    populate_batch_check_deposit_used_state(user, contract_address + 1,token_ids + 2, rett + 1, ret_index + 1, max)
+    return ()
 end
 
 @view
