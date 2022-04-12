@@ -15,7 +15,7 @@ from starkware.cairo.common.math_cmp import (
     is_le_felt)
 from starkware.starknet.common.syscalls import (call_contract,
     get_caller_address,get_block_timestamp,get_contract_address)
-from starkware.cairo.common.uint256 import (Uint256, uint256_le)
+from starkware.cairo.common.uint256 import (Uint256, uint256_le,uint256_eq)
 from contracts.l2.utils.Ownable_base import (
     Ownable_initializer,
     Ownable_only_owner,
@@ -60,6 +60,11 @@ struct ObjectSize:
 end
 
 ##### Storage #####
+@storage_var
+func user_deposit_object(user: Uint256,contract_address: felt,token_id:Uint256) -> (res : felt):
+end
+
+
 @storage_var
 func user_philand_object_idx(user: Uint256) -> (res : felt):
 end
@@ -405,6 +410,89 @@ func populate_remove_object_from_land{
         )
 end
 
+@external
+func deposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user : Uint256,
+        contract_address : felt,
+        token_id : Uint256) -> (
+        success : felt):
+    
+    alloc_locals
+    let (caller_address) = get_caller_address()
+    assert_not_zero(caller_address)
+    with_attr error_message("caller ens owner dose not match"):
+        let (caller) = get_caller_address()
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
+    let (phi_contract_address) = get_contract_address()
+    let (object_address) = _object_address.read()
+
+    # current stake has to be not deposit
+    let (current_state) = user_deposit_object.read(user=user,contract_address=contract_address,token_id=token_id)
+    assert (current_state) = FALSE
+
+    let (account_from_balance) = IPhiObject.balance_of(object_address,
+        owner=caller_address, token_id=token_id)
+    assert_nn_le(1,account_from_balance)
+
+    IPhiObject.safe_transfer_from(
+        contract_address=object_address,
+        _from=caller_address,
+        to=phi_contract_address,
+        token_id=token_id,
+        amount=1)
+
+    user_deposit_object.write(user=user,contract_address=contract_address,token_id=token_id,value=TRUE)
+
+    return (TRUE)
+end
+
+@external
+func undeposit_object{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        user : Uint256,
+        contract_address : felt,
+        token_id : Uint256) -> (
+        success : felt):
+    alloc_locals
+
+   let (caller_address) = get_caller_address()
+    assert_not_zero(caller_address)
+
+    let (phi_contract_address) = get_contract_address()
+    let (object_address) = _object_address.read()
+
+    # current stake has to be deposit
+    let (current_state) = user_deposit_object.read(user=user,contract_address=contract_address,token_id=token_id)
+    assert (current_state) = TRUE
+    
+    IPhiObject.safe_transfer_from(
+        contract_address=object_address,
+        _from=phi_contract_address,
+        to=caller_address,
+        token_id=token_id,
+        amount=1)
+
+    user_deposit_object.write(user=user,contract_address=contract_address,token_id=token_id,value=FALSE)
+
+    return (TRUE)
+end
+
+@view 
+func check_deposit_state{
+        syscall_ptr : felt*,
+        pedersen_ptr : HashBuiltin*,
+        range_check_ptr
+    }( user : Uint256,
+        contract_address : felt,
+        token_id : Uint256) -> (
+        current_state : felt
+    ):
+    alloc_locals
+    let (current_state) = user_deposit_object.read(user=user,contract_address=contract_address,token_id=token_id)
+    return (current_state)
+end
+
 @view
 func view_philand{
         syscall_ptr : felt*,
@@ -420,6 +508,7 @@ func view_philand{
         let (user_flg) = claimed_user.read(user)
         assert  user_flg=TRUE 
     end
+    
     let (local max) = user_philand_object_idx.read(user=user)
     let (local object_array : PhilandObjectInfo*) = alloc()
     local ret_index = 0
@@ -469,10 +558,19 @@ func claim_starter_object{
         pedersen_ptr : HashBuiltin*,
         range_check_ptr
     }(
-        user : Uint256,
-        receive_address : felt
+        user : Uint256
     ):
     alloc_locals
+    let (caller) = get_caller_address()
+    with_attr error_message("philand dose not exist"):
+        let (user_flg) = claimed_user.read(user)
+        assert  user_flg=TRUE 
+    end
+    with_attr error_message("caller ens owner dose not match"):
+        
+        let (l2account) = mapping_ens_l2account.read(user)
+        assert  caller=l2account
+    end
     let (local object) = _object_address.read()
     let (felt_array : felt*) = alloc()
     assert [felt_array] = 1
@@ -488,7 +586,7 @@ func claim_starter_object{
     assert [uint256_array + 6] = Uint256(4,0)
     assert [uint256_array + 8] = Uint256(5,0)
 
-    IPhiObject._mint_batch(object,receive_address, 5,uint256_array,5,felt_array)
+    IPhiObject._mint_batch(object,caller, 5,uint256_array,5,felt_array)
     
     return ()
 end

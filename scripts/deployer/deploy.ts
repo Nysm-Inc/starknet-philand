@@ -1,7 +1,6 @@
 /**
  * Full goerli deploy including any permissions that need to be set.
  */
-import { parseFixed } from "@ethersproject/bignumber";
 import { getRequiredEnv } from "@makerdao/hardhat-utils";
 import {
   // CHECK_STATUS_TIMEOUT,
@@ -101,97 +100,103 @@ export async function deployBridge(): Promise<void> {
     l1Signer.address,
   ]);
 
-  const l2ERC20: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "ERC20_Mintable",
-    BLOCK_NUMBER,
-    {
-      // name: ("Meta Mintable Token"), symbol: "phi"
-      name: parseFixed("1725995323023367784961866765022190509016966510"),
-      symbol: parseFixed("5066068"),
-      decimals: 18,
-      initial_supply: { low: 500, high: 0 },
-      recipient: asDec(deployer.address),
-      owner: asDec(deployer.address),
-    }
-  );
+  // const l2ERC20: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "ERC20_Mintable",
+  //   BLOCK_NUMBER,
+  //   {
+  //     // name: ("Meta Mintable Token"), symbol: "phi"
+  //     name: parseFixed("1725995323023367784961866765022190509016966510"),
+  //     symbol: parseFixed("5066068"),
+  //     decimals: 18,
+  //     initial_supply: { low: 500, high: 0 },
+  //     recipient: asDec(deployer.address),
+  //     owner: asDec(deployer.address),
+  //   }
+  // );
 
-  const l2PrimitiveMaterial: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "PrimitiveMaterial",
-    BLOCK_NUMBER,
-    {
-      owner: asDec(deployer.address),
-    }
-  );
+  // const l2PrimitiveMaterial: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "PrimitiveMaterial",
+  //   BLOCK_NUMBER,
+  //   {
+  //     owner: asDec(deployer.address),
+  //   }
+  // );
 
-  const l2CraftedMaterial: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "CraftedMaterial",
-    BLOCK_NUMBER,
-    {
-      owner: asDec(deployer.address),
-    }
-  );
-  const l2WrapPrimitiveMaterial: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "WrapPrimitiveMaterial",
-    BLOCK_NUMBER,
-    {
-      owner: asDec(deployer.address),
-    }
-  );
-  const l2WrapCraftedMaterial: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "WrapCraftedMaterial",
-    BLOCK_NUMBER,
-    {
-      owner: asDec(deployer.address),
-    }
-  );
+  // const l2CraftedMaterial: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "CraftedMaterial",
+  //   BLOCK_NUMBER,
+  //   {
+  //     owner: asDec(deployer.address),
+  //   }
+  // );
+  // const l2WrapPrimitiveMaterial: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "WrapPrimitiveMaterial",
+  //   BLOCK_NUMBER,
+  //   {
+  //     owner: asDec(deployer.address),
+  //   }
+  // );
+  // const l2WrapCraftedMaterial: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "WrapCraftedMaterial",
+  //   BLOCK_NUMBER,
+  //   {
+  //     owner: asDec(deployer.address),
+  //   }
+  // );
 
-  const l2Wrap: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "Wrap",
-    BLOCK_NUMBER,
-    {
-      primitive_material_address: asDec(l2PrimitiveMaterial.address),
-      crafted_material_address: asDec(l2CraftedMaterial.address),
-      wrap_primitive_material_address: asDec(l2WrapPrimitiveMaterial.address),
-      wrap_crafted_material_address: asDec(l2WrapCraftedMaterial.address),
-    }
-  );
+  // const l2Wrap: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "Wrap",
+  //   BLOCK_NUMBER,
+  //   {
+  //     primitive_material_address: asDec(l2PrimitiveMaterial.address),
+  //     crafted_material_address: asDec(l2CraftedMaterial.address),
+  //     wrap_primitive_material_address: asDec(l2WrapPrimitiveMaterial.address),
+  //     wrap_crafted_material_address: asDec(l2WrapCraftedMaterial.address),
+  //   }
+  // );
 
   const l2Object: StarknetContract = await deployL2(
     STARKNET_NETWORK,
-    "Object",
+    "PhiObject",
     BLOCK_NUMBER,
     {
       owner: asDec(deployer.address),
     }
   );
 
-  const l2DailyBonus: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "DailyBonus",
-    BLOCK_NUMBER,
-    {
-      IXoroshiro_address: asDec(XOROSHIRO_ADDRESS),
-      primitive_material_address: asDec(l2PrimitiveMaterial.address),
-      erc20Address: asDec(l2ERC20.address),
-      treasury_address: asDec(deployer.address),
-    }
-  );
-  const l2Craft: StarknetContract = await deployL2(
-    STARKNET_NETWORK,
-    "Craft",
-    BLOCK_NUMBER,
-    {
-      primitive_material_address: asDec(l2PrimitiveMaterial.address),
-      crafted_material_address: asDec(l2CraftedMaterial.address),
-    }
-  );
-  const l2PHILAND = await deployL2(STARKNET_NETWORK, "Philand", BLOCK_NUMBER, {
+  // const l2DailyBonus: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "DailyBonus",
+  //   BLOCK_NUMBER,
+  //   {
+  //     IXoroshiro_address: asDec(XOROSHIRO_ADDRESS),
+  //     primitive_material_address: asDec(l2PrimitiveMaterial.address),
+  //     erc20Address: asDec(l2ERC20.address),
+  //     treasury_address: asDec(deployer.address),
+  //   }
+  // );
+  // const l2Craft: StarknetContract = await deployL2(
+  //   STARKNET_NETWORK,
+  //   "Craft",
+  //   BLOCK_NUMBER,
+  //   {
+  //     primitive_material_address: asDec(l2PrimitiveMaterial.address),
+  //     crafted_material_address: asDec(l2CraftedMaterial.address),
+  //   }
+  // );
+  // const l2PHILAND = await deployL2(STARKNET_NETWORK, "Philand", BLOCK_NUMBER, {
+  //   object_address: asDec(l2Object.address),
+  //   l1_philand_address: asDec(Message.address),
+  //   // //  token_uri_len : 4,
+  //   //  token_uri : token_uri,
+  // });
+    const l2PHI = await deployL2(STARKNET_NETWORK, "Phi", BLOCK_NUMBER, {
     object_address: asDec(l2Object.address),
     l1_philand_address: asDec(Message.address),
     // //  token_uri_len : 4,
@@ -215,6 +220,7 @@ export function printAddresses() {
     "DailyBonus",
     "Wrap",
     "Philand",
+    "Phi"
   ];
 
   const addresses = contracts.reduce(

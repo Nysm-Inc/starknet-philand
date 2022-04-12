@@ -85,6 +85,52 @@ async def test_create_philand(
 
 
 @pytest.mark.asyncio
+async def test_claim_starter_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+    payload = [*to_split_uint(ENS_NAME_INT)]
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=philand.contract_address,
+        selector_name='claim_starter_object',
+        calldata=payload)
+
+    account_check = [accounts[1].contract_address,
+                     accounts[1].contract_address, accounts[1].contract_address,
+                     accounts[1].contract_address, accounts[1].contract_address]
+    token_ids = [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]
+    response = await object.balance_of_batch(account_check, token_ids).call()
+    print(response.result.res)
+    assert response.result.res == [1, 1, 1, 1, 1]
+    assert len(response.result.res) == len(token_ids)
+
+
+@pytest.mark.asyncio
+async def test_deposit_object(
+    philand_factory
+):
+    starknet, philand, object, accounts = philand_factory
+
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=object.contract_address,
+        selector_name='set_approval_for_all',
+        calldata=[philand.contract_address,1])
+
+    token_id = 1
+    payload = [*to_split_uint(ENS_NAME_INT),
+               object.contract_address, *to_split_uint(token_id)]
+    await signers[1].send_transaction(
+        account=accounts[1],
+        to=philand.contract_address,
+        selector_name='deposit_object',
+        calldata=payload)
+
+    response = await philand.check_deposit_state(to_split_uint(ENS_NAME_INT), object.contract_address, to_split_uint(token_id)).call()
+    assert response.result.current_state == 1
+
+@pytest.mark.asyncio
 async def test_write_object(
     philand_factory
 ):
